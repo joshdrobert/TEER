@@ -101,7 +101,7 @@ class AttentionUNet3D(nn.Module):
         return self.head(d1)
 
 
-@dataclass(slots=True)
+@dataclass
 class SegmentationBatch:
     """Container for model-ready batch tensors."""
 

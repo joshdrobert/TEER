@@ -17,7 +17,7 @@ from .schemas import PipelineRunSummary, TEERPipelineConfig
 from .segmentation import MitralSegmentationEngine
 
 
-@dataclass(slots=True)
+@dataclass
 class PipelineComponents:
     """Concrete services wired into the orchestrator."""
 

@@ -15,7 +15,7 @@ from .exceptions import AnonymizationError, CorruptedSpatialHeaderError
 from .schemas import AnonymizationRecord, DICOMFrame, PreprocessingConfig, VolumeMetadata
 
 
-@dataclass(slots=True)
+@dataclass
 class ClinicalVolume:
     """Container for a preprocessed 3D or 4D TEE volume."""
 

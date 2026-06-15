@@ -7,7 +7,7 @@ name = "teer-cdss"
 version = "0.1.0"
 description = "Patient-specific TEER decision support scaffolding for mitral valve intervention planning."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 authors = [
   { name = "OpenAI Codex" }
 ]

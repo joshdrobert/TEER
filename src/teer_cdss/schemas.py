@@ -21,7 +21,15 @@ class SegmentationLabel(int, Enum):
     COAPTATION_ZONE = 4
 
 
-@dataclass(slots=True)
+class MVSeg2023Label(int, Enum):
+    """Native labels from the MICCAI 2023 MVSeg dataset."""
+
+    BACKGROUND = 0
+    POSTERIOR_LEAFLET = 1
+    ANTERIOR_LEAFLET = 2
+
+
+@dataclass
 class DatasetResource:
     """Description of a source dataset and local storage contract."""
 
@@ -31,9 +39,11 @@ class DatasetResource:
     image_suffix: str
     label_suffix: str
     archive_name: Optional[str] = None
+    split_archives: Dict[str, Path] = field(default_factory=dict)
+    label_names: Dict[int, str] = field(default_factory=dict)
 
 
-@dataclass(slots=True)
+@dataclass
 class VolumeMetadata:
     """Spatial and temporal metadata for an image volume."""
 
@@ -45,7 +55,7 @@ class VolumeMetadata:
     cardiac_phase: Optional[str] = None
 
 
-@dataclass(slots=True)
+@dataclass
 class NiftiPair:
     """Matched ultrasound volume and label paths."""
 
@@ -54,7 +64,7 @@ class NiftiPair:
     subject_id: str
 
 
-@dataclass(slots=True)
+@dataclass
 class DICOMFrame:
     """A single DICOM frame with metadata needed for 4D echo assembly."""
 
@@ -64,7 +74,7 @@ class DICOMFrame:
     array_shape: Tuple[int, int, int]
 
 
-@dataclass(slots=True)
+@dataclass
 class AnonymizationRecord:
     """Track each field scrubbed or retained during HIPAA anonymization."""
 
@@ -74,7 +84,7 @@ class AnonymizationRecord:
     operator: str
 
 
-@dataclass(slots=True)
+@dataclass
 class PreprocessingConfig:
     """Voxel and temporal normalization configuration."""
 
@@ -84,7 +94,7 @@ class PreprocessingConfig:
     intensity_clip_range: Tuple[float, float] = (0.0, 1.0)
 
 
-@dataclass(slots=True)
+@dataclass
 class UltrasoundAugmentationConfig:
     """Data augmentation parameters tailored to ultrasound physics."""
 
@@ -94,7 +104,7 @@ class UltrasoundAugmentationConfig:
     elastic_sigma: float = 0.75
 
 
-@dataclass(slots=True)
+@dataclass
 class SegmentationConfig:
     """Configuration for the 3D mitral segmentation network."""
 
@@ -105,7 +115,7 @@ class SegmentationConfig:
     temporal_latent_dim: int = 32
 
 
-@dataclass(slots=True)
+@dataclass
 class MeshConfig:
     """Surface extraction and tetrahedralization parameters."""
 
@@ -115,7 +125,7 @@ class MeshConfig:
     tetrahedral_edge_length_mm: float = 0.6
 
 
-@dataclass(slots=True)
+@dataclass
 class MitraClipSpecification:
     """Mechanical geometry inputs for a parametric MitraClip surrogate."""
 
@@ -126,7 +136,7 @@ class MitraClipSpecification:
     opening_angle_deg: float = 45.0
 
 
-@dataclass(slots=True)
+@dataclass
 class FluidProperties:
     """Blood material parameters for the FSI domain."""
 
@@ -135,7 +145,7 @@ class FluidProperties:
     model: str = "carreau-yasuda"
 
 
-@dataclass(slots=True)
+@dataclass
 class TissueProperties:
     """Leaflet constitutive parameters for a hyperelastic material model."""
 
@@ -147,7 +157,7 @@ class TissueProperties:
     k2_unitless: float = 7.5
 
 
-@dataclass(slots=True)
+@dataclass
 class ClipPlacement:
     """Position and orientation of a MitraClip on the coaptation line."""
 
@@ -157,7 +167,7 @@ class ClipPlacement:
     theta_deg: float
 
 
-@dataclass(slots=True)
+@dataclass
 class SimulationRequest:
     """FSI-ready configuration for a specific candidate intervention."""
 
@@ -169,7 +179,7 @@ class SimulationRequest:
     output_dir: Path
 
 
-@dataclass(slots=True)
+@dataclass
 class StressMapSummary:
     """Compact summary of clinically relevant stress outputs."""
 
@@ -178,7 +188,7 @@ class StressMapSummary:
     hotspot_coordinates_mm: List[Vector3] = field(default_factory=list)
 
 
-@dataclass(slots=True)
+@dataclass
 class SimulationResult:
     """Key hemodynamic and structural outputs from the FSI solver."""
 
@@ -188,7 +198,7 @@ class SimulationResult:
     output_artifacts: Dict[str, Path]
 
 
-@dataclass(slots=True)
+@dataclass
 class OptimizationWeights:
     """Clinical weighting factors for the objective function."""
 
@@ -197,7 +207,7 @@ class OptimizationWeights:
     gamma: float = 0.1
 
 
-@dataclass(slots=True)
+@dataclass
 class CandidateOutcome:
     """Objective evaluation for one candidate clip configuration."""
 
@@ -210,7 +220,7 @@ class CandidateOutcome:
     simulation_artifact_dir: Optional[Path] = None
 
 
-@dataclass(slots=True)
+@dataclass
 class ExportOverlayPoint:
     """Point projected into fusion-imaging coordinate space."""
 
@@ -219,7 +229,7 @@ class ExportOverlayPoint:
     orientation_deg: float
 
 
-@dataclass(slots=True)
+@dataclass
 class ExportPayload:
     """Serializable payload for physician review and fusion overlay systems."""
 
@@ -237,7 +247,7 @@ class ExportPayload:
         return asdict(self)
 
 
-@dataclass(slots=True)
+@dataclass
 class PipelineRunSummary:
     """Top-level return object for the orchestrated pipeline."""
 
@@ -247,7 +257,7 @@ class PipelineRunSummary:
     artifacts: Dict[str, Path]
 
 
-@dataclass(slots=True)
+@dataclass
 class TEERPipelineConfig:
     """Aggregate configuration for all pipeline stages."""
 
@@ -265,15 +275,25 @@ class TEERPipelineConfig:
     @classmethod
     def default(cls, workspace: Path) -> "TEERPipelineConfig":
         """Build a default configuration rooted in the current workspace."""
+        mvseg_archives = {
+            "train": workspace / "data" / "train.zip",
+            "val": workspace / "data" / "val.zip",
+            "test": workspace / "data" / "test.zip",
+        }
         return cls(
             datasets=[
                 DatasetResource(
                     name="MVSeg2023",
-                    uri="hf://pcarnah/MVSeg2023",
+                    uri="local://data",
                     local_root=workspace / "data" / "mvseg2023",
-                    image_suffix="_US.nii.gz",
-                    label_suffix="_label.nii.gz",
-                    archive_name="MVSeg2023.zip",
+                    image_suffix="-US.nii.gz",
+                    label_suffix="-label.nii.gz",
+                    split_archives=mvseg_archives,
+                    label_names={
+                        0: "background",
+                        1: "posterior_leaflet",
+                        2: "anterior_leaflet",
+                    },
                 ),
                 DatasetResource(
                     name="MVAA2026",
@@ -284,6 +304,13 @@ class TEERPipelineConfig:
                 ),
             ]
         )
+
+    @classmethod
+    def mvseg2023_training(cls, workspace: Path) -> "TEERPipelineConfig":
+        """Build a training-oriented config matching the native MVSeg2023 labels."""
+        config = cls.default(workspace)
+        config.segmentation = SegmentationConfig(out_channels=len(MVSeg2023Label))
+        return config
 
 
 def serialize_paths(mapping: Mapping[str, Path]) -> Dict[str, str]:

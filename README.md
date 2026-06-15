@@ -36,7 +36,7 @@ src/teer_cdss/
 
 ## Requirements
 
-- Python 3.10+
+- Python 3.9+
 - Dependencies declared in [pyproject.toml](/Users/josh/Documents/TEER/pyproject.toml)
 
 ## Install
@@ -49,5 +49,74 @@ pip install -e .
 
 ```bash
 teer-pipeline --help
+teer-pipeline prepare-data
+teer-pipeline data-summary
+teer-pipeline run /path/to/dicom1.dcm /path/to/dicom2.dcm --workspace ./run-output
 python -m compileall src
 ```
+
+## Dataset Adaptation: MVSeg2023 3D TEE
+
+The bundled `data/` directory contains the MICCAI 2023 MVSeg dataset archives:
+
+```text
+data/
+  train.zip
+  val.zip
+  test.zip
+```
+
+Each archive contains single-frame 3D transesophageal echocardiography NIfTI volumes and matching leaflet labels:
+
+```text
+train/train_001-US.nii.gz
+train/train_001-label.nii.gz
+```
+
+Native label IDs:
+
+```text
+0 background
+1 posterior_leaflet
+2 anterior_leaflet
+```
+
+Prepare the local extracted dataset with:
+
+```bash
+teer-pipeline prepare-data
+```
+
+This extracts the splits into:
+
+```text
+data/mvseg2023/
+  train/
+  val/
+  test/
+```
+
+Then verify pair counts with:
+
+```bash
+teer-pipeline data-summary
+```
+
+The default config points directly at these local archives:
+
+```python
+DatasetResource(
+    name="MVSeg2023",
+    uri="local://data",
+    local_root=workspace / "data" / "mvseg2023",
+    image_suffix="-US.nii.gz",
+    label_suffix="-label.nii.gz",
+    split_archives={
+        "train": workspace / "data" / "train.zip",
+        "val": workspace / "data" / "val.zip",
+        "test": workspace / "data" / "test.zip",
+    },
+)
+```
+
+The pipeline still supports generic local zip imports for other manually downloaded 3D TEE datasets through `LocalArchiveDatasetFetcher`.

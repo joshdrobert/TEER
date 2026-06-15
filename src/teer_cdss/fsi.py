@@ -12,7 +12,7 @@ from .exceptions import ContactResolutionError, FSINonConvergenceError
 from .schemas import SimulationRequest, SimulationResult, StressMapSummary
 
 
-@dataclass(slots=True)
+@dataclass
 class FSIRunContext:
     """Filesystem contract passed to the external solver."""
 

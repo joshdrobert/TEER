@@ -20,3 +20,4 @@ ENV/
 .env
 .env.*
 .ipynb_checkpoints/
+data/mvseg2023/

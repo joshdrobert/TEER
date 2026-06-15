@@ -21,7 +21,7 @@ from .schemas import (
 )
 
 
-@dataclass(slots=True)
+@dataclass
 class SearchSpace:
     """Continuous bounds for candidate placement generation."""
 

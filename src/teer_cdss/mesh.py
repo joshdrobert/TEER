@@ -13,7 +13,7 @@ from .exceptions import MeshGenerationError
 from .schemas import MeshConfig, MitraClipSpecification
 
 
-@dataclass(slots=True)
+@dataclass
 class MeshArtifacts:
     """Output meshes used for mechanics and hemodynamics."""
 
