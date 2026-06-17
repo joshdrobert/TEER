@@ -52,8 +52,31 @@ teer-pipeline --help
 teer-pipeline prepare-data
 teer-pipeline data-summary
 teer-pipeline run /path/to/dicom1.dcm /path/to/dicom2.dcm --workspace ./run-output
+teer-pipeline mock-mitral-fsi mitral_valve_with_chordae.obj --workspace .
 python -m compileall src
 ```
+
+## Mock Mitral URIS-FSI Case
+
+The repo now includes a runnable `svMultiPhysics` mock case that:
+
+- morphs the upstream validated URIS-FSI pipe example into an LV-like chamber
+- places `mitral_valve_with_chordae.obj` as an immersed mitral valve surface
+- synthesizes open/close leaflet motion data around the detected annulus
+- runs `svmultiphysics` and writes outputs to `artifacts/mock_mitral_uris_fsi/`
+
+Run it with:
+
+```bash
+teer-pipeline mock-mitral-fsi mitral_valve_with_chordae.obj --workspace .
+```
+
+Important outputs:
+
+- `artifacts/mock_mitral_uris_fsi/solver.xml`
+- `artifacts/mock_mitral_uris_fsi/1-procs/result_005.vtu`
+- `artifacts/mock_mitral_uris_fsi/1-procs/result_uris_MitralValve_005.vtu`
+- `artifacts/mock_mitral_uris_fsi/summary.json`
 
 ## Dataset Adaptation: MVSeg2023 3D TEE
 

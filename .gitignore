@@ -21,3 +21,6 @@ ENV/
 .env.*
 .ipynb_checkpoints/
 data/mvseg2023/
+artifacts/
+.cache/
+external/
