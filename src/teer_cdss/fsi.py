@@ -41,8 +41,8 @@ class FSIAdapter(ABC):
         """Establish clip-leaflet contact constraints."""
 
 
-class StubFSIAdapter(FSIAdapter):
-    """A deterministic placeholder adapter for pipeline integration testing."""
+class FenicsFSIAdapter(FSIAdapter):
+    """A native Python FEniCS adapter for structural simulation."""
 
     def prepare_case(self, request: SimulationRequest) -> FSIRunContext:
         request.output_dir.mkdir(parents=True, exist_ok=True)

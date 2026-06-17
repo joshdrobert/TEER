@@ -27,11 +27,15 @@ def build_parser() -> argparse.ArgumentParser:
     mock_parser = subparsers.add_parser("mock-mitral-fsi", help="Build and run a mock mitral URIS-FSI case.")
     mock_parser.add_argument("valve_obj", type=Path, help="Path to a mitral OBJ surface mesh.")
     mock_parser.add_argument("--workspace", type=Path, default=Path.cwd(), help="Project workspace root.")
-    mock_parser.add_argument("--solver-binary", type=Path, default=None, help="Path to the svMultiPhysics binary.")
 
     render_parser = subparsers.add_parser("render-mock-mitral-fsi", help="Render images and a GIF for a completed mock mitral case.")
     render_parser.add_argument("--case-dir", type=Path, default=None, help="Case directory. Defaults to workspace artifacts path.")
     render_parser.add_argument("--workspace", type=Path, default=Path.cwd(), help="Project workspace root.")
+
+    view_parser = subparsers.add_parser("view-mock-mitral-fsi", help="Open an interactive 3D PyVista viewer for a completed mock mitral case.")
+    view_parser.add_argument("--case-dir", type=Path, default=None, help="Case directory. Defaults to workspace artifacts path.")
+    view_parser.add_argument("--workspace", type=Path, default=Path.cwd(), help="Project workspace root.")
+    view_parser.add_argument("--cutaway", action="store_true", help="Enable cutaway view of the chambers and flow.")
     return parser
 
 
@@ -49,7 +53,7 @@ def _add_run_arguments(parser: argparse.ArgumentParser) -> None:
 
 def main(argv: Sequence[str] | None = None) -> int:
     raw_args = list(argv) if argv is not None else sys.argv[1:]
-    command_names = {"run", "prepare-data", "data-summary", "mock-mitral-fsi", "render-mock-mitral-fsi"}
+    command_names = {"run", "prepare-data", "data-summary", "mock-mitral-fsi", "render-mock-mitral-fsi", "view-mock-mitral-fsi"}
     parser = build_parser() if raw_args and raw_args[0] in command_names else build_legacy_parser()
     args = parser.parse_args(raw_args)
 
@@ -58,9 +62,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     if getattr(args, "command", None) == "data-summary":
         return _data_summary(args.workspace)
     if getattr(args, "command", None) == "mock-mitral-fsi":
-        return _mock_mitral_fsi(args.valve_obj, args.workspace, args.solver_binary)
+        return _mock_mitral_fsi(args.valve_obj, args.workspace)
     if getattr(args, "command", None) == "render-mock-mitral-fsi":
         return _render_mock_mitral_fsi(args.case_dir, args.workspace)
+    if getattr(args, "command", None) == "view-mock-mitral-fsi":
+        return _view_mock_mitral_fsi(args.case_dir, args.workspace, getattr(args, "cutaway", False))
 
     if not args.dicom_paths:
         parser.print_help()
@@ -105,10 +111,10 @@ def _data_summary(workspace: Path) -> int:
     return 0
 
 
-def _mock_mitral_fsi(valve_obj: Path, workspace: Path, solver_binary: Path | None) -> int:
+def _mock_mitral_fsi(valve_obj: Path, workspace: Path) -> int:
     from .mitral_mock import generate_and_run_mock_case
 
-    summary = generate_and_run_mock_case(valve_obj=valve_obj, workspace=workspace, solver_binary=solver_binary)
+    summary = generate_and_run_mock_case(valve_obj=valve_obj, workspace=workspace)
     print(json.dumps(summary.to_dict(), indent=2))
     return 0
 
@@ -119,6 +125,14 @@ def _render_mock_mitral_fsi(case_dir: Path | None, workspace: Path) -> int:
     resolved_case_dir = case_dir or (workspace / "artifacts" / "mock_mitral_uris_fsi")
     summary = render_mock_case(resolved_case_dir)
     print(json.dumps(summary.to_dict(), indent=2))
+    return 0
+
+
+def _view_mock_mitral_fsi(case_dir: Path | None, workspace: Path, cutaway: bool = False) -> int:
+    from .mitral_mock import view_mock_case
+
+    resolved_case_dir = case_dir or (workspace / "artifacts" / "mock_mitral_uris_fsi")
+    view_mock_case(resolved_case_dir, cutaway=cutaway)
     return 0
 
 
@@ -142,4 +156,5 @@ def _print_split_summaries(summaries) -> None:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    import os
+    os._exit(main())
