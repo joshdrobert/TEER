@@ -526,10 +526,10 @@
 
         function parseBinarySTL(buffer) {
             const reader = new DataView(buffer);
-            const numTriangles = reader.getUint32(84, true);
+            const numTriangles = reader.getUint32(80, true);
             const positions = new Float32Array(numTriangles * 9);
             
-            let offset = 88;
+            let offset = 84;
             for (let i = 0; i < numTriangles; i++) {
                 offset += 12; // skip normal
                 for (let v = 0; v < 3; v++) {
