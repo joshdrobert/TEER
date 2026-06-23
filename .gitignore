@@ -30,4 +30,6 @@ segmented_valve_mesh_smoothed_final.msh
 
 # Temporary scratch scripts
 scratch_ns.py
+scratch/
+
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -78,10 +79,12 @@
         #left-control-panel::-webkit-scrollbar {
             width: 6px;
         }
+
         #left-control-panel::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.02);
             border-radius: 3px;
         }
+
         #left-control-panel::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 3px;
@@ -244,9 +247,17 @@
             font-family: monospace;
         }
 
-        .telemetry-value.blue { color: var(--accent-blue); }
-        .telemetry-value.red { color: var(--accent-red); }
-        .telemetry-value.orange { color: var(--accent-orange); }
+        .telemetry-value.blue {
+            color: var(--accent-blue);
+        }
+
+        .telemetry-value.red {
+            color: var(--accent-red);
+        }
+
+        .telemetry-value.orange {
+            color: var(--accent-orange);
+        }
 
         /* Chart Canvas */
         #chart-canvas {
@@ -292,7 +303,7 @@
             font-weight: 700;
             letter-spacing: 1.5px;
             text-transform: uppercase;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             transition: all 0.5s;
         }
 
@@ -335,8 +346,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         #loading-text {
@@ -346,6 +362,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <!-- Loading Screen -->
@@ -370,7 +387,8 @@
         <div class="control-group">
             <div class="section-title">Mesh Selection</div>
             <select id="geometry-select" class="dropdown">
-                <option value="./segmented_valve_mesh_smoothed.stl" selected>Segmented Valve Mesh (25 MB - High-Res STL)</option>
+                <option value="./segmented_valve_mesh_smoothed.stl" selected>Segmented Valve Mesh (25 MB - High-Res STL)
+                </option>
                 <option value="./mitral_valve_with_chordae.obj">Mitral Valve with Chordae (156 KB - Smooth OBJ)</option>
                 <option value="./mitral_valve.obj">Mitral Valve Leaflets Only (92 KB - OBJ)</option>
             </select>
@@ -386,8 +404,11 @@
         </div>
 
         <!-- Interactive Flow controls (Manual Mode) -->
-        <div id="manual-controls" class="control-group" style="display: none; border: 1px dashed var(--border-color); padding: 14px; border-radius: 10px; background: rgba(255,255,255,0.01);">
-            <div class="section-title" style="border:none; padding:0; margin-bottom:10px; font-size:11px; color:var(--accent-blue);">Interactive Pump Controls</div>
+        <div id="manual-controls" class="control-group"
+            style="display: none; border: 1px dashed var(--border-color); padding: 14px; border-radius: 10px; background: rgba(255,255,255,0.01);">
+            <div class="section-title"
+                style="border:none; padding:0; margin-bottom:10px; font-size:11px; color:var(--accent-blue);">
+                Interactive Pump Controls</div>
             <button id="push-blood-btn" class="push-btn">Push Blood (Hold)</button>
             <div style="margin-top: 12px;">
                 <label>Manual Flow Rate <span id="manual-flow-val" class="val-display">0 mL/s</span></label>
@@ -484,7 +505,7 @@
             const positions = [];
             const groupIDs = [];
             let currentGroupID = 0; // 0 = default/none, 1 = anterior, 2 = posterior, 3 = chordae/papillary
-            
+
             for (let line of lines) {
                 line = line.trim();
                 if (line.startsWith('v ')) {
@@ -508,7 +529,7 @@
                     });
                     // Triangulate
                     for (let i = 1; i < parts.length - 1; i++) {
-                        const idxs = [parts[0], parts[i], parts[i+1]];
+                        const idxs = [parts[0], parts[i], parts[i + 1]];
                         for (let idx of idxs) {
                             const v = tempVertices[idx];
                             positions.push(v[0], v[1], v[2]);
@@ -517,7 +538,7 @@
                     }
                 }
             }
-            
+
             const geometry = new THREE.BufferGeometry();
             geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
             geometry.computeVertexNormals();
@@ -528,20 +549,20 @@
             const reader = new DataView(buffer);
             const numTriangles = reader.getUint32(80, true);
             const positions = new Float32Array(numTriangles * 9);
-            
+
             let offset = 84;
             for (let i = 0; i < numTriangles; i++) {
                 offset += 12; // skip normal
                 for (let v = 0; v < 3; v++) {
                     const idx = i * 9 + v * 3;
                     positions[idx] = reader.getFloat32(offset, true);
-                    positions[idx+1] = reader.getFloat32(offset+4, true);
-                    positions[idx+2] = reader.getFloat32(offset+8, true);
+                    positions[idx + 1] = reader.getFloat32(offset + 4, true);
+                    positions[idx + 2] = reader.getFloat32(offset + 8, true);
                     offset += 12;
                 }
                 offset += 2; // skip attribute
             }
-            
+
             const geometry = new THREE.BufferGeometry();
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             geometry.computeVertexNormals();
@@ -567,7 +588,7 @@
             const groupIDs = new Int32Array(size);
             for (let i = 0; i < size; i++) {
                 const idx = i * 3;
-                const y = positions[idx+1];
+                const y = positions[idx + 1];
                 groupIDs[i] = (y <= cy) ? 2 : 1; // Split into anterior (1) and posterior (2) by Y centroid
             }
             return groupIDs;
@@ -585,13 +606,13 @@
             colorMode: 'anatomy', // 'anatomy' | 'pressure'
             meshOpacity: 0.35,
             particleDensity: 700,
-            
+
             // Physical Telemetry variables
             laPressure: 0,
             lvPressure: 0,
             flowRate: 0,
             regurgVolume: 0,
-            
+
             // FSI Variables
             fOpen: 0.0,
             tCycle: 0.0,
@@ -745,11 +766,11 @@
 
         function updateCylinderRepresentation() {
             if (cylinderWireframe) scene.remove(cylinderWireframe);
-            
+
             const cylGeom = new THREE.CylinderGeometry(state.R_cylinder, state.R_cylinder, state.zLen + 20, 24, 1, true);
             cylGeom.rotateX(Math.PI / 2);
             cylGeom.translate(state.cx, state.cy, state.zMin + state.zLen / 2);
-            
+
             const cylMat = new THREE.MeshBasicMaterial({
                 color: 0x1d2d44,
                 wireframe: true,
@@ -803,8 +824,8 @@
             const positions = geometry.attributes.position.array;
             for (let i = 0; i < positions.length; i += 3) {
                 positions[i] -= x;
-                positions[i+1] -= y;
-                positions[i+2] -= z;
+                positions[i + 1] -= y;
+                positions[i + 2] -= z;
             }
             geometry.attributes.position.needsUpdate = true;
             geometry.computeVertexNormals();
@@ -813,7 +834,7 @@
 
         function createFallbackClip() {
             // Clear existing children
-            while(clipMesh.children.length > 0) {
+            while (clipMesh.children.length > 0) {
                 clipMesh.remove(clipMesh.children[0]);
             }
             // Reset rotation
@@ -824,18 +845,18 @@
                 metalness: 0.95,
                 roughness: 0.15
             });
-            
+
             const barrelGeom = new THREE.CylinderGeometry(1.5, 1.5, 12, 12);
             const barrel = new THREE.Mesh(barrelGeom, clipMat);
             barrel.rotation.x = Math.PI / 2;
             clipMesh.add(barrel);
-            
+
             const armGeom = new THREE.BoxGeometry(1.2, 8, 3);
-            
+
             const leftArm = new THREE.Mesh(armGeom, clipMat);
             leftArm.position.set(0, -2.5, 0);
             clipMesh.add(leftArm);
-            
+
             const rightArm = new THREE.Mesh(armGeom, clipMat);
             rightArm.position.set(0, 2.5, 0);
             clipMesh.add(rightArm);
@@ -888,7 +909,7 @@
 
             Promise.all(promises).then(results => {
                 // Clear the fallback boxy meshes
-                while(clipMesh.children.length > 0) {
+                while (clipMesh.children.length > 0) {
                     clipMesh.remove(clipMesh.children[0]);
                 }
 
@@ -951,7 +972,7 @@
             elements.loadingScreen.style.opacity = '1';
             elements.loadingScreen.style.pointerEvents = 'auto';
             elements.loadingText.innerText = "Fetching geometry: " + url.split('/').pop() + "...";
-            
+
             fetch(url)
                 .then(response => {
                     if (url.endsWith('.stl')) {
@@ -1015,22 +1036,12 @@
 
                     const positions = geomData.attributes.position.array;
 
-                    // For the Segmented STL mesh, compute the centroid specifically from the leaflet tip region 
-                    // (the top 20% of vertices, z >= state.zMin + 0.8 * state.zLen) to align the flow orifice perfectly.
+                    // For the Segmented STL mesh, we align the flow orifice and MitraClip perfectly with the actual 
+                    // valve hole center (from visual sectioning analysis) instead of using the raw top-20% centroid,
+                    // which falls on solid leaflet tissue due to structural asymmetry.
                     if (url.endsWith('.stl')) {
-                        let sumX = 0, sumY = 0, count = 0;
-                        for (let i = 0; i < positions.length; i += 3) {
-                            const z = positions[i+2];
-                            if (z >= state.zMin + 0.8 * state.zLen) {
-                                sumX += positions[i];
-                                sumY += positions[i+1];
-                                count++;
-                            }
-                        }
-                        if (count > 0) {
-                            cx = sumX / count;
-                            cy = sumY / count;
-                        }
+                        cx = 145.0;
+                        cy = 86.0;
                     }
 
                     state.cx = cx;
@@ -1060,8 +1071,8 @@
                     const colors = new Float32Array(positions.length);
                     for (let i = 0; i < colors.length; i += 3) {
                         colors[i] = 0.9;
-                        colors[i+1] = 0.9;
-                        colors[i+2] = 0.9;
+                        colors[i + 1] = 0.9;
+                        colors[i + 2] = 0.9;
                     }
                     geomData.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
@@ -1124,11 +1135,11 @@
                 // Spawn randomly in Left Atrium above valve annulus
                 const radius = state.R_cylinder * 0.7 * Math.sqrt(Math.random());
                 const angle = Math.random() * Math.PI * 2;
-                
+
                 this.x = state.cx + radius * Math.cos(angle);
                 this.y = state.cy + radius * Math.sin(angle);
                 this.z = state.zMax + 15.0 + Math.random() * 20.0;
-                
+
                 this.vx = 0;
                 this.vy = 0;
                 this.vz = 0;
@@ -1144,14 +1155,14 @@
                 if (state.cardiacPhase === 'diastole' && Math.abs(vPeak) > 0.1) {
                     // Flow going through open orifice (diastolic fill)
                     const rOrifice = 0.25 * state.R_cylinder * fOpen + 5.0;
-                    
+
                     // Conical jet spreading
                     const zDiff = state.zOrifice - this.z;
                     const rJet = (zDiff > 0.0) ? rOrifice + 0.22 * zDiff : rOrifice;
-                    
+
                     // Target velocity based on Gaussian profile
                     const r_xy = Math.sqrt(Math.pow(this.x - state.cx, 2) + Math.pow(this.y - state.cy, 2));
-                    
+
                     // Split jet if MitraClip is enabled (pinched middle)
                     let dOrifice = r_xy;
                     if (state.mitraClip) {
@@ -1164,7 +1175,7 @@
 
                     const sigmaJet = rJet / 2.0;
                     const vJet = vPeak * Math.exp(-Math.pow(dOrifice, 2) / (2.0 * Math.pow(sigmaJet, 2)));
-                    
+
                     // Spatial z-decay
                     const zDecay = Math.max(0.0, Math.min(1.0, (this.z - (state.zMin - 15.0)) / (state.zOrifice - (state.zMin - 15.0) + 1e-5)));
                     this.vz = vJet * (0.3 + 0.7 * zDecay) * 0.05; // speed scale scaling
@@ -1173,17 +1184,17 @@
                     if (this.z < state.zOrifice) {
                         const zVortex = state.zOrifice - 0.3 * state.zLen;
                         const rVortexRing = 1.3 * rOrifice;
-                        
+
                         const d_r = r_xy - rVortexRing;
                         const d_z = this.z - zVortex;
                         const dDist = Math.sqrt(Math.pow(d_r, 2) + Math.pow(d_z, 2));
-                        
+
                         const sigmaV = 0.15 * state.zLen;
                         const vSwirl = -0.55 * vPeak * (r_xy / (rVortexRing + 1e-5)) * Math.exp(-Math.pow(dDist, 2) / (2.0 * Math.pow(sigmaV, 2)));
-                        
+
                         const vRadial = vSwirl * d_z / (dDist + 1e-5) * 0.05;
                         this.vz += (vSwirl * d_r / (dDist + 1e-5)) * 0.05;
-                        
+
                         this.vx = vRadial * (this.x - state.cx) / (r_xy + 1e-5);
                         this.vy = vRadial * (this.y - state.cy) / (r_xy + 1e-5);
                     } else {
@@ -1196,7 +1207,7 @@
                 } else if (state.cardiacPhase === 'systole') {
                     // Systole (Valve closed): residual swirling and regurgitant jets
                     const r_xy = Math.sqrt(Math.pow(this.x - state.cx, 2) + Math.pow(this.y - state.cy, 2));
-                    
+
                     if (vPeak > 0.5 && this.z >= state.zOrifice) {
                         // Narrow regurgitant leakage jet shooting up into LA
                         const rRegurg = 5.0;
@@ -1209,7 +1220,7 @@
                     } else {
                         // LV slowly decaying residual swirling
                         const vSwirl = 20.0 * Math.exp(-Math.pow(this.z - (state.zMin + 0.3 * state.zLen), 2) / (2.0 * Math.pow(0.2 * state.zLen, 2))) * (r_xy / 15.0) * Math.exp(-Math.pow(r_xy, 2) / (2.0 * Math.pow(20.0, 2))) * Math.sin(Math.PI * (tCycle - 0.5) / 0.5);
-                        
+
                         this.vx = -vSwirl * (this.y - state.cy) / (r_xy + 1e-5) * 0.05;
                         this.vy = vSwirl * (this.x - state.cx) / (r_xy + 1e-5) * 0.05;
                         this.vz = (this.z < state.zOrifice) ? 2.5 : 0.0;
@@ -1369,17 +1380,17 @@
                 // 1. Resolve physiological state & pressures
                 angleTime += delta * (state.heartRate / 60.0);
                 state.tCycle = angleTime % 1.0;
-                
+
                 let pLa = 0, pLv = 0, qFlow = 0, fOpen = 0, vPeak = 0;
-                
+
                 if (state.mode === 'auto') {
                     state.cardiacPhase = (state.tCycle <= 0.5) ? 'diastole' : 'systole';
-                    
+
                     if (state.cardiacPhase === 'diastole') {
                         // Physiological pressure filling curves
                         pLa = 5.0 + 8.0 * Math.exp(-Math.pow(state.tCycle - 0.20, 2) / (2.0 * Math.pow(0.06, 2))) + 5.0 * Math.exp(-Math.pow(state.tCycle - 0.40, 2) / (2.0 * Math.pow(0.05, 2)));
                         pLv = 2.0 + 12.0 * Math.exp(-state.tCycle / 0.08);
-                        
+
                         const deltaP = pLa - pLv;
                         qFlow = (deltaP > 0) ? deltaP / 0.05 : 0;
                         fOpen = Math.min(1.0, qFlow / 250.0);
@@ -1388,11 +1399,11 @@
                         // Systole contraction (high LV pressure barrier)
                         pLv = 5.0 + 115.0 * Math.sin(Math.PI * (state.tCycle - 0.5) / 0.5);
                         pLa = 8.0 + 4.0 * (state.tCycle - 0.5);
-                        
+
                         const deltaP = pLa - pLv;
                         qFlow = deltaP / 3.0; // leakage flow through the gap
                         fOpen = 0.0;
-                        
+
                         const maxPeakLeak = 80.0 * Math.min(1.0, Math.abs(qFlow) / 38.0);
                         vPeak = (state.regurgitationGap > 0) ? maxPeakLeak * (state.regurgitationGap / 10.0) : 0;
                     }
@@ -1400,7 +1411,7 @@
                     // Manual control pump state
                     const flowStrength = state.pushing ? state.manualFlowRate : 0.0;
                     fOpen = Math.min(1.0, flowStrength / 250.0);
-                    
+
                     if (flowStrength > 0.1) {
                         state.cardiacPhase = 'diastole';
                         qFlow = flowStrength;
@@ -1413,7 +1424,7 @@
                         pLa = 8.0;
                         qFlow = (pLa - pLv) / 3.0;
                         fOpen = 0.0;
-                        
+
                         const maxPeakLeak = 80.0 * Math.min(1.0, Math.abs(qFlow) / 38.0);
                         vPeak = (state.regurgitationGap > 0) ? maxPeakLeak * (state.regurgitationGap / 10.0) : 0;
                     }
@@ -1425,12 +1436,12 @@
                 // Sync UI telemetry badges
                 elements.phaseIndicator.innerText = state.cardiacPhase;
                 elements.phaseIndicator.className = "phase-indicator " + state.cardiacPhase;
-                
+
                 elements.telemetryLa.innerText = pLa.toFixed(1) + " mmHg";
                 elements.telemetryLv.innerText = pLv.toFixed(1) + " mmHg";
                 elements.telemetryFlow.innerText = (state.cardiacPhase === 'diastole' ? qFlow.toFixed(0) : "0") + " mL/s";
                 elements.telemetryLeak.innerText = (state.cardiacPhase === 'systole' ? Math.abs(qFlow * (state.regurgitationGap / 10.0)).toFixed(0) : "0") + " mL/s";
-                
+
                 updateLiveChart(pLa, pLv);
 
                 // Update 3D MitraClip position, visibility and closure animation
@@ -1457,10 +1468,10 @@
                 const vCount = positions.length / 3;
 
                 // Determine dynamic valve state: opening (>0) vs closing (<0)
-                const valveState = (state.mode === 'manual') 
-                    ? (state.pushing ? state.fOpen : -1.0) 
+                const valveState = (state.mode === 'manual')
+                    ? (state.pushing ? state.fOpen : -1.0)
                     : ((state.cardiacPhase === 'diastole') ? state.fOpen : -1.0 * Math.min(1.0, (pLv - 5.0) / 115.0));
-                
+
                 // Dynamic closing deflection to seal gap based on mesh size (STL needs larger close deflection)
                 const D_close = elements.geometrySelect.value.endsWith('.stl') ? 14.0 : 6.0;
                 const D_open = 16.0;
@@ -1468,8 +1479,8 @@
                 for (let i = 0; i < vCount; i++) {
                     const idx = i * 3;
                     const ox = origPositions[idx];
-                    const oy = origPositions[idx+1];
-                    const oz = origPositions[idx+2];
+                    const oy = origPositions[idx + 1];
+                    const oz = origPositions[idx + 2];
                     const gid = vertexGroups[i];
 
                     // Normalized height
@@ -1508,8 +1519,8 @@
                         }
                     }
 
-                    positions[idx+1] = oy + dy;
-                    positions[idx+2] = oz + dz;
+                    positions[idx + 1] = oy + dy;
+                    positions[idx + 2] = oz + dz;
 
                     // MitraClip center pinching: seals leaflet edges together in the center (x = cx, y = cy)
                     if (state.mitraClip) {
@@ -1518,20 +1529,20 @@
                         // Gaussian weight: maximum seal at center line, decays laterally over ~8mm
                         const wPinch = Math.exp(-Math.pow(xDist / 8.0, 2));
                         // Interpolate current coordinate towards the center coaptation line 'cy'
-                        positions[idx+1] = positions[idx+1] + (state.cy - positions[idx+1]) * wPinch * dBend;
+                        positions[idx + 1] = positions[idx + 1] + (state.cy - positions[idx + 1]) * wPinch * dBend;
                     }
 
                     // Dynamic colors based on color mode
                     if (state.colorMode === 'anatomy') {
                         // anatomy mapping
                         if (gid === 1) { // anterior - teal
-                            colors[idx] = 0.2; colors[idx+1] = 0.7; colors[idx+2] = 0.8;
+                            colors[idx] = 0.2; colors[idx + 1] = 0.7; colors[idx + 2] = 0.8;
                         } else if (gid === 2) { // posterior - slate blue
-                            colors[idx] = 0.3; colors[idx+1] = 0.4; colors[idx+2] = 0.7;
+                            colors[idx] = 0.3; colors[idx + 1] = 0.4; colors[idx + 2] = 0.7;
                         } else if (gid === 3) { // chordae - white
-                            colors[idx] = 0.85; colors[idx+1] = 0.85; colors[idx+2] = 0.85;
+                            colors[idx] = 0.85; colors[idx + 1] = 0.85; colors[idx + 2] = 0.85;
                         } else {
-                            colors[idx] = 0.6; colors[idx+1] = 0.6; colors[idx+2] = 0.6;
+                            colors[idx] = 0.6; colors[idx + 1] = 0.6; colors[idx + 2] = 0.6;
                         }
                     } else {
                         // pressure mapping (orange high, blue low)
@@ -1539,8 +1550,8 @@
                         const factor = Math.min(localP / 120.0, 1.0);
                         // Blend from Blue (low pressure) to Orange (high pressure)
                         colors[idx] = 0.2 + factor * 0.8;      // R
-                        colors[idx+1] = 0.45 + factor * 0.15;  // G
-                        colors[idx+2] = 0.9 - factor * 0.8;    // B
+                        colors[idx + 1] = 0.45 + factor * 0.15;  // G
+                        colors[idx + 2] = 0.9 - factor * 0.8;    // B
                     }
                 }
                 valveGeometry.attributes.position.needsUpdate = true;
@@ -1558,12 +1569,12 @@
 
                         const idx = i * 3;
                         pPositions[idx] = p.x;
-                        pPositions[idx+1] = p.y;
-                        pPositions[idx+2] = p.z;
+                        pPositions[idx + 1] = p.y;
+                        pPositions[idx + 2] = p.z;
 
                         pColors[idx] = p.speedColor.r;
-                        pColors[idx+1] = p.speedColor.g;
-                        pColors[idx+2] = p.speedColor.b;
+                        pColors[idx + 1] = p.speedColor.g;
+                        pColors[idx + 2] = p.speedColor.b;
                     }
                     particlesGeometry.attributes.position.needsUpdate = true;
                     particlesGeometry.attributes.color.needsUpdate = true;
@@ -1592,4 +1603,5 @@
 
     </script>
 </body>
+
 </html>
