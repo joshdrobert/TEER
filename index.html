@@ -424,7 +424,7 @@
                 <button id="mitraclip-btn" class="toggle-btn">Enable Clip Pinch</button>
                 <div class="control-group" id="clip-position-group" style="display: none; margin-top: 8px;">
                     <label>Clip Position (X) <span id="clip-pos-val" class="val-display">0.0 mm</span></label>
-                    <input type="range" id="clip-pos-slider" min="-15" max="15" step="0.5" value="0" class="slider">
+                    <input type="range" id="clip-pos-slider" min="-30" max="30" step="0.5" value="0" class="slider">
                 </div>
             </div>
             <div class="control-group">
@@ -601,8 +601,9 @@
             manualFlowRate: 0,
             heartRate: 75,
             regurgitationGap: 3.0,
+            effectiveGap: 3.0,
             mitraClip: false,
-            clipXOffset: 0.0,
+            clipXOffset: -15.0,
             colorMode: 'anatomy', // 'anatomy' | 'pressure'
             meshOpacity: 0.35,
             particleDensity: 700,
@@ -699,8 +700,9 @@
         });
 
         elements.clipPosSlider.addEventListener('input', (e) => {
-            state.clipXOffset = parseFloat(e.target.value);
-            elements.clipPosVal.innerText = (state.clipXOffset >= 0 ? '+' : '') + state.clipXOffset.toFixed(1) + ' mm';
+            const userVal = parseFloat(e.target.value);
+            state.clipXOffset = userVal - 15.0;
+            elements.clipPosVal.innerText = (userVal >= 0 ? '+' : '') + userVal.toFixed(1) + ' mm';
         });
 
         elements.heartRateSlider.addEventListener('input', (e) => {
@@ -838,12 +840,12 @@
                 clipMesh.remove(clipMesh.children[0]);
             }
             // Reset rotation
-            clipMesh.rotation.set(0, 0, 0);
+            clipMesh.rotation.set(Math.PI, 0, 0);
 
             const clipMat = new THREE.MeshStandardMaterial({
-                color: 0x94a3b8,
-                metalness: 0.95,
-                roughness: 0.15
+                color: 0xffffff,
+                metalness: 0.1,
+                roughness: 0.3
             });
 
             const barrelGeom = new THREE.CylinderGeometry(1.5, 1.5, 12, 12);
@@ -864,9 +866,9 @@
 
         function loadClipCAD() {
             const clipMat = new THREE.MeshStandardMaterial({
-                color: 0x94a3b8,
-                metalness: 0.95,
-                roughness: 0.15
+                color: 0xffffff,
+                metalness: 0.1,
+                roughness: 0.3
             });
 
             const parts = [
@@ -916,7 +918,7 @@
                 // Apply rotation to align with scene orientation
                 // Rotate 180 degrees around X to point body upwards into atrium
                 // Rotate 90 degrees around Z to align arms with anterior-posterior Y direction
-                clipMesh.rotation.set(0, 0, Math.PI / 2);
+                clipMesh.rotation.set(Math.PI, 0, Math.PI / 2);
 
                 const rightHinge = new THREE.Vector3(0.642251, 0.0, 0.68);
                 const leftHinge = new THREE.Vector3(-0.642251, 0.0, 0.68);
@@ -1015,10 +1017,21 @@
 
                     // Compute centroid & dimensions
                     geomData.computeBoundingBox();
-                    const bbox = geomData.boundingBox;
+                    let bbox = geomData.boundingBox;
                     const zMin = bbox.min.z;
                     const zMax = bbox.max.z;
-                    const zLen = zMax - zMin;
+
+                    // Flip Z coordinates so annulus is at the top (zMax) and leaflets point downwards (zMin)
+                    const positions = geomData.attributes.position.array;
+                    for (let i = 0; i < positions.length; i += 3) {
+                        positions[i + 2] = zMax + zMin - positions[i + 2];
+                    }
+                    // Recompute normal and bounding box after flipping Z
+                    geomData.computeVertexNormals();
+                    geomData.computeBoundingBox();
+                    bbox = geomData.boundingBox;
+
+                    const zLen = bbox.max.z - bbox.min.z;
                     const rx = (bbox.max.x - bbox.min.x) / 2;
                     const ry = (bbox.max.y - bbox.min.y) / 2;
                     const r_cyl = Math.max(rx, ry) + 5.0;
@@ -1028,13 +1041,11 @@
                     let cy = (bbox.min.y + bbox.max.y) / 2;
 
                     // Update states
-                    state.zMin = zMin;
-                    state.zMax = zMax;
+                    state.zMin = bbox.min.z;
+                    state.zMax = bbox.max.z;
                     state.zLen = zLen;
                     state.R_cylinder = r_cyl;
-                    state.zOrifice = state.zMin + 0.8 * state.zLen; // leaflets are at the top (80% height)
-
-                    const positions = geomData.attributes.position.array;
+                    state.zOrifice = state.zMin + 0.2 * state.zLen; // leaflets are at the bottom (20% height)
 
                     // For the Segmented STL mesh, we align the flow orifice and MitraClip perfectly with the actual 
                     // valve hole center (from visual sectioning analysis) instead of using the raw top-20% centroid,
@@ -1144,7 +1155,7 @@
                 this.vy = 0;
                 this.vz = 0;
                 this.age = 0;
-                this.maxAge = 120 + Math.random() * 80;
+                this.maxAge = 220 + Math.random() * 100;
                 this.speedColor = new THREE.Color();
             }
 
@@ -1239,7 +1250,7 @@
                 // 2D Valve leaf collision boundaries block (when valve is closed)
                 if (state.cardiacPhase === 'systole' && this.z < state.zOrifice && (this.z + this.vz) >= state.zOrifice - 2) {
                     const r_xy = Math.sqrt(Math.pow(this.x - state.cx, 2) + Math.pow(this.y - state.cy, 2));
-                    if (r_xy < state.R_cylinder * 0.9 && Math.random() > (state.regurgitationGap / 10.0)) {
+                    if (r_xy < state.R_cylinder * 0.9 && Math.random() > (state.effectiveGap / 10.0)) {
                         // Bounce/Block
                         this.z = state.zOrifice - 2;
                         this.vz = -Math.abs(this.vz) * 0.2;
@@ -1248,7 +1259,7 @@
 
                 // Reset boundary checks (too old, outside cylinder, too low, or too high)
                 const distCenter = Math.sqrt(Math.pow(this.x - state.cx, 2) + Math.pow(this.y - state.cy, 2));
-                if (this.age > this.maxAge || distCenter > state.R_cylinder * 0.98 || this.z < state.zMin - 15.0 || this.z > state.zMax + 30.0) {
+                if (this.age > this.maxAge || distCenter > state.R_cylinder * 1.05 || this.z < state.zMin - 45.0 || this.z > state.zMax + 30.0) {
                     this.reset();
                 }
 
@@ -1381,6 +1392,19 @@
                 angleTime += delta * (state.heartRate / 60.0);
                 state.tCycle = angleTime % 1.0;
 
+                // Calculate dynamic effective regurgitation gap based on clip proximity
+                let effectiveGap = state.regurgitationGap;
+                if (state.mitraClip) {
+                    // Pathology is at center (x = 0). Calculate distance to clip.
+                    const clipDistance = Math.abs(state.clipXOffset);
+                    // Gaussian proximity factor: maximum reduction at center, decays to 0 beyond ~15mm
+                    const proximityFactor = Math.exp(-Math.pow(clipDistance / 12.0, 2));
+                    // A perfectly placed clip reduces the gap by 85%
+                    const reduction = 0.85 * proximityFactor;
+                    effectiveGap = state.regurgitationGap * (1.0 - reduction);
+                }
+                state.effectiveGap = effectiveGap;
+
                 let pLa = 0, pLv = 0, qFlow = 0, fOpen = 0, vPeak = 0;
 
                 if (state.mode === 'auto') {
@@ -1398,14 +1422,21 @@
                     } else {
                         // Systole contraction (high LV pressure barrier)
                         pLv = 5.0 + 115.0 * Math.sin(Math.PI * (state.tCycle - 0.5) / 0.5);
-                        pLa = 8.0 + 4.0 * (state.tCycle - 0.5);
+                        
+                        // Normal base LA pressure increases slightly during systole
+                        const baseLa = 8.0 + 4.0 * (state.tCycle - 0.5);
+                        // Systolic backflow into LA creates a v-wave, peaking late in systole (tCycle = 0.82)
+                        // The height of the v-wave is proportional to the effective regurgitation gap
+                        const vWavePeak = 30.0 * (effectiveGap / 10.0); // Up to +30 mmHg for severe MR (10mm gap)
+                        const vWave = vWavePeak * Math.exp(-Math.pow(state.tCycle - 0.82, 2) / (2.0 * Math.pow(0.08, 2)));
+                        pLa = baseLa + vWave;
 
                         const deltaP = pLa - pLv;
                         qFlow = deltaP / 3.0; // leakage flow through the gap
                         fOpen = 0.0;
 
                         const maxPeakLeak = 80.0 * Math.min(1.0, Math.abs(qFlow) / 38.0);
-                        vPeak = (state.regurgitationGap > 0) ? maxPeakLeak * (state.regurgitationGap / 10.0) : 0;
+                        vPeak = (effectiveGap > 0) ? maxPeakLeak * (effectiveGap / 10.0) : 0;
                     }
                 } else {
                     // Manual control pump state
@@ -1426,7 +1457,7 @@
                         fOpen = 0.0;
 
                         const maxPeakLeak = 80.0 * Math.min(1.0, Math.abs(qFlow) / 38.0);
-                        vPeak = (state.regurgitationGap > 0) ? maxPeakLeak * (state.regurgitationGap / 10.0) : 0;
+                        vPeak = (effectiveGap > 0) ? maxPeakLeak * (effectiveGap / 10.0) : 0;
                     }
                 }
 
@@ -1440,7 +1471,7 @@
                 elements.telemetryLa.innerText = pLa.toFixed(1) + " mmHg";
                 elements.telemetryLv.innerText = pLv.toFixed(1) + " mmHg";
                 elements.telemetryFlow.innerText = (state.cardiacPhase === 'diastole' ? qFlow.toFixed(0) : "0") + " mL/s";
-                elements.telemetryLeak.innerText = (state.cardiacPhase === 'systole' ? Math.abs(qFlow * (state.regurgitationGap / 10.0)).toFixed(0) : "0") + " mL/s";
+                elements.telemetryLeak.innerText = (state.cardiacPhase === 'systole' ? Math.abs(qFlow * (effectiveGap / 10.0)).toFixed(0) : "0") + " mL/s";
 
                 updateLiveChart(pLa, pLv);
 
@@ -1467,15 +1498,6 @@
                 const colors = valveGeometry.attributes.color.array;
                 const vCount = positions.length / 3;
 
-                // Determine dynamic valve state: opening (>0) vs closing (<0)
-                const valveState = (state.mode === 'manual')
-                    ? (state.pushing ? state.fOpen : -1.0)
-                    : ((state.cardiacPhase === 'diastole') ? state.fOpen : -1.0 * Math.min(1.0, (pLv - 5.0) / 115.0));
-
-                // Dynamic closing deflection to seal gap based on mesh size (STL needs larger close deflection)
-                const D_close = elements.geometrySelect.value.endsWith('.stl') ? 14.0 : 6.0;
-                const D_open = 16.0;
-
                 for (let i = 0; i < vCount; i++) {
                     const idx = i * 3;
                     const ox = origPositions[idx];
@@ -1483,39 +1505,35 @@
                     const oz = origPositions[idx + 2];
                     const gid = vertexGroups[i];
 
-                    // Normalized height
-                    const zNorm = (oz - state.zMin) / (state.zLen + 1e-5);
+                    // Normalized height (distance from annulus at zMax down to oz)
+                    const zNorm = (state.zMax - oz) / (state.zLen + 1e-5);
                     const dBend = Math.pow(Math.min(Math.max(zNorm, 0.0), 1.0), 2.0);
 
                     let dy = 0;
                     let dz = 0;
 
-                    if (valveState >= 0) {
-                        // Diastole (Opening): Leaflets open outwards (Anterior moves +Y, Posterior moves -Y)
-                        if (gid === 1) { // Anterior
-                            dy = +D_open * valveState * dBend;
-                            dz = -D_z_max * valveState * dBend;
-                        } else if (gid === 2) { // Posterior
-                            dy = -D_open * valveState * dBend;
-                            dz = -D_z_max * valveState * dBend;
+                    if (state.cardiacPhase === 'diastole') {
+                        // Diastole: leaflets open towards the original STL mesh coordinates (dy = 0, dz = 0 at peak fOpen)
+                        const openFactor = state.fOpen;
+                        const w_y = 1.0 - openFactor;
+                        
+                        if (gid === 1 || gid === 2) {
+                            dy = (state.cy - oy) * w_y * dBend;
+                            dz = -D_z_max * openFactor * dBend;
                         } else if (gid === 3) {
-                            const dir = (oy <= state.cy) ? -1 : 1;
-                            dy = dir * 0.2 * D_open * valveState * dBend;
-                            dz = -D_z_max * valveState * dBend;
+                            dy = (state.cy - oy) * 0.2 * w_y * dBend;
+                            dz = -D_z_max * openFactor * dBend;
                         }
                     } else {
-                        // Systole (Closing): Leaflets deform inwards to meet at coaptation line (cy) and dome upwards (+Z)
-                        const closeFactor = Math.abs(valveState);
-                        if (gid === 1) { // Anterior
-                            dy = -D_close * closeFactor * dBend;
-                            dz = +1.5 * closeFactor * dBend;
-                        } else if (gid === 2) { // Posterior
-                            dy = +D_close * closeFactor * dBend;
-                            dz = +1.5 * closeFactor * dBend;
+                        // Systole: leaflets remain fully closed in Y (meeting at cy), and dome upward in Z based on pressure
+                        const w_z = Math.min(1.0, (pLv - 5.0) / 115.0);
+                        
+                        if (gid === 1 || gid === 2) {
+                            dy = (state.cy - oy) * dBend;
+                            dz = +1.5 * w_z * dBend;
                         } else if (gid === 3) {
-                            const dir = (oy <= state.cy) ? 1 : -1;
-                            dy = dir * 0.2 * D_close * closeFactor * dBend;
-                            dz = +1.5 * closeFactor * dBend;
+                            dy = (state.cy - oy) * 0.2 * dBend;
+                            dz = +1.5 * w_z * dBend;
                         }
                     }
 
@@ -1528,8 +1546,9 @@
                         const xDist = Math.abs(ox - clipX);
                         // Gaussian weight: maximum seal at center line, decays laterally over ~8mm
                         const wPinch = Math.exp(-Math.pow(xDist / 8.0, 2));
-                        // Interpolate current coordinate towards the center coaptation line 'cy'
-                        positions[idx + 1] = positions[idx + 1] + (state.cy - positions[idx + 1]) * wPinch * dBend;
+                        // Interpolate current coordinate towards the center coaptation line 'cy' with enhanced factor
+                        const pinchStrength = wPinch * Math.min(1.0, dBend * 1.6);
+                        positions[idx + 1] = positions[idx + 1] + (state.cy - positions[idx + 1]) * pinchStrength;
                     }
 
                     // Dynamic colors based on color mode
