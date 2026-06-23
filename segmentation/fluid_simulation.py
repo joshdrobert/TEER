@@ -40,11 +40,22 @@ from mpi4py import MPI
 from dolfinx.io import gmsh as gmshio
 from dolfinx import mesh as dmesh
 
-mesh, cell_tags, facet_tags = gmshio.read_from_msh("mitral.msh", MPI.COMM_WORLD, 0)
+mesh_data  = gmshio.read_from_msh("/home/cyrilpillai36/Desktop/TEER/mitral.msh", MPI.COMM_WORLD, 0)
+
+mesh = mesh_data.mesh
+cell_tags = mesh_data.cell_tags
+facet_tags = mesh_data.facet_tags
+
+tdim = mesh.topology.dim
+mesh.topology.create_entities(tdim-1)
+
 
 print("dim:", mesh.topology.dim)           # expect 3
 print("cells:", mesh.topology.index_map(mesh.topology.dim).size_local)
-print("facets:", mesh.topology.index_map(mesh.topology.dim-1).size_local)
+print("facets:", mesh.topology.index_map(tdim-1).size_local)
 
-print("cell tag ids:", cell_tags.values if cell_tags is not None else "None")
-print("facet tag ids:", facet_tags.values if facet_tags is not None else "None")
+
+
+
+
+
