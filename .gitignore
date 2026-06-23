@@ -26,7 +26,6 @@ artifacts/
 external/
 
 # Large geometry and mesh files (local only)
-segmented_valve_mesh_smoothed.stl
 segmented_valve_mesh_smoothed_final.msh
 
 # Temporary scratch scripts
