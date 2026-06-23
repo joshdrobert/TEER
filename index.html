@@ -387,10 +387,8 @@
         <div class="control-group">
             <div class="section-title">Mesh Selection</div>
             <select id="geometry-select" class="dropdown">
-                <option value="./segmented_valve_mesh_smoothed.stl" selected>Segmented Valve Mesh (25 MB - High-Res STL)
-                </option>
-                <option value="./mitral_valve_with_chordae.obj">Mitral Valve with Chordae (156 KB - Smooth OBJ)</option>
-                <option value="./mitral_valve.obj">Mitral Valve Leaflets Only (92 KB - OBJ)</option>
+                <option value="./segmented_valve_mesh_smoothed.stl" selected>Segmented Valve Mesh (25 MB - High-Res STL)</option>
+                <option value="./HumanHeart_OBJ.obj">Human Heart Model (31 MB - OBJ)</option>
             </select>
         </div>
 
@@ -499,26 +497,52 @@
 
     <script>
         // --- 1. Custom Geometry Parsers (Self-Contained) ---
-        function parseOBJ(text) {
+        function parseOBJ(text, isHeartModel = false) {
             const lines = text.split('\n');
             const tempVertices = [];
-            const positions = [];
-            const groupIDs = [];
+            
+            const valvePositions = [];
+            const valveGroupIDs = [];
+            const wallPositions = [];
+            const wallGroupIDs = [];
+            
             let currentGroupID = 0; // 0 = default/none, 1 = anterior, 2 = posterior, 3 = chordae/papillary
 
             for (let line of lines) {
                 line = line.trim();
                 if (line.startsWith('v ')) {
                     const parts = line.split(/\s+/).slice(1).map(Number);
-                    tempVertices.push(parts);
+                    if (isHeartModel) {
+                        // Rotate 90 degrees around X-axis and scale by 24.0
+                        const ox = parts[0];
+                        const oy = parts[1];
+                        const oz = parts[2];
+                        tempVertices.push([ox * 24.0, -oz * 24.0, oy * 24.0]);
+                    } else {
+                        tempVertices.push(parts);
+                    }
                 } else if (line.startsWith('g ') || line.startsWith('o ')) {
-                    const name = line.split(/\s+/)[1].toUpperCase();
+                    const name = line.split(/\s+/).slice(1).join(' ').toUpperCase();
                     if (name.includes('ANTERIOR')) {
                         currentGroupID = 1;
                     } else if (name.includes('POSTERIOR')) {
                         currentGroupID = 2;
                     } else if (name.includes('CHORDAE') || name.includes('PAPILLARY')) {
                         currentGroupID = 3;
+                    } else if (name.includes('MITRAL_VALVE_GEO')) {
+                        currentGroupID = 10;
+                    } else if (name.includes('POLYSURFACE3')) {
+                        currentGroupID = 11;
+                    } else if (name.includes('TRICUSPID_VALVE_GEO')) {
+                        currentGroupID = 12;
+                    } else if (name.includes('AORTICE_SEMILUNAR_VALVE_GEO')) {
+                        currentGroupID = 13;
+                    } else if (name.includes('PULMONARY_SEMILUNAR_VALVE_GEO')) {
+                        currentGroupID = 14;
+                    } else if (name.includes('POLYSURFACE4')) {
+                        currentGroupID = 15;
+                    } else if (name.includes('HEART_EXTEROR_VAINS') || name.includes('HEART_EX_VAINS')) {
+                        currentGroupID = 16;
                     } else {
                         currentGroupID = 0;
                     }
@@ -527,21 +551,87 @@
                         const idx = parseInt(p.split('/')[0]);
                         return idx < 0 ? tempVertices.length + idx : idx - 1;
                     });
+
+                    // If it is the heart model, discard unwanted groups and slice the interior walls (Group 11)
+                    if (isHeartModel) {
+                        if (currentGroupID === 15 || currentGroupID === 16 || currentGroupID === 12 || currentGroupID === 13 || currentGroupID === 14 || currentGroupID === 0) {
+                            continue; // Discard exterior walls, veins, tricuspid, aortic, pulmonary, and defaults
+                        }
+                        
+                        if (currentGroupID === 11) {
+                            // Section Group 11 (heart walls): discard faces if any vertex is outside the 67.5mm radius or on the cut side
+                            let discard = false;
+                            for (let idx of parts) {
+                                const v = tempVertices[idx];
+                                const distXY = Math.sqrt(Math.pow(v[0] - 17.48, 2) + Math.pow(v[1] - 34.04, 2));
+                                if (distXY > 67.5 || v[1] > 34.04) {
+                                    discard = true;
+                                    break;
+                                }
+                            }
+                            if (discard) continue; // Skip face
+                        }
+                    }
+
+                    const isWall = (isHeartModel && currentGroupID === 11);
+
                     // Triangulate
                     for (let i = 1; i < parts.length - 1; i++) {
                         const idxs = [parts[0], parts[i], parts[i + 1]];
                         for (let idx of idxs) {
                             const v = tempVertices[idx];
-                            positions.push(v[0], v[1], v[2]);
-                            groupIDs.push(currentGroupID);
+                            
+                            if (isWall) {
+                                wallPositions.push(v[0], v[1], v[2]);
+                                wallGroupIDs.push(currentGroupID);
+                            } else {
+                                valvePositions.push(v[0], v[1], v[2]);
+                                // Map Mitral Valve vertices to Group 1, 2, or 3 using local coordinates
+                                if (isHeartModel && currentGroupID === 10) {
+                                    const rx = v[0];
+                                    const ry = v[1];
+                                    const rz = v[2];
+                                    const dx = rx - 22.29;
+                                    const dy = ry - 29.65;
+                                    const dz = rz - (-23.19);
+                                    const pn = dx * (-0.1273) + dy * (-0.3854) + dz * (-0.9139);
+                                    
+                                    if (pn > 6.0) {
+                                        valveGroupIDs.push(3); // Chordae & Papillary (spared region)
+                                    } else {
+                                        const pu = dx * 0.9896 + dy * (-0.1113) + dz * (-0.0909);
+                                        if (pu <= 0.0) {
+                                            valveGroupIDs.push(1); // Anterior leaflet
+                                        } else {
+                                            valveGroupIDs.push(2); // Posterior leaflet
+                                        }
+                                    }
+                                } else {
+                                    valveGroupIDs.push(currentGroupID);
+                                }
+                            }
                         }
                     }
                 }
             }
 
+            const positions = valvePositions.concat(wallPositions);
+            const groupIDs = valveGroupIDs.concat(wallGroupIDs);
+            const valveVertexCount = valvePositions.length / 3;
+            const wallVertexCount = wallPositions.length / 3;
+
             const geometry = new THREE.BufferGeometry();
             geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
             geometry.computeVertexNormals();
+
+            // Add groups for multi-material rendering
+            if (isHeartModel) {
+                geometry.addGroup(0, valveVertexCount, 0);
+                geometry.addGroup(valveVertexCount, wallVertexCount, 1);
+            } else {
+                geometry.addGroup(0, valveVertexCount, 0);
+            }
+
             return { geometry, groupIDs: new Int32Array(groupIDs) };
         }
 
@@ -701,7 +791,7 @@
 
         elements.clipPosSlider.addEventListener('input', (e) => {
             const userVal = parseFloat(e.target.value);
-            state.clipXOffset = userVal - 15.0;
+            state.clipXOffset = state.isHeartModel ? userVal : (userVal - 15.0);
             elements.clipPosVal.innerText = (userVal >= 0 ? '+' : '') + userVal.toFixed(1) + ' mm';
         });
 
@@ -730,7 +820,16 @@
         elements.opacitySlider.addEventListener('input', (e) => {
             state.meshOpacity = parseInt(e.target.value) / 100.0;
             elements.opacityVal.innerText = e.target.value + '%';
-            if (valveMaterial) valveMaterial.opacity = state.meshOpacity;
+            if (valveMaterial) {
+                if (state.isHeartModel) {
+                    valveMaterial.opacity = Math.max(state.meshOpacity, 0.6); // Keep leaflets relatively opaque
+                } else {
+                    valveMaterial.opacity = state.meshOpacity;
+                }
+            }
+            if (heartWallMaterial) {
+                heartWallMaterial.opacity = state.meshOpacity * 0.15; // Heart walls remain very faint
+            }
         });
 
         elements.particlesSlider.addEventListener('input', (e) => {
@@ -770,8 +869,21 @@
             if (cylinderWireframe) scene.remove(cylinderWireframe);
 
             const cylGeom = new THREE.CylinderGeometry(state.R_cylinder, state.R_cylinder, state.zLen + 20, 24, 1, true);
-            cylGeom.rotateX(Math.PI / 2);
-            cylGeom.translate(state.cx, state.cy, state.zMin + state.zLen / 2);
+            
+            if (state.isHeartModel) {
+                // Align cylinder with valve plane normal N (cylinder is vertical along Y axis by default)
+                const xAxis = new THREE.Vector3(-0.0667, -0.9160, 0.3955).normalize();
+                const yAxis = new THREE.Vector3(-0.1273, -0.3854, -0.9139).normalize();
+                const zAxis = new THREE.Vector3(0.9896, -0.1113, -0.0909).normalize();
+                
+                const m = new THREE.Matrix4();
+                m.makeBasis(xAxis, yAxis, zAxis);
+                cylGeom.applyMatrix4(m);
+                cylGeom.translate(22.29 + 15.0 * (-0.1273), 29.65 + 15.0 * (-0.3854), -23.19 + 15.0 * (-0.9139));
+            } else {
+                cylGeom.rotateX(Math.PI / 2);
+                cylGeom.translate(state.cx, state.cy, state.zMin + state.zLen / 2);
+            }
 
             const cylMat = new THREE.MeshBasicMaterial({
                 color: 0x1d2d44,
@@ -969,6 +1081,7 @@
         let valveMesh = null;
         let valveGeometry = null;
         let valveMaterial = null;
+        let heartWallMaterial = null;
 
         function loadGeometry(url) {
             elements.loadingScreen.style.opacity = '1';
@@ -1010,7 +1123,8 @@
                             geomData = parseBinarySTL(data);
                         }
                     } else {
-                        const parsed = parseOBJ(data);
+                        const isHeartModel = url.includes('HumanHeart_OBJ.obj');
+                        const parsed = parseOBJ(data, isHeartModel);
                         geomData = parsed.geometry;
                         vertexGroups = parsed.groupIDs;
                     }
@@ -1021,12 +1135,17 @@
                     const zMin = bbox.min.z;
                     const zMax = bbox.max.z;
 
-                    // Flip Z coordinates so annulus is at the top (zMax) and leaflets point downwards (zMin)
                     const positions = geomData.attributes.position.array;
-                    for (let i = 0; i < positions.length; i += 3) {
-                        positions[i + 2] = zMax + zMin - positions[i + 2];
+                    const isHeartModel = url.includes('HumanHeart_OBJ.obj');
+
+                    if (!isHeartModel) {
+                        // Flip Z coordinates so annulus is at the top (zMax) and leaflets point downwards (zMin)
+                        for (let i = 0; i < positions.length; i += 3) {
+                            positions[i + 2] = zMax + zMin - positions[i + 2];
+                        }
                     }
-                    // Recompute normal and bounding box after flipping Z
+
+                    // Recompute normal and bounding box after flipping Z / rotation & scaling
                     geomData.computeVertexNormals();
                     geomData.computeBoundingBox();
                     bbox = geomData.boundingBox;
@@ -1041,15 +1160,33 @@
                     let cy = (bbox.min.y + bbox.max.y) / 2;
 
                     // Update states
-                    state.zMin = bbox.min.z;
-                    state.zMax = bbox.max.z;
-                    state.zLen = zLen;
-                    state.R_cylinder = r_cyl;
-                    state.zOrifice = state.zMin + 0.2 * state.zLen; // leaflets are at the bottom (20% height)
+                    if (isHeartModel) {
+                        cx = 22.29;
+                        cy = 29.65;
+                        state.zMin = -74.12;
+                        state.zMax = -10.73;
+                        state.zLen = 63.39;
+                        state.R_cylinder = 39.0;
+                        state.zOrifice = -23.19;
+                        state.clipXOffset = 0.0;
+                    } else {
+                        state.zMin = bbox.min.z;
+                        state.zMax = bbox.max.z;
+                        state.zLen = zLen;
+                        state.R_cylinder = r_cyl;
+                        state.zOrifice = state.zMin + 0.2 * state.zLen;
+                        state.clipXOffset = -15.0;
+                    }
+                    state.isHeartModel = isHeartModel;
 
-                    // For the Segmented STL mesh, we align the flow orifice and MitraClip perfectly with the actual 
-                    // valve hole center (from visual sectioning analysis) instead of using the raw top-20% centroid,
-                    // which falls on solid leaflet tissue due to structural asymmetry.
+                    // Reset clip position slider to center
+                    if (elements.clipPosSlider) {
+                        elements.clipPosSlider.value = 0;
+                    }
+                    if (elements.clipPosVal) {
+                        elements.clipPosVal.innerText = "0.0 mm";
+                    }
+
                     if (url.endsWith('.stl')) {
                         cx = 145.0;
                         cy = 86.0;
@@ -1073,10 +1210,22 @@
                         roughness: 0.4,
                         metalness: 0.1,
                         transparent: true,
-                        opacity: state.meshOpacity,
+                        opacity: state.isHeartModel ? Math.max(state.meshOpacity, 0.6) : state.meshOpacity,
                         side: THREE.DoubleSide,
                         vertexColors: true
                     });
+
+                    if (state.isHeartModel) {
+                        heartWallMaterial = new THREE.MeshStandardMaterial({
+                            color: 0xdb2777, // deep crimson
+                            roughness: 0.5,
+                            metalness: 0.05,
+                            transparent: true,
+                            opacity: state.meshOpacity * 0.15, // low opacity ghost shell
+                            side: THREE.DoubleSide,
+                            vertexColors: false
+                        });
+                    }
 
                     // Add color attribute to support dynamic vertex painting
                     const colors = new Float32Array(positions.length);
@@ -1088,7 +1237,11 @@
                     geomData.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
                     valveGeometry = geomData;
-                    valveMesh = new THREE.Mesh(valveGeometry, valveMaterial);
+                    if (state.isHeartModel) {
+                        valveMesh = new THREE.Mesh(valveGeometry, [valveMaterial, heartWallMaterial]);
+                    } else {
+                        valveMesh = new THREE.Mesh(valveGeometry, valveMaterial);
+                    }
                     scene.add(valveMesh);
 
                     // Rebuild visuals & camera control targets
@@ -1143,133 +1296,231 @@
             }
 
             reset() {
-                // Spawn randomly in Left Atrium above valve annulus
-                const radius = state.R_cylinder * 0.7 * Math.sqrt(Math.random());
-                const angle = Math.random() * Math.PI * 2;
+                if (state.isHeartModel) {
+                    const radiusMult = 0.35;
+                    const radius = state.R_cylinder * radiusMult * Math.sqrt(Math.random());
+                    const angle = Math.random() * Math.PI * 2;
 
-                this.x = state.cx + radius * Math.cos(angle);
-                this.y = state.cy + radius * Math.sin(angle);
-                this.z = state.zMax + 15.0 + Math.random() * 20.0;
+                    const pu = radius * Math.cos(angle);
+                    const pv = radius * Math.sin(angle);
+                    // Spawn higher in atrium (local negative pn)
+                    const pn = -12.0 - Math.random() * 18.0;
 
-                this.vx = 0;
-                this.vy = 0;
-                this.vz = 0;
-                this.age = 0;
-                this.maxAge = 220 + Math.random() * 100;
-                this.speedColor = new THREE.Color();
+                    this.x = 22.29 + pu * 0.9896 + pv * (-0.0667) + pn * (-0.1273);
+                    this.y = 29.65 + pu * (-0.1113) + pv * (-0.9160) + pn * (-0.3854);
+                    this.z = (-23.19) + pu * (-0.0909) + pv * 0.3955 + pn * (-0.9139);
+
+                    this.vx = 0;
+                    this.vy = 0;
+                    this.vz = 0;
+                    this.age = 0;
+                    this.maxAge = 220 + Math.random() * 100;
+                    this.speedColor = new THREE.Color();
+                } else {
+                    const radiusMult = 0.7;
+                    const radius = state.R_cylinder * radiusMult * Math.sqrt(Math.random());
+                    const angle = Math.random() * Math.PI * 2;
+
+                    this.x = state.cx + radius * Math.cos(angle);
+                    this.y = state.cy + radius * Math.sin(angle);
+                    this.z = state.zMax + 15.0 + Math.random() * 20.0;
+
+                    this.vx = 0;
+                    this.vy = 0;
+                    this.vz = 0;
+                    this.age = 0;
+                    this.maxAge = 220 + Math.random() * 100;
+                    this.speedColor = new THREE.Color();
+                }
             }
 
             update(fOpen, vPeak, tCycle, pLa, pLv) {
                 this.age++;
 
-                // Physics logic based on dynamic cycle
-                if (state.cardiacPhase === 'diastole' && Math.abs(vPeak) > 0.1) {
-                    // Flow going through open orifice (diastolic fill)
-                    const rOrifice = 0.25 * state.R_cylinder * fOpen + 5.0;
+                const speedScale = state.isHeartModel ? 0.28 : 0.05;
 
-                    // Conical jet spreading
-                    const zDiff = state.zOrifice - this.z;
-                    const rJet = (zDiff > 0.0) ? rOrifice + 0.22 * zDiff : rOrifice;
+                if (state.isHeartModel) {
+                    // Convert current global position to local coordinates
+                    const dx = this.x - 22.29;
+                    const dy = this.y - 29.65;
+                    const dz = this.z - (-23.19);
+                    let pu = dx * 0.9896 + dy * (-0.1113) + dz * (-0.0909);
+                    let pv = dx * (-0.0667) + dy * (-0.9160) + dz * 0.3955;
+                    let pn = dx * (-0.1273) + dy * (-0.3854) + dz * (-0.9139);
 
-                    // Target velocity based on Gaussian profile
-                    const r_xy = Math.sqrt(Math.pow(this.x - state.cx, 2) + Math.pow(this.y - state.cy, 2));
+                    const r_uv = Math.sqrt(pu * pu + pv * pv);
+                    let vpu = 0, vpv = 0, vpn = 0;
 
-                    // Split jet if MitraClip is enabled (pinched middle)
-                    let dOrifice = r_xy;
-                    if (state.mitraClip) {
-                        // Compute distance to two parallel orifice centers
-                        const clipX = state.cx + state.clipXOffset;
-                        const d1 = Math.sqrt(Math.pow(this.x - (clipX - 8.0), 2) + Math.pow(this.y - state.cy, 2));
-                        const d2 = Math.sqrt(Math.pow(this.x - (clipX + 8.0), 2) + Math.pow(this.y - state.cy, 2));
-                        dOrifice = Math.min(d1, d2);
+                    if (state.cardiacPhase === 'diastole' && Math.abs(vPeak) > 0.1) {
+                        const rOrifice = 0.25 * state.R_cylinder * fOpen + 5.0;
+                        const pnDiff = pn; // orifice is at pn = 0
+                        const rJet = (pnDiff > 0.0) ? rOrifice + 0.22 * pnDiff : rOrifice;
+
+                        let dOrifice = r_uv;
+                        if (state.mitraClip) {
+                            // Compute distance to two parallel orifice centers along V sliding axis
+                            const d1 = Math.sqrt(pu * pu + Math.pow(pv - (state.clipXOffset - 8.0), 2));
+                            const d2 = Math.sqrt(pu * pu + Math.pow(pv - (state.clipXOffset + 8.0), 2));
+                            dOrifice = Math.min(d1, d2);
+                        }
+
+                        const sigmaJet = rJet / 2.0;
+                        const vJet = vPeak * Math.exp(-Math.pow(dOrifice, 2) / (2.0 * Math.pow(sigmaJet, 2)));
+
+                        const pnDecay = Math.max(0.0, Math.min(1.0, (50.0 - pn) / 50.0));
+                        vpn = -vJet * (0.3 + 0.7 * pnDecay) * speedScale; // positive vpn is flow downwards (ventricle)
+
+                        if (pn > 0) {
+                            // Ventricular swirling
+                            const pnVortex = 19.0;
+                            const rVortexRing = 1.3 * rOrifice;
+                            const d_r = r_uv - rVortexRing;
+                            const d_pn = pn - pnVortex;
+                            const dDist = Math.sqrt(d_r * d_r + d_pn * d_pn);
+                            const sigmaV = 10.0;
+                            const vSwirl = -0.55 * vPeak * (r_uv / (rVortexRing + 1e-5)) * Math.exp(-dDist * dDist / (2.0 * sigmaV * sigmaV));
+
+                            const vRadial = vSwirl * d_pn / (dDist + 1e-5) * speedScale;
+                            vpn += (vSwirl * d_r / (dDist + 1e-5)) * speedScale;
+
+                            vpu = vRadial * pu / (r_uv + 1e-5);
+                            vpv = vRadial * pv / (r_uv + 1e-5);
+                        } else {
+                            // Convergent atrial drift
+                            vpu = -pu * 0.01;
+                            vpv = -pv * 0.01;
+                        }
+                    } else if (state.cardiacPhase === 'systole') {
+                        if (vPeak > 0.5 && pn <= 0.0) {
+                            // Regurgitant jet shooting back into LA (negative pn direction)
+                            const rRegurg = 5.0;
+                            const sigmaRegurg = rRegurg / 2.0;
+                            const vRegurg = vPeak * Math.exp(-r_uv * r_uv / (2.0 * sigmaRegurg * sigmaRegurg));
+                            const zDecay = Math.exp(-Math.abs(pn) / 15.0);
+                            vpn = -vRegurg * zDecay * speedScale; // negative vpn flows back into atrium
+                            vpu = 0;
+                            vpv = 0;
+                        } else {
+                            // LV swirling decay
+                            const vSwirl = 20.0 * Math.exp(-Math.pow(pn - 19.0, 2) / (2.0 * Math.pow(12.0, 2))) * (r_uv / 15.0) * Math.exp(-r_uv * r_uv / (2.0 * 20.0 * 20.0)) * Math.sin(Math.PI * (tCycle - 0.5) / 0.5);
+                            vpu = -vSwirl * pv / (r_uv + 1e-5) * speedScale;
+                            vpv = vSwirl * pu / (r_uv + 1e-5) * speedScale;
+                            vpn = (pn > 0) ? -2.5 * speedScale : 0.0;
+                        }
                     }
 
-                    const sigmaJet = rJet / 2.0;
-                    const vJet = vPeak * Math.exp(-Math.pow(dOrifice, 2) / (2.0 * Math.pow(sigmaJet, 2)));
+                    // Move particle in local space
+                    pu += vpu;
+                    pv += vpv;
+                    pn += vpn;
 
-                    // Spatial z-decay
-                    const zDecay = Math.max(0.0, Math.min(1.0, (this.z - (state.zMin - 15.0)) / (state.zOrifice - (state.zMin - 15.0) + 1e-5)));
-                    this.vz = vJet * (0.3 + 0.7 * zDecay) * 0.05; // speed scale scaling
-
-                    // Toroidal Recirculating Vortex Ring in Left Ventricle (swirling)
-                    if (this.z < state.zOrifice) {
-                        const zVortex = state.zOrifice - 0.3 * state.zLen;
-                        const rVortexRing = 1.3 * rOrifice;
-
-                        const d_r = r_xy - rVortexRing;
-                        const d_z = this.z - zVortex;
-                        const dDist = Math.sqrt(Math.pow(d_r, 2) + Math.pow(d_z, 2));
-
-                        const sigmaV = 0.15 * state.zLen;
-                        const vSwirl = -0.55 * vPeak * (r_xy / (rVortexRing + 1e-5)) * Math.exp(-Math.pow(dDist, 2) / (2.0 * Math.pow(sigmaV, 2)));
-
-                        const vRadial = vSwirl * d_z / (dDist + 1e-5) * 0.05;
-                        this.vz += (vSwirl * d_r / (dDist + 1e-5)) * 0.05;
-
-                        this.vx = vRadial * (this.x - state.cx) / (r_xy + 1e-5);
-                        this.vy = vRadial * (this.y - state.cy) / (r_xy + 1e-5);
-                    } else {
-                        // Gentle convergent LA drift
-                        const dx = (state.cx - this.x) * 0.01;
-                        const dy = (state.cy - this.y) * 0.01;
-                        this.vx = dx;
-                        this.vy = dy;
+                    // Bounce/Block at closed leaflets
+                    if (state.cardiacPhase === 'systole' && pn > 0 && (pn + vpn) <= 2.0) {
+                        if (r_uv < state.R_cylinder * 0.9 && Math.random() > (state.effectiveGap / 10.0)) {
+                            pn = 2.0;
+                            vpn = Math.abs(vpn) * 0.2;
+                        }
                     }
-                } else if (state.cardiacPhase === 'systole') {
-                    // Systole (Valve closed): residual swirling and regurgitant jets
-                    const r_xy = Math.sqrt(Math.pow(this.x - state.cx, 2) + Math.pow(this.y - state.cy, 2));
 
-                    if (vPeak > 0.5 && this.z >= state.zOrifice) {
-                        // Narrow regurgitant leakage jet shooting up into LA
-                        const rRegurg = 5.0;
-                        const sigmaRegurg = rRegurg / 2.0;
-                        const vRegurg = vPeak * Math.exp(-Math.pow(r_xy, 2) / (2.0 * Math.pow(sigmaRegurg, 2)));
-                        const zDecay = Math.exp(-(this.z - state.zOrifice) / (0.25 * state.zLen));
-                        this.vz = vRegurg * zDecay * 0.05;
-                        this.vx = 0;
-                        this.vy = 0;
-                    } else {
-                        // LV slowly decaying residual swirling
-                        const vSwirl = 20.0 * Math.exp(-Math.pow(this.z - (state.zMin + 0.3 * state.zLen), 2) / (2.0 * Math.pow(0.2 * state.zLen, 2))) * (r_xy / 15.0) * Math.exp(-Math.pow(r_xy, 2) / (2.0 * Math.pow(20.0, 2))) * Math.sin(Math.PI * (tCycle - 0.5) / 0.5);
+                    // Reconstruct global coordinates
+                    const newX = 22.29 + pu * 0.9896 + pv * (-0.0667) + pn * (-0.1273);
+                    const newY = 29.65 + pu * (-0.1113) + pv * (-0.9160) + pn * (-0.3854);
+                    const newZ = (-23.19) + pu * (-0.0909) + pv * 0.3955 + pn * (-0.9139);
 
-                        this.vx = -vSwirl * (this.y - state.cy) / (r_xy + 1e-5) * 0.05;
-                        this.vy = vSwirl * (this.x - state.cx) / (r_xy + 1e-5) * 0.05;
-                        this.vz = (this.z < state.zOrifice) ? 2.5 : 0.0;
+                    // Compute global velocities for HSL coloring
+                    this.vx = newX - this.x;
+                    this.vy = newY - this.y;
+                    this.vz = newZ - this.z;
+
+                    this.x = newX;
+                    this.y = newY;
+                    this.z = newZ;
+
+                    // Reset check in local bounds
+                    if (this.age > this.maxAge || r_uv > state.R_cylinder * 1.05 || pn < -45.0 || pn > 60.0) {
+                        this.reset();
                     }
                 } else {
-                    this.vx *= 0.95;
-                    this.vy *= 0.95;
-                    this.vz *= 0.95;
-                }
+                    // Original STL particle physics
+                    if (state.cardiacPhase === 'diastole' && Math.abs(vPeak) > 0.1) {
+                        const rOrifice = 0.25 * state.R_cylinder * fOpen + 5.0;
+                        const zDiff = state.zOrifice - this.z;
+                        const rJet = (zDiff > 0.0) ? rOrifice + 0.22 * zDiff : rOrifice;
+                        const r_xy = Math.sqrt(Math.pow(this.x - state.cx, 2) + Math.pow(this.y - state.cy, 2));
 
-                // Move particle
-                this.x += this.vx;
-                this.y += this.vy;
-                this.z += this.vz;
+                        let dOrifice = r_xy;
+                        if (state.mitraClip) {
+                            const clipX = state.cx + state.clipXOffset;
+                            const d1 = Math.sqrt(Math.pow(this.x - (clipX - 8.0), 2) + Math.pow(this.y - state.cy, 2));
+                            const d2 = Math.sqrt(Math.pow(this.x - (clipX + 8.0), 2) + Math.pow(this.y - state.cy, 2));
+                            dOrifice = Math.min(d1, d2);
+                        }
 
-                // 2D Valve leaf collision boundaries block (when valve is closed)
-                if (state.cardiacPhase === 'systole' && this.z < state.zOrifice && (this.z + this.vz) >= state.zOrifice - 2) {
-                    const r_xy = Math.sqrt(Math.pow(this.x - state.cx, 2) + Math.pow(this.y - state.cy, 2));
-                    if (r_xy < state.R_cylinder * 0.9 && Math.random() > (state.effectiveGap / 10.0)) {
-                        // Bounce/Block
-                        this.z = state.zOrifice - 2;
-                        this.vz = -Math.abs(this.vz) * 0.2;
+                        const sigmaJet = rJet / 2.0;
+                        const vJet = vPeak * Math.exp(-Math.pow(dOrifice, 2) / (2.0 * Math.pow(sigmaJet, 2)));
+                        const zDecay = Math.max(0.0, Math.min(1.0, (this.z - (state.zMin - 15.0)) / (state.zOrifice - (state.zMin - 15.0) + 1e-5)));
+                        this.vz = vJet * (0.3 + 0.7 * zDecay) * speedScale;
+
+                        if (this.z < state.zOrifice) {
+                            const zVortex = state.zOrifice - 0.3 * state.zLen;
+                            const rVortexRing = 1.3 * rOrifice;
+                            const d_r = r_xy - rVortexRing;
+                            const d_z = this.z - zVortex;
+                            const dDist = Math.sqrt(Math.pow(d_r, 2) + Math.pow(d_z, 2));
+                            const sigmaV = 0.15 * state.zLen;
+                            const vSwirl = -0.55 * vPeak * (r_xy / (rVortexRing + 1e-5)) * Math.exp(-Math.pow(dDist, 2) / (2.0 * Math.pow(sigmaV, 2)));
+                            const vRadial = vSwirl * d_z / (dDist + 1e-5) * speedScale;
+                            this.vz += (vSwirl * d_r / (dDist + 1e-5)) * speedScale;
+                            this.vx = vRadial * (this.x - state.cx) / (r_xy + 1e-5);
+                            this.vy = vRadial * (this.y - state.cy) / (r_xy + 1e-5);
+                        } else {
+                            this.vx = (state.cx - this.x) * 0.01;
+                            this.vy = (state.cy - this.y) * 0.01;
+                        }
+                    } else if (state.cardiacPhase === 'systole') {
+                        const r_xy = Math.sqrt(Math.pow(this.x - state.cx, 2) + Math.pow(this.y - state.cy, 2));
+                        if (vPeak > 0.5 && this.z >= state.zOrifice) {
+                            const rRegurg = 5.0;
+                            const sigmaRegurg = rRegurg / 2.0;
+                            const vRegurg = vPeak * Math.exp(-Math.pow(r_xy, 2) / (2.0 * Math.pow(sigmaRegurg, 2)));
+                            const zDecay = Math.exp(-(this.z - state.zOrifice) / (0.25 * state.zLen));
+                            this.vz = vRegurg * zDecay * speedScale;
+                            this.vx = 0;
+                            this.vy = 0;
+                        } else {
+                            const vSwirl = 20.0 * Math.exp(-Math.pow(this.z - (state.zMin + 0.3 * state.zLen), 2) / (2.0 * Math.pow(0.2 * state.zLen, 2))) * (r_xy / 15.0) * Math.exp(-Math.pow(r_xy, 2) / (2.0 * Math.pow(20.0, 2))) * Math.sin(Math.PI * (tCycle - 0.5) / 0.5);
+                            this.vx = -vSwirl * (this.y - state.cy) / (r_xy + 1e-5) * speedScale;
+                            this.vy = vSwirl * (this.x - state.cx) / (r_xy + 1e-5) * speedScale;
+                            this.vz = (this.z < state.zOrifice) ? 2.5 : 0.0;
+                        }
+                    } else {
+                        this.vx *= 0.95;
+                        this.vy *= 0.95;
+                        this.vz *= 0.95;
                     }
-                }
 
-                // Reset boundary checks (too old, outside cylinder, too low, or too high)
-                const distCenter = Math.sqrt(Math.pow(this.x - state.cx, 2) + Math.pow(this.y - state.cy, 2));
-                if (this.age > this.maxAge || distCenter > state.R_cylinder * 1.05 || this.z < state.zMin - 45.0 || this.z > state.zMax + 30.0) {
-                    this.reset();
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.z += this.vz;
+
+                    if (state.cardiacPhase === 'systole' && this.z < state.zOrifice && (this.z + this.vz) >= state.zOrifice - 2) {
+                        const r_xy = Math.sqrt(Math.pow(this.x - state.cx, 2) + Math.pow(this.y - state.cy, 2));
+                        if (r_xy < state.R_cylinder * 0.9 && Math.random() > (state.effectiveGap / 10.0)) {
+                            this.z = state.zOrifice - 2;
+                            this.vz = -Math.abs(this.vz) * 0.2;
+                        }
+                    }
+
+                    if (this.age > this.maxAge || Math.sqrt(Math.pow(this.x - state.cx, 2) + Math.pow(this.y - state.cy, 2)) > state.R_cylinder * 1.05 || this.z < state.zMin - 45.0 || this.z > state.zMax + 30.0) {
+                        this.reset();
+                    }
                 }
 
                 // Compute color mapping based on speed (Blue for inflow, Red/Orange for regurgitation/vorticity)
                 const speed = Math.sqrt(Math.pow(this.vx, 2) + Math.pow(this.vy, 2) + Math.pow(this.vz, 2));
                 if (state.cardiacPhase === 'diastole') {
-                    // Diastole: blue hues
                     this.speedColor.setHSL(0.55 + Math.min(speed / 15.0, 1.0) * 0.15, 1.0, 0.5);
                 } else {
-                    // Systole: red/orange/yellow hues for regurgitant flow
                     this.speedColor.setHSL(0.0 + Math.min(speed / 10.0, 1.0) * 0.12, 1.0, 0.5);
                 }
             }
@@ -1303,8 +1554,10 @@
             ctx.fillRect(0, 0, 16, 16);
             const texture = new THREE.CanvasTexture(canvas);
 
+            const pSize = state.isHeartModel ? 0.8 : 2.2;
+
             const pMaterial = new THREE.PointsMaterial({
-                size: 2.2,
+                size: pSize,
                 map: texture,
                 vertexColors: true,
                 transparent: true,
@@ -1477,8 +1730,30 @@
 
                 // Update 3D MitraClip position, visibility and closure animation
                 if (clipMesh) {
-                    clipMesh.position.set(state.cx + state.clipXOffset, state.cy, state.zOrifice);
                     clipMesh.visible = state.mitraClip;
+                    const cScale = state.isHeartModel ? 0.5 : 1.0;
+                    clipMesh.scale.set(cScale, cScale, cScale);
+
+                    if (state.isHeartModel) {
+                        const cn = 4.0; // Level of clip at leaflet tips (along N)
+                        const clipX = 22.29 + state.clipXOffset * (-0.0667) + cn * (-0.1273);
+                        const clipY = 29.65 + state.clipXOffset * (-0.9160) + cn * (-0.3854);
+                        const clipZ = (-23.19) + state.clipXOffset * 0.3955 + cn * (-0.9139);
+                        clipMesh.position.set(clipX, clipY, clipZ);
+
+                        // Build rotation matrix from basis: V (hinge/X), U (pinch/Y), -N (axial/Z)
+                        const xAxis = new THREE.Vector3(-0.0667, -0.9160, 0.3955).normalize();
+                        const yAxis = new THREE.Vector3(0.9896, -0.1113, -0.0909).normalize();
+                        const zAxis = new THREE.Vector3(0.1273, 0.3854, 0.9139).normalize(); // pointing towards atrium (-N)
+                        
+                        const m = new THREE.Matrix4();
+                        m.makeBasis(xAxis, yAxis, zAxis);
+                        clipMesh.rotation.setFromRotationMatrix(m);
+                    } else {
+                        const clipX = state.cx + state.clipXOffset;
+                        clipMesh.position.set(clipX, state.cy, state.zOrifice);
+                        clipMesh.rotation.set(Math.PI, 0, Math.PI / 2); // Open/close along Y-axis
+                    }
 
                     if (state.mitraClip) {
                         // Animate clip closure from open to nominal closed state
@@ -1505,50 +1780,151 @@
                     const oz = origPositions[idx + 2];
                     const gid = vertexGroups[i];
 
-                    // Normalized height (distance from annulus at zMax down to oz)
-                    const zNorm = (state.zMax - oz) / (state.zLen + 1e-5);
-                    const dBend = Math.pow(Math.min(Math.max(zNorm, 0.0), 1.0), 2.0);
-
-                    let dy = 0;
-                    let dz = 0;
-
-                    if (state.cardiacPhase === 'diastole') {
-                        // Diastole: leaflets open towards the original STL mesh coordinates (dy = 0, dz = 0 at peak fOpen)
-                        const openFactor = state.fOpen;
-                        const w_y = 1.0 - openFactor;
-                        
-                        if (gid === 1 || gid === 2) {
-                            dy = (state.cy - oy) * w_y * dBend;
-                            dz = -D_z_max * openFactor * dBend;
-                        } else if (gid === 3) {
-                            dy = (state.cy - oy) * 0.2 * w_y * dBend;
-                            dz = -D_z_max * openFactor * dBend;
+                    // Check for Heart Model specific groups (11 to 16)
+                    if (gid >= 11 && gid <= 16) {
+                        if (gid === 11) {
+                            // Left heart interior walls: contract in systole towards center [32.69, -0.12, -57.12]
+                            const hCenterX = 32.69;
+                            const hCenterY = -0.12;
+                            const hCenterZ = -57.12;
+                            const w_z = Math.min(1.0, (pLv - 5.0) / 115.0);
+                            const contractFactor = (state.cardiacPhase === 'systole') ? (1.0 - 0.05 * w_z) : 1.0;
+                            positions[idx] = hCenterX + (ox - hCenterX) * contractFactor;
+                            positions[idx + 1] = hCenterY + (oy - hCenterY) * contractFactor;
+                            positions[idx + 2] = hCenterZ + (oz - hCenterZ) * contractFactor;
+                        } else {
+                            // Collapse any other unexpected heart group vertices
+                            positions[idx] = state.cx;
+                            positions[idx + 1] = state.cy;
+                            positions[idx + 2] = state.zOrifice;
                         }
-                    } else {
-                        // Systole: leaflets remain fully closed in Y (meeting at cy), and dome upward in Z based on pressure
-                        const w_z = Math.min(1.0, (pLv - 5.0) / 115.0);
-                        
-                        if (gid === 1 || gid === 2) {
-                            dy = (state.cy - oy) * dBend;
-                            dz = +1.5 * w_z * dBend;
-                        } else if (gid === 3) {
-                            dy = (state.cy - oy) * 0.2 * dBend;
-                            dz = +1.5 * w_z * dBend;
+
+                        // Apply anatomy colors
+                        if (state.colorMode === 'anatomy') {
+                            if (gid === 11) {
+                                // Deep crimson myocardium
+                                colors[idx] = 0.65; colors[idx + 1] = 0.15; colors[idx + 2] = 0.25;
+                            } else {
+                                colors[idx] = 0.50; colors[idx + 1] = 0.50; colors[idx + 2] = 0.55;
+                            }
+                        } else {
+                            // Pressure mapping
+                            const localP = (state.cardiacPhase === 'systole') ? pLv : pLa;
+                            const factor = Math.min(localP / 120.0, 1.0);
+                            colors[idx] = 0.2 + factor * 0.8;
+                            colors[idx + 1] = 0.45 + factor * 0.15;
+                            colors[idx + 2] = 0.9 - factor * 0.8;
                         }
+                        continue;
                     }
 
-                    positions[idx + 1] = oy + dy;
-                    positions[idx + 2] = oz + dz;
+                    // Normal Mitral Valve deformation (Groups 1, 2, 3, or STL group 0)
+                    let dBend = 0;
+                    if (state.isHeartModel) {
+                        const dx = ox - 22.29;
+                        const dy = oy - 29.65;
+                        const dz = oz - (-23.19);
+                        let pu = dx * 0.9896 + dy * (-0.1113) + dz * (-0.0909);
+                        let pv = dx * (-0.0667) + dy * (-0.9160) + dz * 0.3955;
+                        let pn = dx * (-0.1273) + dy * (-0.3854) + dz * (-0.9139);
 
-                    // MitraClip center pinching: seals leaflet edges together in the center (x = cx, y = cy)
-                    if (state.mitraClip) {
-                        const clipX = state.cx + state.clipXOffset;
-                        const xDist = Math.abs(ox - clipX);
-                        // Gaussian weight: maximum seal at center line, decays laterally over ~8mm
-                        const wPinch = Math.exp(-Math.pow(xDist / 8.0, 2));
-                        // Interpolate current coordinate towards the center coaptation line 'cy' with enhanced factor
-                        const pinchStrength = wPinch * Math.min(1.0, dBend * 1.6);
-                        positions[idx + 1] = positions[idx + 1] + (state.cy - positions[idx + 1]) * pinchStrength;
+                        if (pn <= 6.0) {
+                            // Leaflets: from 0 (at pn=-10.44) to 1 (at pn=6.0)
+                            const nNorm = (pn - (-10.44)) / 16.44;
+                            dBend = Math.min(Math.max(nNorm, 0.0), 1.0);
+                        } else {
+                            // Chordae & Papillary: from 1 (at pn=6.0) to 0 (at pn=42.44)
+                            const nNorm = (42.44 - pn) / 36.44;
+                            dBend = Math.min(Math.max(nNorm, 0.0), 1.0);
+                        }
+
+                        let newPu = pu;
+                        let newPv = pv;
+                        let newPn = pn;
+
+                        if (state.cardiacPhase === 'diastole') {
+                            // Diastole: leaflets open towards original mesh coordinates
+                            const openFactor = state.fOpen;
+                            const w_y = 1.0 - openFactor;
+
+                            if (gid === 1 || gid === 2) {
+                                newPu = pu * (1.0 - w_y * dBend);
+                                newPn = pn + D_z_max * openFactor * dBend;
+                            } else if (gid === 3) {
+                                newPu = pu * (1.0 - 0.2 * w_y * dBend);
+                                newPn = pn + D_z_max * openFactor * dBend;
+                            }
+                        } else {
+                            // Systole: leaflets closed (meet at pu = 0) and dome upwards (negative pn direction)
+                            const w_z = Math.min(1.0, (pLv - 5.0) / 115.0);
+
+                            if (gid === 1 || gid === 2) {
+                                newPu = pu * (1.0 - dBend);
+                                newPn = pn - 1.5 * w_z * dBend;
+                            } else if (gid === 3) {
+                                newPu = pu * (1.0 - 0.2 * dBend);
+                                newPn = pn - 1.5 * w_z * dBend;
+                            }
+                        }
+
+                        // MitraClip center pinching: seals leaflet edges together in local U direction
+                        if (state.mitraClip) {
+                            const distV = pv - state.clipXOffset;
+                            const pinchDecay = 6.0;
+                            const wPinch = Math.exp(-Math.pow(distV / pinchDecay, 2));
+                            let pinchStrength = wPinch * Math.min(1.0, dBend * 1.6);
+                            if (gid === 3) {
+                                pinchStrength *= 0.05;
+                            }
+                            newPu = newPu * (1.0 - pinchStrength);
+                        }
+
+                        // Reconstruct global coordinates
+                        positions[idx] = 22.29 + newPu * 0.9896 + newPv * (-0.0667) + newPn * (-0.1273);
+                        positions[idx + 1] = 29.65 + newPu * (-0.1113) + newPv * (-0.9160) + newPn * (-0.3854);
+                        positions[idx + 2] = (-23.19) + newPu * (-0.0909) + newPv * 0.3955 + newPn * (-0.9139);
+                    } else {
+                        // Original STL deformation
+                        const zNorm = (state.zMax - oz) / (state.zLen + 1e-5);
+                        dBend = Math.pow(Math.min(Math.max(zNorm, 0.0), 1.0), 2.0);
+
+                        let dy = 0;
+                        let dz = 0;
+
+                        if (state.cardiacPhase === 'diastole') {
+                            const openFactor = state.fOpen;
+                            const w_y = 1.0 - openFactor;
+                            
+                            if (gid === 1 || gid === 2) {
+                                dy = (state.cy - oy) * w_y * dBend;
+                                dz = -D_z_max * openFactor * dBend;
+                            } else if (gid === 3) {
+                                dy = (state.cy - oy) * 0.2 * w_y * dBend;
+                                dz = -D_z_max * openFactor * dBend;
+                            }
+                        } else {
+                            const w_z = Math.min(1.0, (pLv - 5.0) / 115.0);
+                            
+                            if (gid === 1 || gid === 2) {
+                                dy = (state.cy - oy) * dBend;
+                                dz = +1.5 * w_z * dBend;
+                            } else if (gid === 3) {
+                                dy = (state.cy - oy) * 0.2 * dBend;
+                                dz = +1.5 * w_z * dBend;
+                            }
+                        }
+
+                        positions[idx] = ox;
+                        positions[idx + 1] = oy + dy;
+                        positions[idx + 2] = oz + dz;
+
+                        if (state.mitraClip) {
+                            const clipX = state.cx + state.clipXOffset;
+                            const xDist = Math.abs(ox - clipX);
+                            const wPinch = Math.exp(-Math.pow(xDist / 8.0, 2));
+                            const pinchStrength = wPinch * Math.min(1.0, dBend * 1.6);
+                            positions[idx + 1] = positions[idx + 1] + (state.cy - positions[idx + 1]) * pinchStrength;
+                        }
                     }
 
                     // Dynamic colors based on color mode
