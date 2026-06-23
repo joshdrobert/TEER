@@ -34,3 +34,6 @@ mesh.export('/home/cyrilpillai36/Desktop/segmented_valve_mesh.stl')
 
 
 
+./configure \
+  --with-petsc=$PETSC_DIR/$PETSC_ARCH \
+  --with-hdf5-dir=$CONDA_PREFIX \
