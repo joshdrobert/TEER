@@ -351,7 +351,7 @@
     <!-- Loading Screen -->
     <div id="loading-screen" class="loading-overlay">
         <div class="spinner"></div>
-        <div id="loading-text">Loading Mitral Geometry (150KB)...</div>
+        <div id="loading-text">Loading Segmented Valve Mesh (25 MB)...</div>
     </div>
 
     <!-- HUD Phase Indicator -->
@@ -370,9 +370,9 @@
         <div class="control-group">
             <div class="section-title">Mesh Selection</div>
             <select id="geometry-select" class="dropdown">
-                <option value="./mitral_valve_with_chordae.obj" selected>Mitral Valve with Chordae (156 KB - Smooth OBJ)</option>
+                <option value="./segmented_valve_mesh_smoothed.stl" selected>Segmented Valve Mesh (25 MB - High-Res STL)</option>
+                <option value="./mitral_valve_with_chordae.obj">Mitral Valve with Chordae (156 KB - Smooth OBJ)</option>
                 <option value="./mitral_valve.obj">Mitral Valve Leaflets Only (92 KB - OBJ)</option>
-                <option value="./segmented_valve_mesh_smoothed.stl">Segmented Valve Mesh (25 MB - High-Res STL)</option>
             </select>
         </div>
 
@@ -998,22 +998,44 @@
                     const zMin = bbox.min.z;
                     const zMax = bbox.max.z;
                     const zLen = zMax - zMin;
-                    const cx = (bbox.min.x + bbox.max.x) / 2;
-                    const cy = (bbox.min.y + bbox.max.y) / 2;
                     const rx = (bbox.max.x - bbox.min.x) / 2;
                     const ry = (bbox.max.y - bbox.min.y) / 2;
                     const r_cyl = Math.max(rx, ry) + 5.0;
+
+                    // Initialize cx, cy at bounding box center
+                    let cx = (bbox.min.x + bbox.max.x) / 2;
+                    let cy = (bbox.min.y + bbox.max.y) / 2;
 
                     // Update states
                     state.zMin = zMin;
                     state.zMax = zMax;
                     state.zLen = zLen;
-                    state.cx = cx;
-                    state.cy = cy;
                     state.R_cylinder = r_cyl;
                     state.zOrifice = state.zMin + 0.8 * state.zLen; // leaflets are at the top (80% height)
 
                     const positions = geomData.attributes.position.array;
+
+                    // For the Segmented STL mesh, compute the centroid specifically from the leaflet tip region 
+                    // (the top 20% of vertices, z >= state.zMin + 0.8 * state.zLen) to align the flow orifice perfectly.
+                    if (url.endsWith('.stl')) {
+                        let sumX = 0, sumY = 0, count = 0;
+                        for (let i = 0; i < positions.length; i += 3) {
+                            const z = positions[i+2];
+                            if (z >= state.zMin + 0.8 * state.zLen) {
+                                sumX += positions[i];
+                                sumY += positions[i+1];
+                                count++;
+                            }
+                        }
+                        if (count > 0) {
+                            cx = sumX / count;
+                            cy = sumY / count;
+                        }
+                    }
+
+                    state.cx = cx;
+                    state.cy = cy;
+
                     // Keep a copy of original positions for deformation
                     origPositions = new Float32Array(positions.length);
                     origPositions.set(positions);
@@ -1563,7 +1585,7 @@
         });
 
         // Initialize default geometry mesh
-        loadGeometry("./mitral_valve_with_chordae.obj");
+        loadGeometry("./segmented_valve_mesh_smoothed.stl");
 
         // Kickoff animation loop
         requestAnimationFrame(animate);
