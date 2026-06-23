@@ -36,6 +36,12 @@ def build_parser() -> argparse.ArgumentParser:
     view_parser.add_argument("--case-dir", type=Path, default=None, help="Case directory. Defaults to workspace artifacts path.")
     view_parser.add_argument("--workspace", type=Path, default=Path.cwd(), help="Project workspace root.")
     view_parser.add_argument("--cutaway", action="store_true", help="Enable cutaway view of the chambers and flow.")
+
+    mp4_parser = subparsers.add_parser("render-blood-flow-mp4", help="Render a professional blood flow MP4 animation.")
+    mp4_parser.add_argument("--case-dir", type=Path, default=None, help="Case directory. Defaults to workspace artifacts path.")
+    mp4_parser.add_argument("--workspace", type=Path, default=Path.cwd(), help="Project workspace root.")
+    mp4_parser.add_argument("--fps", type=int, default=30, help="Frames per second for MP4 output.")
+    mp4_parser.add_argument("--dpi", type=int, default=150, help="Resolution DPI for MP4 frames.")
     return parser
 
 
@@ -53,7 +59,7 @@ def _add_run_arguments(parser: argparse.ArgumentParser) -> None:
 
 def main(argv: Sequence[str] | None = None) -> int:
     raw_args = list(argv) if argv is not None else sys.argv[1:]
-    command_names = {"run", "prepare-data", "data-summary", "mock-mitral-fsi", "render-mock-mitral-fsi", "view-mock-mitral-fsi"}
+    command_names = {"run", "prepare-data", "data-summary", "mock-mitral-fsi", "render-mock-mitral-fsi", "view-mock-mitral-fsi", "render-blood-flow-mp4"}
     parser = build_parser() if raw_args and raw_args[0] in command_names else build_legacy_parser()
     args = parser.parse_args(raw_args)
 
@@ -67,6 +73,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _render_mock_mitral_fsi(args.case_dir, args.workspace)
     if getattr(args, "command", None) == "view-mock-mitral-fsi":
         return _view_mock_mitral_fsi(args.case_dir, args.workspace, getattr(args, "cutaway", False))
+    if getattr(args, "command", None) == "render-blood-flow-mp4":
+        return _render_blood_flow_mp4(args.case_dir, args.workspace,
+                                      getattr(args, "fps", 30),
+                                      getattr(args, "dpi", 150))
 
     if not args.dicom_paths:
         parser.print_help()
@@ -133,6 +143,16 @@ def _view_mock_mitral_fsi(case_dir: Path | None, workspace: Path, cutaway: bool 
 
     resolved_case_dir = case_dir or (workspace / "artifacts" / "mock_mitral_uris_fsi")
     view_mock_case(resolved_case_dir, cutaway=cutaway)
+    return 0
+
+
+def _render_blood_flow_mp4(case_dir: Path | None, workspace: Path,
+                           fps: int = 30, dpi: int = 150) -> int:
+    from .blood_flow_mp4 import render_blood_flow_mp4
+
+    resolved_case_dir = case_dir or (workspace / "artifacts" / "mock_mitral_uris_fsi")
+    result = render_blood_flow_mp4(resolved_case_dir, fps=fps, dpi=dpi)
+    print(json.dumps(result.to_dict(), indent=2))
     return 0
 
 

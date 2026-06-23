@@ -143,3 +143,26 @@ DatasetResource(
 ```
 
 The pipeline still supports generic local zip imports for other manually downloaded 3D TEE datasets through `LocalArchiveDatasetFetcher`.
+
+## Interactive 3D Mitral Valve FSI Simulation (TEER Web Dashboard)
+
+The repository includes a real-time, interactive 3D web dashboard for Transcatheter Edge-to-Edge Repair (TEER) simulation and clinical planning.
+
+### Features:
+- **Interactive 3D Graphics**: Orbit, pan, and zoom to inspect high-resolution geometries (`segmented_valve_mesh_smoothed.stl`, `mitral_valve_with_chordae.obj`, and `mitral_valve.obj`).
+- **Anatomical Mitral Valve Motion**: Fully dynamic leaflet opening (diastole) and closing/doming (systole) based on cardiac cycle state.
+- **Interactive Blood Flow Simulator**: Real-time particle system simulating 3D forward flow (with recirculation toroidal vortices) and narrow regurgitant systolic jets.
+- **MitraClip G4 Integration**: Enable and place a high-resolution 3D MitraClip (NT G4 surrogate) along the coaptation line to dynamically pinch the leaflets together and create a double-orifice mitral valve flow.
+- **Real-time Waveforms**: Live Canvas charts showing Left Atrial (LA) and Left Ventricular (LV) pressure-time curves, with active telemetry tracking flow rates and regurgitation volumes.
+- **Camera Preset Views**: Switch instantly between Atrial (Top), Ventricular (Bottom), Side Cutaway, and Isometric views.
+
+### Running the Web Server:
+
+You can run the lightweight Python web server with:
+
+```bash
+python server.py
+```
+
+This starts a local CORS-enabled HTTP server serving static files. Open the URL in your web browser:
+[http://localhost:8000](http://localhost:8000)

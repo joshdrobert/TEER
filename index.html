@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEER CDSS — Interactive 3D Mitral Valve FSI Simulation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #080c14;
+            --panel-bg: rgba(13, 20, 35, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-blue: #00e5ff;
+            --accent-red: #ff3366;
+            --accent-orange: #ff9900;
+            --text-color: #f3f4f6;
+            --text-sub: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* Glassmorphic UI Dashboard */
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            z-index: 10;
+            position: absolute;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        #left-control-panel {
+            top: 24px;
+            left: 24px;
+            width: 380px;
+            max-height: calc(100vh - 48px);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        #right-hud-panel {
+            top: 24px;
+            right: 24px;
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Custom Scrollbar for left panel */
+        #left-control-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+        #left-control-panel::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 3px;
+        }
+        #left-control-panel::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        /* Typography & Layout elements */
+        h1 {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff, var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            font-size: 11px;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 500;
+        }
+
+        .section-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-sub);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 13px;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        label span.val-display {
+            color: var(--accent-blue);
+            font-weight: 500;
+        }
+
+        /* Controls */
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            transition: background 0.3s;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--accent-blue);
+            transition: transform 0.1s;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .toggle-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            transition: all 0.3s;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .toggle-btn.active {
+            background: rgba(0, 229, 255, 0.15);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+        }
+
+        .push-btn {
+            background: linear-gradient(135deg, #00b0ff, #00e5ff);
+            border: none;
+            color: #04080f;
+            padding: 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3);
+            transition: all 0.3s;
+            text-align: center;
+            user-select: none;
+        }
+
+        .push-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 229, 255, 0.5);
+        }
+
+        .push-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px rgba(0, 229, 255, 0.3);
+        }
+
+        /* Buttons layout grid */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* Telemetry Cards */
+        .telemetry-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .telemetry-label {
+            font-size: 12px;
+            color: var(--text-sub);
+        }
+
+        .telemetry-value {
+            font-size: 16px;
+            font-weight: 700;
+            font-family: monospace;
+        }
+
+        .telemetry-value.blue { color: var(--accent-blue); }
+        .telemetry-value.red { color: var(--accent-red); }
+        .telemetry-value.orange { color: var(--accent-orange); }
+
+        /* Chart Canvas */
+        #chart-canvas {
+            width: 100%;
+            height: 120px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        /* Dropdown Selection */
+        .dropdown {
+            background: rgba(13, 20, 35, 0.9);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 10px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        /* HUD overlay information */
+        #hud-top-center {
+            position: absolute;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .phase-indicator {
+            background: rgba(13, 20, 35, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 6px 20px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            transition: all 0.5s;
+        }
+
+        .phase-indicator.diastole {
+            color: var(--accent-blue);
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+        }
+
+        .phase-indicator.systole {
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+            box-shadow: 0 0 15px rgba(255, 51, 102, 0.2);
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #080c14;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.5s ease-out;
+            gap: 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.05);
+            border-top: 3px solid var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.1);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #loading-text {
+            font-size: 14px;
+            color: var(--text-sub);
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-overlay">
+        <div class="spinner"></div>
+        <div id="loading-text">Loading Mitral Geometry (150KB)...</div>
+    </div>
+
+    <!-- HUD Phase Indicator -->
+    <div id="hud-top-center">
+        <div id="phase-indicator" class="phase-indicator diastole">Diastole</div>
+    </div>
+
+    <!-- Left Control Panel -->
+    <div id="left-control-panel" class="glass-panel">
+        <div>
+            <div class="subtitle">TEER Clinical DSS</div>
+            <h1>3D Mitral Valve FSI</h1>
+        </div>
+
+        <!-- Geometry Selection -->
+        <div class="control-group">
+            <div class="section-title">Mesh Selection</div>
+            <select id="geometry-select" class="dropdown">
+                <option value="./mitral_valve_with_chordae.obj" selected>Mitral Valve with Chordae (156 KB - Smooth OBJ)</option>
+                <option value="./mitral_valve.obj">Mitral Valve Leaflets Only (92 KB - OBJ)</option>
+                <option value="./segmented_valve_mesh_smoothed.stl">Segmented Valve Mesh (25 MB - High-Res STL)</option>
+            </select>
+        </div>
+
+        <!-- Simulation Mode -->
+        <div class="control-group">
+            <div class="section-title">Simulation Mode</div>
+            <div class="btn-grid">
+                <button id="mode-auto" class="toggle-btn active">Automatic Cycle</button>
+                <button id="mode-manual" class="toggle-btn">Manual Control</button>
+            </div>
+        </div>
+
+        <!-- Interactive Flow controls (Manual Mode) -->
+        <div id="manual-controls" class="control-group" style="display: none; border: 1px dashed var(--border-color); padding: 14px; border-radius: 10px; background: rgba(255,255,255,0.01);">
+            <div class="section-title" style="border:none; padding:0; margin-bottom:10px; font-size:11px; color:var(--accent-blue);">Interactive Pump Controls</div>
+            <button id="push-blood-btn" class="push-btn">Push Blood (Hold)</button>
+            <div style="margin-top: 12px;">
+                <label>Manual Flow Rate <span id="manual-flow-val" class="val-display">0 mL/s</span></label>
+                <input type="range" id="manual-flow-slider" min="0" max="350" value="0" class="slider">
+            </div>
+        </div>
+
+        <!-- Model parameters -->
+        <div class="control-group">
+            <div class="section-title">Anatomy & Physiology</div>
+            <div class="control-group">
+                <label>MitraClip Placement <span id="clip-status" class="val-display">Off</span></label>
+                <button id="mitraclip-btn" class="toggle-btn">Enable Clip Pinch</button>
+                <div class="control-group" id="clip-position-group" style="display: none; margin-top: 8px;">
+                    <label>Clip Position (X) <span id="clip-pos-val" class="val-display">0.0 mm</span></label>
+                    <input type="range" id="clip-pos-slider" min="-15" max="15" step="0.5" value="0" class="slider">
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Heart Rate <span id="heart-rate-val" class="val-display">75 BPM</span></label>
+                <input type="range" id="heart-rate-slider" min="40" max="120" value="75" class="slider">
+            </div>
+            <div class="control-group">
+                <label>Mitral Regurgitation Gap <span id="gap-val" class="val-display">3.0 mm</span></label>
+                <input type="range" id="gap-slider" min="0" max="10" step="0.5" value="3" class="slider">
+            </div>
+        </div>
+
+        <!-- Visual settings -->
+        <div class="control-group">
+            <div class="section-title">Visualization settings</div>
+            <div class="control-group">
+                <label>Blood Particle Velocity Colors</label>
+                <div class="btn-grid">
+                    <button id="color-anatomy" class="toggle-btn active">Anatomy Solid</button>
+                    <button id="color-pressure" class="toggle-btn">Pressure Map</button>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Mesh Opacity <span id="opacity-val" class="val-display">35%</span></label>
+                <input type="range" id="opacity-slider" min="10" max="100" value="35" class="slider">
+            </div>
+            <div class="control-group">
+                <label>Particle Density <span id="particles-val" class="val-display">700</span></label>
+                <input type="range" id="particles-slider" min="100" max="1500" step="50" value="700" class="slider">
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Telemetry Panel -->
+    <div id="right-hud-panel" class="glass-panel">
+        <div class="section-title">Hemodynamics Telemetry</div>
+
+        <div class="telemetry-card">
+            <div class="telemetry-label">Left Atrium Pressure</div>
+            <div id="telemetry-la" class="telemetry-value blue">-- mmHg</div>
+        </div>
+        <div class="telemetry-card">
+            <div class="telemetry-label">Left Ventricle Pressure</div>
+            <div id="telemetry-lv" class="telemetry-value orange">-- mmHg</div>
+        </div>
+        <div class="telemetry-card">
+            <div class="telemetry-label">Transmitral Flow Rate</div>
+            <div id="telemetry-flow" class="telemetry-value blue">-- mL/s</div>
+        </div>
+        <div class="telemetry-card">
+            <div class="telemetry-label">Mitral Regurgitation Vol.</div>
+            <div id="telemetry-leak" class="telemetry-value red">-- mL/s</div>
+        </div>
+
+        <div class="section-title" style="margin-top: 10px;">Pressure vs. Time Waveform</div>
+        <canvas id="chart-canvas"></canvas>
+
+        <div class="section-title" style="margin-top: 10px;">Camera Preset Angles</div>
+        <div class="btn-grid" style="grid-template-columns: 1fr 1fr; font-size:11px;">
+            <button id="cam-atrial" class="toggle-btn" style="padding:6px; font-size:11px;">Atrial (Top)</button>
+            <button id="cam-vent" class="toggle-btn" style="padding:6px; font-size:11px;">Vent (Bottom)</button>
+            <button id="cam-side" class="toggle-btn" style="padding:6px; font-size:11px;">Side Cutaway</button>
+            <button id="cam-iso" class="toggle-btn" style="padding:6px; font-size:11px;">Isometric</button>
+        </div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <!-- Three.js and OrbitControls via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // --- 1. Custom Geometry Parsers (Self-Contained) ---
+        function parseOBJ(text) {
+            const lines = text.split('\n');
+            const tempVertices = [];
+            const positions = [];
+            const groupIDs = [];
+            let currentGroupID = 0; // 0 = default/none, 1 = anterior, 2 = posterior, 3 = chordae/papillary
+            
+            for (let line of lines) {
+                line = line.trim();
+                if (line.startsWith('v ')) {
+                    const parts = line.split(/\s+/).slice(1).map(Number);
+                    tempVertices.push(parts);
+                } else if (line.startsWith('g ') || line.startsWith('o ')) {
+                    const name = line.split(/\s+/)[1].toUpperCase();
+                    if (name.includes('ANTERIOR')) {
+                        currentGroupID = 1;
+                    } else if (name.includes('POSTERIOR')) {
+                        currentGroupID = 2;
+                    } else if (name.includes('CHORDAE') || name.includes('PAPILLARY')) {
+                        currentGroupID = 3;
+                    } else {
+                        currentGroupID = 0;
+                    }
+                } else if (line.startsWith('f ')) {
+                    const parts = line.split(/\s+/).slice(1).map(p => {
+                        const idx = parseInt(p.split('/')[0]);
+                        return idx < 0 ? tempVertices.length + idx : idx - 1;
+                    });
+                    // Triangulate
+                    for (let i = 1; i < parts.length - 1; i++) {
+                        const idxs = [parts[0], parts[i], parts[i+1]];
+                        for (let idx of idxs) {
+                            const v = tempVertices[idx];
+                            positions.push(v[0], v[1], v[2]);
+                            groupIDs.push(currentGroupID);
+                        }
+                    }
+                }
+            }
+            
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+            geometry.computeVertexNormals();
+            return { geometry, groupIDs: new Int32Array(groupIDs) };
+        }
+
+        function parseBinarySTL(buffer) {
+            const reader = new DataView(buffer);
+            const numTriangles = reader.getUint32(84, true);
+            const positions = new Float32Array(numTriangles * 9);
+            
+            let offset = 88;
+            for (let i = 0; i < numTriangles; i++) {
+                offset += 12; // skip normal
+                for (let v = 0; v < 3; v++) {
+                    const idx = i * 9 + v * 3;
+                    positions[idx] = reader.getFloat32(offset, true);
+                    positions[idx+1] = reader.getFloat32(offset+4, true);
+                    positions[idx+2] = reader.getFloat32(offset+8, true);
+                    offset += 12;
+                }
+                offset += 2; // skip attribute
+            }
+            
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.computeVertexNormals();
+            return geometry;
+        }
+
+        function parseAsciiSTL(text) {
+            const regex = /vertex\s+([-\d.eE+]+)\s+([-\d.eE+]+)\s+([-\d.eE+]+)/g;
+            const positions = [];
+            let match;
+            while ((match = regex.exec(text)) !== null) {
+                positions.push(parseFloat(match[1]), parseFloat(match[2]), parseFloat(match[3]));
+            }
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+            geometry.computeVertexNormals();
+            return geometry;
+        }
+
+        function detectSTLGroupIDs(geometry, cy) {
+            const positions = geometry.attributes.position.array;
+            const size = positions.length / 3;
+            const groupIDs = new Int32Array(size);
+            for (let i = 0; i < size; i++) {
+                const idx = i * 3;
+                const y = positions[idx+1];
+                groupIDs[i] = (y <= cy) ? 2 : 1; // Split into anterior (1) and posterior (2) by Y centroid
+            }
+            return groupIDs;
+        }
+
+        // --- 2. Simulation State & Parameters ---
+        const state = {
+            mode: 'auto', // 'auto' | 'manual'
+            pushing: false,
+            manualFlowRate: 0,
+            heartRate: 75,
+            regurgitationGap: 3.0,
+            mitraClip: false,
+            clipXOffset: 0.0,
+            colorMode: 'anatomy', // 'anatomy' | 'pressure'
+            meshOpacity: 0.35,
+            particleDensity: 700,
+            
+            // Physical Telemetry variables
+            laPressure: 0,
+            lvPressure: 0,
+            flowRate: 0,
+            regurgVolume: 0,
+            
+            // FSI Variables
+            fOpen: 0.0,
+            tCycle: 0.0,
+            cardiacPhase: 'diastole', // 'diastole' | 'systole'
+            meshScale: 1.0,
+            zMin: 0,
+            zMax: 0,
+            zLen: 0,
+            zOrifice: 0,
+            cx: 0,
+            cy: 0,
+            R_cylinder: 0
+        };
+
+        // --- 3. UI Setup & Event Bindings ---
+        const elements = {
+            loadingScreen: document.getElementById('loading-screen'),
+            loadingText: document.getElementById('loading-text'),
+            phaseIndicator: document.getElementById('phase-indicator'),
+            geometrySelect: document.getElementById('geometry-select'),
+            modeAuto: document.getElementById('mode-auto'),
+            modeManual: document.getElementById('mode-manual'),
+            manualControls: document.getElementById('manual-controls'),
+            pushBloodBtn: document.getElementById('push-blood-btn'),
+            manualFlowSlider: document.getElementById('manual-flow-slider'),
+            manualFlowVal: document.getElementById('manual-flow-val'),
+            mitraclipBtn: document.getElementById('mitraclip-btn'),
+            clipStatus: document.getElementById('clip-status'),
+            clipPositionGroup: document.getElementById('clip-position-group'),
+            clipPosSlider: document.getElementById('clip-pos-slider'),
+            clipPosVal: document.getElementById('clip-pos-val'),
+            heartRateSlider: document.getElementById('heart-rate-slider'),
+            heartRateVal: document.getElementById('heart-rate-val'),
+            gapSlider: document.getElementById('gap-slider'),
+            gapVal: document.getElementById('gap-val'),
+            colorAnatomy: document.getElementById('color-anatomy'),
+            colorPressure: document.getElementById('color-pressure'),
+            opacitySlider: document.getElementById('opacity-slider'),
+            opacityVal: document.getElementById('opacity-val'),
+            particlesSlider: document.getElementById('particles-slider'),
+            particlesVal: document.getElementById('particles-val'),
+            telemetryLa: document.getElementById('telemetry-la'),
+            telemetryLv: document.getElementById('telemetry-lv'),
+            telemetryFlow: document.getElementById('telemetry-flow'),
+            telemetryLeak: document.getElementById('telemetry-leak'),
+            chartCanvas: document.getElementById('chart-canvas'),
+            camAtrial: document.getElementById('cam-atrial'),
+            camVent: document.getElementById('cam-vent'),
+            camSide: document.getElementById('cam-side'),
+            camIso: document.getElementById('cam-iso')
+        };
+
+        // Bind DOM elements to controls
+        elements.modeAuto.addEventListener('click', () => {
+            state.mode = 'auto';
+            elements.modeAuto.classList.add('active');
+            elements.modeManual.classList.remove('active');
+            elements.manualControls.style.display = 'none';
+        });
+
+        elements.modeManual.addEventListener('click', () => {
+            state.mode = 'manual';
+            elements.modeManual.classList.add('active');
+            elements.modeAuto.classList.remove('active');
+            elements.manualControls.style.display = 'flex';
+        });
+
+        // Mouse/Touch controls for Pushing Blood
+        elements.pushBloodBtn.addEventListener('mousedown', () => { state.pushing = true; });
+        elements.pushBloodBtn.addEventListener('mouseup', () => { state.pushing = false; });
+        elements.pushBloodBtn.addEventListener('touchstart', (e) => { e.preventDefault(); state.pushing = true; });
+        elements.pushBloodBtn.addEventListener('touchend', () => { state.pushing = false; });
+
+        elements.manualFlowSlider.addEventListener('input', (e) => {
+            state.manualFlowRate = parseInt(e.target.value);
+            elements.manualFlowVal.innerText = state.manualFlowRate + ' mL/s';
+        });
+
+        elements.mitraclipBtn.addEventListener('click', () => {
+            state.mitraClip = !state.mitraClip;
+            elements.mitraclipBtn.classList.toggle('active', state.mitraClip);
+            elements.clipStatus.innerText = state.mitraClip ? 'MitraClip (On)' : 'Off';
+            elements.clipPositionGroup.style.display = state.mitraClip ? 'block' : 'none';
+        });
+
+        elements.clipPosSlider.addEventListener('input', (e) => {
+            state.clipXOffset = parseFloat(e.target.value);
+            elements.clipPosVal.innerText = (state.clipXOffset >= 0 ? '+' : '') + state.clipXOffset.toFixed(1) + ' mm';
+        });
+
+        elements.heartRateSlider.addEventListener('input', (e) => {
+            state.heartRate = parseInt(e.target.value);
+            elements.heartRateVal.innerText = state.heartRate + ' BPM';
+        });
+
+        elements.gapSlider.addEventListener('input', (e) => {
+            state.regurgitationGap = parseFloat(e.target.value);
+            elements.gapVal.innerText = state.regurgitationGap.toFixed(1) + ' mm';
+        });
+
+        elements.colorAnatomy.addEventListener('click', () => {
+            state.colorMode = 'anatomy';
+            elements.colorAnatomy.classList.add('active');
+            elements.colorPressure.classList.remove('active');
+        });
+
+        elements.colorPressure.addEventListener('click', () => {
+            state.colorMode = 'pressure';
+            elements.colorPressure.classList.add('active');
+            elements.colorAnatomy.classList.remove('active');
+        });
+
+        elements.opacitySlider.addEventListener('input', (e) => {
+            state.meshOpacity = parseInt(e.target.value) / 100.0;
+            elements.opacityVal.innerText = e.target.value + '%';
+            if (valveMaterial) valveMaterial.opacity = state.meshOpacity;
+        });
+
+        elements.particlesSlider.addEventListener('input', (e) => {
+            state.particleDensity = parseInt(e.target.value);
+            elements.particlesVal.innerText = state.particleDensity;
+            rebuildParticles();
+        });
+
+        // Geometry Selector
+        elements.geometrySelect.addEventListener('change', (e) => {
+            loadGeometry(e.target.value);
+        });
+
+        // --- 4. Three.js Setup & Graphics Engine ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x080c14, 0.002);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
+        camera.position.set(120, -120, 180);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxPolarAngle = Math.PI;
+
+        // Visual helpers (Cylinder bounds representation)
+        let cylinderWireframe = null;
+
+        function updateCylinderRepresentation() {
+            if (cylinderWireframe) scene.remove(cylinderWireframe);
+            
+            const cylGeom = new THREE.CylinderGeometry(state.R_cylinder, state.R_cylinder, state.zLen + 20, 24, 1, true);
+            cylGeom.rotateX(Math.PI / 2);
+            cylGeom.translate(state.cx, state.cy, state.zMin + state.zLen / 2);
+            
+            const cylMat = new THREE.MeshBasicMaterial({
+                color: 0x1d2d44,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.08
+            });
+            cylinderWireframe = new THREE.Mesh(cylGeom, cylMat);
+            scene.add(cylinderWireframe);
+        }
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x0e1322, 0.6);
+        scene.add(ambientLight);
+
+        const keyLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        keyLight.position.set(100, 150, 200);
+        scene.add(keyLight);
+
+        const fillLight = new THREE.DirectionalLight(0x00e5ff, 0.4);
+        fillLight.position.set(-100, -150, -50);
+        scene.add(fillLight);
+
+        const rimLight = new THREE.DirectionalLight(0xff3366, 0.3);
+        rimLight.position.set(0, 0, -200);
+        scene.add(rimLight);
+
+        // --- MitraClip 3D Object ---
+        // --- MitraClip 3D Object & CAD Loader ---
+        let clipMesh = new THREE.Group();
+        scene.add(clipMesh);
+        clipMesh.visible = false;
+
+        const clipArms = {
+            leftArmGroup: null,
+            rightArmGroup: null,
+            cVal: 0.0 // closure parameter in [0, 1]
+        };
+
+        function setClipClosure(c) {
+            clipArms.cVal = c;
+            const maxAngle = Math.PI / 3; // 60 degrees rotation
+            if (clipArms.leftArmGroup) {
+                clipArms.leftArmGroup.rotation.y = -maxAngle * c;
+            }
+            if (clipArms.rightArmGroup) {
+                clipArms.rightArmGroup.rotation.y = maxAngle * c;
+            }
+        }
+
+        function translateGeometry(geometry, x, y, z) {
+            const positions = geometry.attributes.position.array;
+            for (let i = 0; i < positions.length; i += 3) {
+                positions[i] -= x;
+                positions[i+1] -= y;
+                positions[i+2] -= z;
+            }
+            geometry.attributes.position.needsUpdate = true;
+            geometry.computeVertexNormals();
+            geometry.computeBoundingBox();
+        }
+
+        function createFallbackClip() {
+            // Clear existing children
+            while(clipMesh.children.length > 0) {
+                clipMesh.remove(clipMesh.children[0]);
+            }
+            // Reset rotation
+            clipMesh.rotation.set(0, 0, 0);
+
+            const clipMat = new THREE.MeshStandardMaterial({
+                color: 0x94a3b8,
+                metalness: 0.95,
+                roughness: 0.15
+            });
+            
+            const barrelGeom = new THREE.CylinderGeometry(1.5, 1.5, 12, 12);
+            const barrel = new THREE.Mesh(barrelGeom, clipMat);
+            barrel.rotation.x = Math.PI / 2;
+            clipMesh.add(barrel);
+            
+            const armGeom = new THREE.BoxGeometry(1.2, 8, 3);
+            
+            const leftArm = new THREE.Mesh(armGeom, clipMat);
+            leftArm.position.set(0, -2.5, 0);
+            clipMesh.add(leftArm);
+            
+            const rightArm = new THREE.Mesh(armGeom, clipMat);
+            rightArm.position.set(0, 2.5, 0);
+            clipMesh.add(rightArm);
+        }
+
+        function loadClipCAD() {
+            const clipMat = new THREE.MeshStandardMaterial({
+                color: 0x94a3b8,
+                metalness: 0.95,
+                roughness: 0.15
+            });
+
+            const parts = [
+                { name: 'body', url: './clip/NT_body_FIXED_world.stl', parent: clipMesh },
+                { name: 'left_arm', url: './clip/NT_left_arm_DYNAMIC_world_open120.stl', isLeftArm: true },
+                { name: 'right_arm', url: './clip/NT_right_arm_DYNAMIC_world_open120.stl', isRightArm: true },
+                { name: 'left_gripper', url: './clip/NT_left_gripper_DYNAMIC_world_open120.stl', isLeftGripper: true },
+                { name: 'right_gripper', url: './clip/NT_right_gripper_DYNAMIC_world_open120.stl', isRightGripper: true }
+            ];
+
+            const promises = parts.map(part => {
+                return fetch(part.url)
+                    .then(res => {
+                        if (!res.ok) throw new Error("File not found");
+                        return res.arrayBuffer();
+                    })
+                    .then(buffer => {
+                        const view = new DataView(buffer);
+                        let isAscii = false;
+                        if (buffer.byteLength > 5) {
+                            const chars = [];
+                            for (let i = 0; i < 5; i++) {
+                                chars.push(String.fromCharCode(view.getUint8(i)));
+                            }
+                            if (chars.join('') === 'solid') {
+                                isAscii = true;
+                            }
+                        }
+
+                        let geom;
+                        if (isAscii) {
+                            const decoder = new TextDecoder('utf-8');
+                            geom = parseAsciiSTL(decoder.decode(buffer));
+                        } else {
+                            geom = parseBinarySTL(buffer);
+                        }
+                        return { part, geom };
+                    });
+            });
+
+            Promise.all(promises).then(results => {
+                // Clear the fallback boxy meshes
+                while(clipMesh.children.length > 0) {
+                    clipMesh.remove(clipMesh.children[0]);
+                }
+
+                // Apply rotation to align with scene orientation
+                // Rotate 180 degrees around X to point body upwards into atrium
+                // Rotate 90 degrees around Z to align arms with anterior-posterior Y direction
+                clipMesh.rotation.set(0, 0, Math.PI / 2);
+
+                const rightHinge = new THREE.Vector3(0.642251, 0.0, 0.68);
+                const leftHinge = new THREE.Vector3(-0.642251, 0.0, 0.68);
+
+                // Create pivot Groups
+                const leftArmGroup = new THREE.Group();
+                leftArmGroup.position.copy(leftHinge);
+                clipMesh.add(leftArmGroup);
+                clipArms.leftArmGroup = leftArmGroup;
+
+                const rightArmGroup = new THREE.Group();
+                rightArmGroup.position.copy(rightHinge);
+                clipMesh.add(rightArmGroup);
+                clipArms.rightArmGroup = rightArmGroup;
+
+                results.forEach(({ part, geom }) => {
+                    const mesh = new THREE.Mesh(geom, clipMat);
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+
+                    if (part.parent) {
+                        part.parent.add(mesh);
+                    } else if (part.isLeftArm || part.isLeftGripper) {
+                        translateGeometry(geom, leftHinge.x, leftHinge.y, leftHinge.z);
+                        leftArmGroup.add(mesh);
+                    } else if (part.isRightArm || part.isRightGripper) {
+                        translateGeometry(geom, rightHinge.x, rightHinge.y, rightHinge.z);
+                        rightArmGroup.add(mesh);
+                    }
+                });
+
+                // Initialize closed state
+                setClipClosure(1.0);
+                console.log("MitraClip G4 CAD assembly loaded successfully.");
+            }).catch(err => {
+                console.warn("Failed to load MitraClip CAD. Using simplified visual fallback.", err);
+                createFallbackClip();
+            });
+        }
+
+        // Initialize fallback and start CAD load
+        createFallbackClip();
+        loadClipCAD();
+
+        // --- 5. Geometry Loading & Manipulation Variables ---
+        let origPositions = null;
+        let vertexGroups = null; // anterior, posterior, papillary etc
+        let valveMesh = null;
+        let valveGeometry = null;
+        let valveMaterial = null;
+
+        function loadGeometry(url) {
+            elements.loadingScreen.style.opacity = '1';
+            elements.loadingScreen.style.pointerEvents = 'auto';
+            elements.loadingText.innerText = "Fetching geometry: " + url.split('/').pop() + "...";
+            
+            fetch(url)
+                .then(response => {
+                    if (url.endsWith('.stl')) {
+                        return response.arrayBuffer();
+                    } else {
+                        return response.text();
+                    }
+                })
+                .then(data => {
+                    // Remove previous mesh if exists
+                    if (valveMesh) scene.remove(valveMesh);
+
+                    let geomData = null;
+                    if (url.endsWith('.stl')) {
+                        // Auto-detect ASCII vs Binary STL by inspecting header
+                        const view = new DataView(data);
+                        let isAscii = false;
+                        if (data.byteLength > 5) {
+                            const chars = [];
+                            for (let i = 0; i < 5; i++) {
+                                chars.push(String.fromCharCode(view.getUint8(i)));
+                            }
+                            if (chars.join('') === 'solid') {
+                                isAscii = true;
+                            }
+                        }
+
+                        if (isAscii) {
+                            const decoder = new TextDecoder('utf-8');
+                            const text = decoder.decode(data);
+                            geomData = parseAsciiSTL(text);
+                        } else {
+                            geomData = parseBinarySTL(data);
+                        }
+                    } else {
+                        const parsed = parseOBJ(data);
+                        geomData = parsed.geometry;
+                        vertexGroups = parsed.groupIDs;
+                    }
+
+                    // Compute centroid & dimensions
+                    geomData.computeBoundingBox();
+                    const bbox = geomData.boundingBox;
+                    const zMin = bbox.min.z;
+                    const zMax = bbox.max.z;
+                    const zLen = zMax - zMin;
+                    const cx = (bbox.min.x + bbox.max.x) / 2;
+                    const cy = (bbox.min.y + bbox.max.y) / 2;
+                    const rx = (bbox.max.x - bbox.min.x) / 2;
+                    const ry = (bbox.max.y - bbox.min.y) / 2;
+                    const r_cyl = Math.max(rx, ry) + 5.0;
+
+                    // Update states
+                    state.zMin = zMin;
+                    state.zMax = zMax;
+                    state.zLen = zLen;
+                    state.cx = cx;
+                    state.cy = cy;
+                    state.R_cylinder = r_cyl;
+                    state.zOrifice = state.zMin + 0.8 * state.zLen; // leaflets are at the top (80% height)
+
+                    const positions = geomData.attributes.position.array;
+                    // Keep a copy of original positions for deformation
+                    origPositions = new Float32Array(positions.length);
+                    origPositions.set(positions);
+
+                    // If STL mesh, we need to generate Group IDs dynamically based on Y centroid
+                    if (url.endsWith('.stl')) {
+                        vertexGroups = detectSTLGroupIDs(geomData, cy);
+                    }
+
+                    // Setup Material
+                    valveMaterial = new THREE.MeshStandardMaterial({
+                        color: 0xe2e8f0,
+                        roughness: 0.4,
+                        metalness: 0.1,
+                        transparent: true,
+                        opacity: state.meshOpacity,
+                        side: THREE.DoubleSide,
+                        vertexColors: true
+                    });
+
+                    // Add color attribute to support dynamic vertex painting
+                    const colors = new Float32Array(positions.length);
+                    for (let i = 0; i < colors.length; i += 3) {
+                        colors[i] = 0.9;
+                        colors[i+1] = 0.9;
+                        colors[i+2] = 0.9;
+                    }
+                    geomData.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+                    valveGeometry = geomData;
+                    valveMesh = new THREE.Mesh(valveGeometry, valveMaterial);
+                    scene.add(valveMesh);
+
+                    // Rebuild visuals & camera control targets
+                    updateCylinderRepresentation();
+                    controls.target.set(cx, cy, state.zMin + state.zLen / 2);
+                    camera.position.set(cx + state.R_cylinder * 2, cy - state.R_cylinder * 2, state.zMax + 50);
+                    controls.update();
+
+                    // Rebuild particle bounding box limits
+                    rebuildParticles();
+
+                    // Hide loading overlay
+                    elements.loadingScreen.style.opacity = '0';
+                    elements.loadingScreen.style.pointerEvents = 'none';
+                })
+                .catch(error => {
+                    console.error("Failed to load geometry mesh:", error);
+                    elements.loadingText.innerText = "Error loading mesh. Check console.";
+                });
+        }
+
+        // Camera preset controls
+        elements.camAtrial.addEventListener('click', () => {
+            camera.position.set(state.cx, state.cy, state.zMax + state.R_cylinder * 2);
+            controls.target.set(state.cx, state.cy, state.zMax);
+            controls.update();
+        });
+        elements.camVent.addEventListener('click', () => {
+            camera.position.set(state.cx, state.cy, state.zMin - state.R_cylinder * 2);
+            controls.target.set(state.cx, state.cy, state.zMin);
+            controls.update();
+        });
+        elements.camSide.addEventListener('click', () => {
+            camera.position.set(state.cx + state.R_cylinder * 2.5, state.cy, state.zMin + state.zLen / 2);
+            controls.target.set(state.cx, state.cy, state.zMin + state.zLen / 2);
+            controls.update();
+        });
+        elements.camIso.addEventListener('click', () => {
+            camera.position.set(state.cx + state.R_cylinder * 2, state.cy - state.R_cylinder * 2, state.zMax + 50);
+            controls.target.set(state.cx, state.cy, state.zMin + state.zLen / 2);
+            controls.update();
+        });
+
+        // --- 6. Particle Physics Blood Simulator ---
+        let particlesGeometry = null;
+        let particlesMesh = null;
+        let bloodParticles = [];
+
+        class BloodParticle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                // Spawn randomly in Left Atrium above valve annulus
+                const radius = state.R_cylinder * 0.7 * Math.sqrt(Math.random());
+                const angle = Math.random() * Math.PI * 2;
+                
+                this.x = state.cx + radius * Math.cos(angle);
+                this.y = state.cy + radius * Math.sin(angle);
+                this.z = state.zMax + 15.0 + Math.random() * 20.0;
+                
+                this.vx = 0;
+                this.vy = 0;
+                this.vz = 0;
+                this.age = 0;
+                this.maxAge = 120 + Math.random() * 80;
+                this.speedColor = new THREE.Color();
+            }
+
+            update(fOpen, vPeak, tCycle, pLa, pLv) {
+                this.age++;
+
+                // Physics logic based on dynamic cycle
+                if (state.cardiacPhase === 'diastole' && Math.abs(vPeak) > 0.1) {
+                    // Flow going through open orifice (diastolic fill)
+                    const rOrifice = 0.25 * state.R_cylinder * fOpen + 5.0;
+                    
+                    // Conical jet spreading
+                    const zDiff = state.zOrifice - this.z;
+                    const rJet = (zDiff > 0.0) ? rOrifice + 0.22 * zDiff : rOrifice;
+                    
+                    // Target velocity based on Gaussian profile
+                    const r_xy = Math.sqrt(Math.pow(this.x - state.cx, 2) + Math.pow(this.y - state.cy, 2));
+                    
+                    // Split jet if MitraClip is enabled (pinched middle)
+                    let dOrifice = r_xy;
+                    if (state.mitraClip) {
+                        // Compute distance to two parallel orifice centers
+                        const clipX = state.cx + state.clipXOffset;
+                        const d1 = Math.sqrt(Math.pow(this.x - (clipX - 8.0), 2) + Math.pow(this.y - state.cy, 2));
+                        const d2 = Math.sqrt(Math.pow(this.x - (clipX + 8.0), 2) + Math.pow(this.y - state.cy, 2));
+                        dOrifice = Math.min(d1, d2);
+                    }
+
+                    const sigmaJet = rJet / 2.0;
+                    const vJet = vPeak * Math.exp(-Math.pow(dOrifice, 2) / (2.0 * Math.pow(sigmaJet, 2)));
+                    
+                    // Spatial z-decay
+                    const zDecay = Math.max(0.0, Math.min(1.0, (this.z - (state.zMin - 15.0)) / (state.zOrifice - (state.zMin - 15.0) + 1e-5)));
+                    this.vz = vJet * (0.3 + 0.7 * zDecay) * 0.05; // speed scale scaling
+
+                    // Toroidal Recirculating Vortex Ring in Left Ventricle (swirling)
+                    if (this.z < state.zOrifice) {
+                        const zVortex = state.zOrifice - 0.3 * state.zLen;
+                        const rVortexRing = 1.3 * rOrifice;
+                        
+                        const d_r = r_xy - rVortexRing;
+                        const d_z = this.z - zVortex;
+                        const dDist = Math.sqrt(Math.pow(d_r, 2) + Math.pow(d_z, 2));
+                        
+                        const sigmaV = 0.15 * state.zLen;
+                        const vSwirl = -0.55 * vPeak * (r_xy / (rVortexRing + 1e-5)) * Math.exp(-Math.pow(dDist, 2) / (2.0 * Math.pow(sigmaV, 2)));
+                        
+                        const vRadial = vSwirl * d_z / (dDist + 1e-5) * 0.05;
+                        this.vz += (vSwirl * d_r / (dDist + 1e-5)) * 0.05;
+                        
+                        this.vx = vRadial * (this.x - state.cx) / (r_xy + 1e-5);
+                        this.vy = vRadial * (this.y - state.cy) / (r_xy + 1e-5);
+                    } else {
+                        // Gentle convergent LA drift
+                        const dx = (state.cx - this.x) * 0.01;
+                        const dy = (state.cy - this.y) * 0.01;
+                        this.vx = dx;
+                        this.vy = dy;
+                    }
+                } else if (state.cardiacPhase === 'systole') {
+                    // Systole (Valve closed): residual swirling and regurgitant jets
+                    const r_xy = Math.sqrt(Math.pow(this.x - state.cx, 2) + Math.pow(this.y - state.cy, 2));
+                    
+                    if (vPeak > 0.5 && this.z >= state.zOrifice) {
+                        // Narrow regurgitant leakage jet shooting up into LA
+                        const rRegurg = 5.0;
+                        const sigmaRegurg = rRegurg / 2.0;
+                        const vRegurg = vPeak * Math.exp(-Math.pow(r_xy, 2) / (2.0 * Math.pow(sigmaRegurg, 2)));
+                        const zDecay = Math.exp(-(this.z - state.zOrifice) / (0.25 * state.zLen));
+                        this.vz = vRegurg * zDecay * 0.05;
+                        this.vx = 0;
+                        this.vy = 0;
+                    } else {
+                        // LV slowly decaying residual swirling
+                        const vSwirl = 20.0 * Math.exp(-Math.pow(this.z - (state.zMin + 0.3 * state.zLen), 2) / (2.0 * Math.pow(0.2 * state.zLen, 2))) * (r_xy / 15.0) * Math.exp(-Math.pow(r_xy, 2) / (2.0 * Math.pow(20.0, 2))) * Math.sin(Math.PI * (tCycle - 0.5) / 0.5);
+                        
+                        this.vx = -vSwirl * (this.y - state.cy) / (r_xy + 1e-5) * 0.05;
+                        this.vy = vSwirl * (this.x - state.cx) / (r_xy + 1e-5) * 0.05;
+                        this.vz = (this.z < state.zOrifice) ? 2.5 : 0.0;
+                    }
+                } else {
+                    this.vx *= 0.95;
+                    this.vy *= 0.95;
+                    this.vz *= 0.95;
+                }
+
+                // Move particle
+                this.x += this.vx;
+                this.y += this.vy;
+                this.z += this.vz;
+
+                // 2D Valve leaf collision boundaries block (when valve is closed)
+                if (state.cardiacPhase === 'systole' && this.z < state.zOrifice && (this.z + this.vz) >= state.zOrifice - 2) {
+                    const r_xy = Math.sqrt(Math.pow(this.x - state.cx, 2) + Math.pow(this.y - state.cy, 2));
+                    if (r_xy < state.R_cylinder * 0.9 && Math.random() > (state.regurgitationGap / 10.0)) {
+                        // Bounce/Block
+                        this.z = state.zOrifice - 2;
+                        this.vz = -Math.abs(this.vz) * 0.2;
+                    }
+                }
+
+                // Reset boundary checks (too old, outside cylinder, too low, or too high)
+                const distCenter = Math.sqrt(Math.pow(this.x - state.cx, 2) + Math.pow(this.y - state.cy, 2));
+                if (this.age > this.maxAge || distCenter > state.R_cylinder * 0.98 || this.z < state.zMin - 15.0 || this.z > state.zMax + 30.0) {
+                    this.reset();
+                }
+
+                // Compute color mapping based on speed (Blue for inflow, Red/Orange for regurgitation/vorticity)
+                const speed = Math.sqrt(Math.pow(this.vx, 2) + Math.pow(this.vy, 2) + Math.pow(this.vz, 2));
+                if (state.cardiacPhase === 'diastole') {
+                    // Diastole: blue hues
+                    this.speedColor.setHSL(0.55 + Math.min(speed / 15.0, 1.0) * 0.15, 1.0, 0.5);
+                } else {
+                    // Systole: red/orange/yellow hues for regurgitant flow
+                    this.speedColor.setHSL(0.0 + Math.min(speed / 10.0, 1.0) * 0.12, 1.0, 0.5);
+                }
+            }
+        }
+
+        function rebuildParticles() {
+            if (particlesMesh) scene.remove(particlesMesh);
+
+            bloodParticles = [];
+            for (let i = 0; i < state.particleDensity; i++) {
+                bloodParticles.push(new BloodParticle());
+            }
+
+            const positions = new Float32Array(state.particleDensity * 3);
+            const colors = new Float32Array(state.particleDensity * 3);
+
+            particlesGeometry = new THREE.BufferGeometry();
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            // Custom Circular texture
+            const canvas = document.createElement('canvas');
+            canvas.width = 16;
+            canvas.height = 16;
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
+            grad.addColorStop(0, 'rgba(255,255,255,1)');
+            grad.addColorStop(0.3, 'rgba(255,255,255,0.8)');
+            grad.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 16, 16);
+            const texture = new THREE.CanvasTexture(canvas);
+
+            const pMaterial = new THREE.PointsMaterial({
+                size: 2.2,
+                map: texture,
+                vertexColors: true,
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            particlesMesh = new THREE.Points(particlesGeometry, pMaterial);
+            scene.add(particlesMesh);
+        }
+
+        // --- 7. Live canvas Real-time Pressures Chart Plotter ---
+        const chartCtx = elements.chartCanvas.getContext('2d');
+        const historyLength = 100;
+        const laHistory = new Array(historyLength).fill(0);
+        const lvHistory = new Array(historyLength).fill(0);
+
+        function updateLiveChart(laVal, lvVal) {
+            laHistory.push(laVal);
+            laHistory.shift();
+            lvHistory.push(lvVal);
+            lvHistory.shift();
+
+            const w = elements.chartCanvas.width = elements.chartCanvas.clientWidth;
+            const h = elements.chartCanvas.height = elements.chartCanvas.clientHeight;
+            chartCtx.clearRect(0, 0, w, h);
+
+            // Draw grid
+            chartCtx.strokeStyle = 'rgba(255,255,255,0.05)';
+            chartCtx.lineWidth = 1;
+            for (let i = 1; i < 4; i++) {
+                const y = h * (i / 4);
+                chartCtx.beginPath();
+                chartCtx.moveTo(0, y);
+                chartCtx.lineTo(w, y);
+                chartCtx.stroke();
+            }
+
+            // Map mmHg to Y coordinates (0 to 130 mmHg)
+            const mapY = (val) => h - 5 - (val / 130.0) * (h - 10);
+            const mapX = (idx) => (idx / (historyLength - 1)) * w;
+
+            // Draw LA wave
+            chartCtx.beginPath();
+            chartCtx.strokeStyle = '#00e5ff';
+            chartCtx.lineWidth = 2;
+            chartCtx.moveTo(mapX(0), mapY(laHistory[0]));
+            for (let i = 1; i < historyLength; i++) {
+                chartCtx.lineTo(mapX(i), mapY(laHistory[i]));
+            }
+            chartCtx.stroke();
+
+            // Draw LV wave
+            chartCtx.beginPath();
+            chartCtx.strokeStyle = '#ff9900';
+            chartCtx.lineWidth = 2;
+            chartCtx.moveTo(mapX(0), mapY(lvHistory[0]));
+            for (let i = 1; i < historyLength; i++) {
+                chartCtx.lineTo(mapX(i), mapY(lvHistory[i]));
+            }
+            chartCtx.stroke();
+
+            // Label current values
+            chartCtx.fillStyle = '#f3f4f6';
+            chartCtx.font = '10px monospace';
+            chartCtx.fillText("LV: " + Math.round(lvVal) + " mmHg", 10, 16);
+            chartCtx.fillText("LA: " + Math.round(laVal) + " mmHg", 10, 30);
+        }
+
+        // --- 8. Simulation Main Render Loop (FSI) ---
+        let lastTime = 0;
+        let angleTime = 0;
+
+        function animate(timestamp) {
+            requestAnimationFrame(animate);
+
+            if (!lastTime) lastTime = timestamp;
+            const delta = (timestamp - lastTime) / 1000.0;
+            lastTime = timestamp;
+
+            controls.update();
+
+            if (valveGeometry && origPositions && vertexGroups) {
+                // 1. Resolve physiological state & pressures
+                angleTime += delta * (state.heartRate / 60.0);
+                state.tCycle = angleTime % 1.0;
+                
+                let pLa = 0, pLv = 0, qFlow = 0, fOpen = 0, vPeak = 0;
+                
+                if (state.mode === 'auto') {
+                    state.cardiacPhase = (state.tCycle <= 0.5) ? 'diastole' : 'systole';
+                    
+                    if (state.cardiacPhase === 'diastole') {
+                        // Physiological pressure filling curves
+                        pLa = 5.0 + 8.0 * Math.exp(-Math.pow(state.tCycle - 0.20, 2) / (2.0 * Math.pow(0.06, 2))) + 5.0 * Math.exp(-Math.pow(state.tCycle - 0.40, 2) / (2.0 * Math.pow(0.05, 2)));
+                        pLv = 2.0 + 12.0 * Math.exp(-state.tCycle / 0.08);
+                        
+                        const deltaP = pLa - pLv;
+                        qFlow = (deltaP > 0) ? deltaP / 0.05 : 0;
+                        fOpen = Math.min(1.0, qFlow / 250.0);
+                        vPeak = -180.0 * fOpen;
+                    } else {
+                        // Systole contraction (high LV pressure barrier)
+                        pLv = 5.0 + 115.0 * Math.sin(Math.PI * (state.tCycle - 0.5) / 0.5);
+                        pLa = 8.0 + 4.0 * (state.tCycle - 0.5);
+                        
+                        const deltaP = pLa - pLv;
+                        qFlow = deltaP / 3.0; // leakage flow through the gap
+                        fOpen = 0.0;
+                        
+                        const maxPeakLeak = 80.0 * Math.min(1.0, Math.abs(qFlow) / 38.0);
+                        vPeak = (state.regurgitationGap > 0) ? maxPeakLeak * (state.regurgitationGap / 10.0) : 0;
+                    }
+                } else {
+                    // Manual control pump state
+                    const flowStrength = state.pushing ? state.manualFlowRate : 0.0;
+                    fOpen = Math.min(1.0, flowStrength / 250.0);
+                    
+                    if (flowStrength > 0.1) {
+                        state.cardiacPhase = 'diastole';
+                        qFlow = flowStrength;
+                        pLa = 12.0 + (flowStrength / 350.0) * 8.0;
+                        pLv = 4.0;
+                        vPeak = -180.0 * fOpen;
+                    } else {
+                        state.cardiacPhase = 'systole';
+                        pLv = 110.0;
+                        pLa = 8.0;
+                        qFlow = (pLa - pLv) / 3.0;
+                        fOpen = 0.0;
+                        
+                        const maxPeakLeak = 80.0 * Math.min(1.0, Math.abs(qFlow) / 38.0);
+                        vPeak = (state.regurgitationGap > 0) ? maxPeakLeak * (state.regurgitationGap / 10.0) : 0;
+                    }
+                }
+
+                // Smooth fOpen state to prevent instant jumpy motion of leaflets
+                state.fOpen += (fOpen - state.fOpen) * 0.15;
+
+                // Sync UI telemetry badges
+                elements.phaseIndicator.innerText = state.cardiacPhase;
+                elements.phaseIndicator.className = "phase-indicator " + state.cardiacPhase;
+                
+                elements.telemetryLa.innerText = pLa.toFixed(1) + " mmHg";
+                elements.telemetryLv.innerText = pLv.toFixed(1) + " mmHg";
+                elements.telemetryFlow.innerText = (state.cardiacPhase === 'diastole' ? qFlow.toFixed(0) : "0") + " mL/s";
+                elements.telemetryLeak.innerText = (state.cardiacPhase === 'systole' ? Math.abs(qFlow * (state.regurgitationGap / 10.0)).toFixed(0) : "0") + " mL/s";
+                
+                updateLiveChart(pLa, pLv);
+
+                // Update 3D MitraClip position, visibility and closure animation
+                if (clipMesh) {
+                    clipMesh.position.set(state.cx + state.clipXOffset, state.cy, state.zOrifice);
+                    clipMesh.visible = state.mitraClip;
+
+                    if (state.mitraClip) {
+                        // Animate clip closure from open to nominal closed state
+                        if (clipArms.cVal < 1.0) {
+                            clipArms.cVal = Math.min(1.0, clipArms.cVal + delta * 2.0); // closes in 0.5s
+                            setClipClosure(clipArms.cVal);
+                        }
+                    } else {
+                        // Reset closure parameter when clip is disabled
+                        clipArms.cVal = 0.0;
+                        setClipClosure(0.0);
+                    }
+                }
+
+                // 2. Real-time Leaflet geometry coordinate displacement
+                const positions = valveGeometry.attributes.position.array;
+                const colors = valveGeometry.attributes.color.array;
+                const vCount = positions.length / 3;
+
+                // Determine dynamic valve state: opening (>0) vs closing (<0)
+                const valveState = (state.mode === 'manual') 
+                    ? (state.pushing ? state.fOpen : -1.0) 
+                    : ((state.cardiacPhase === 'diastole') ? state.fOpen : -1.0 * Math.min(1.0, (pLv - 5.0) / 115.0));
+                
+                // Dynamic closing deflection to seal gap based on mesh size (STL needs larger close deflection)
+                const D_close = elements.geometrySelect.value.endsWith('.stl') ? 14.0 : 6.0;
+                const D_open = 16.0;
+
+                for (let i = 0; i < vCount; i++) {
+                    const idx = i * 3;
+                    const ox = origPositions[idx];
+                    const oy = origPositions[idx+1];
+                    const oz = origPositions[idx+2];
+                    const gid = vertexGroups[i];
+
+                    // Normalized height
+                    const zNorm = (oz - state.zMin) / (state.zLen + 1e-5);
+                    const dBend = Math.pow(Math.min(Math.max(zNorm, 0.0), 1.0), 2.0);
+
+                    let dy = 0;
+                    let dz = 0;
+
+                    if (valveState >= 0) {
+                        // Diastole (Opening): Leaflets open outwards (Anterior moves +Y, Posterior moves -Y)
+                        if (gid === 1) { // Anterior
+                            dy = +D_open * valveState * dBend;
+                            dz = -D_z_max * valveState * dBend;
+                        } else if (gid === 2) { // Posterior
+                            dy = -D_open * valveState * dBend;
+                            dz = -D_z_max * valveState * dBend;
+                        } else if (gid === 3) {
+                            const dir = (oy <= state.cy) ? -1 : 1;
+                            dy = dir * 0.2 * D_open * valveState * dBend;
+                            dz = -D_z_max * valveState * dBend;
+                        }
+                    } else {
+                        // Systole (Closing): Leaflets deform inwards to meet at coaptation line (cy) and dome upwards (+Z)
+                        const closeFactor = Math.abs(valveState);
+                        if (gid === 1) { // Anterior
+                            dy = -D_close * closeFactor * dBend;
+                            dz = +1.5 * closeFactor * dBend;
+                        } else if (gid === 2) { // Posterior
+                            dy = +D_close * closeFactor * dBend;
+                            dz = +1.5 * closeFactor * dBend;
+                        } else if (gid === 3) {
+                            const dir = (oy <= state.cy) ? 1 : -1;
+                            dy = dir * 0.2 * D_close * closeFactor * dBend;
+                            dz = +1.5 * closeFactor * dBend;
+                        }
+                    }
+
+                    positions[idx+1] = oy + dy;
+                    positions[idx+2] = oz + dz;
+
+                    // MitraClip center pinching: seals leaflet edges together in the center (x = cx, y = cy)
+                    if (state.mitraClip) {
+                        const clipX = state.cx + state.clipXOffset;
+                        const xDist = Math.abs(ox - clipX);
+                        // Gaussian weight: maximum seal at center line, decays laterally over ~8mm
+                        const wPinch = Math.exp(-Math.pow(xDist / 8.0, 2));
+                        // Interpolate current coordinate towards the center coaptation line 'cy'
+                        positions[idx+1] = positions[idx+1] + (state.cy - positions[idx+1]) * wPinch * dBend;
+                    }
+
+                    // Dynamic colors based on color mode
+                    if (state.colorMode === 'anatomy') {
+                        // anatomy mapping
+                        if (gid === 1) { // anterior - teal
+                            colors[idx] = 0.2; colors[idx+1] = 0.7; colors[idx+2] = 0.8;
+                        } else if (gid === 2) { // posterior - slate blue
+                            colors[idx] = 0.3; colors[idx+1] = 0.4; colors[idx+2] = 0.7;
+                        } else if (gid === 3) { // chordae - white
+                            colors[idx] = 0.85; colors[idx+1] = 0.85; colors[idx+2] = 0.85;
+                        } else {
+                            colors[idx] = 0.6; colors[idx+1] = 0.6; colors[idx+2] = 0.6;
+                        }
+                    } else {
+                        // pressure mapping (orange high, blue low)
+                        const localP = (state.cardiacPhase === 'systole') ? pLv : pLa;
+                        const factor = Math.min(localP / 120.0, 1.0);
+                        // Blend from Blue (low pressure) to Orange (high pressure)
+                        colors[idx] = 0.2 + factor * 0.8;      // R
+                        colors[idx+1] = 0.45 + factor * 0.15;  // G
+                        colors[idx+2] = 0.9 - factor * 0.8;    // B
+                    }
+                }
+                valveGeometry.attributes.position.needsUpdate = true;
+                valveGeometry.attributes.color.needsUpdate = true;
+                valveGeometry.computeVertexNormals();
+
+                // 3. Blood Particles physics loop update
+                if (particlesMesh) {
+                    const pPositions = particlesGeometry.attributes.position.array;
+                    const pColors = particlesGeometry.attributes.color.array;
+
+                    for (let i = 0; i < state.particleDensity; i++) {
+                        const p = bloodParticles[i];
+                        p.update(state.fOpen, vPeak, state.tCycle, pLa, pLv);
+
+                        const idx = i * 3;
+                        pPositions[idx] = p.x;
+                        pPositions[idx+1] = p.y;
+                        pPositions[idx+2] = p.z;
+
+                        pColors[idx] = p.speedColor.r;
+                        pColors[idx+1] = p.speedColor.g;
+                        pColors[idx+2] = p.speedColor.b;
+                    }
+                    particlesGeometry.attributes.position.needsUpdate = true;
+                    particlesGeometry.attributes.color.needsUpdate = true;
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Deformation Constants
+        const D_max = 16.0;
+        const D_z_max = 4.0;
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Initialize default geometry mesh
+        loadGeometry("./mitral_valve_with_chordae.obj");
+
+        // Kickoff animation loop
+        requestAnimationFrame(animate);
+
+    </script>
+</body>
+</html>
