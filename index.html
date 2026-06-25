@@ -1453,7 +1453,7 @@
             reset() {
                 let radiusMult;
                 if (state.isHeartModel) {
-                    radiusMult = 0.08; // Narrower flow so it doesn't spill over
+                    radiusMult = 0.04; // Extremely narrow flow so it doesn't spill over
                 } else {
                     radiusMult = state.isOriginalSTL ? 0.4 : 0.3;
                 }
@@ -1463,7 +1463,7 @@
                 if (state.isHeartModel) {
                     const pu = radius * Math.cos(angle);
                     const pv = radius * Math.sin(angle);
-                    const pn = -10.0 - Math.random() * 8.0; // Spawn higher up in the atrium
+                    const pn = -18.0 - Math.random() * 10.0; // Spawn much higher up in the atrium
 
                     this.x = 22.29 + pu * 0.9896 + pv * (-0.0667) + pn * (-0.1273);
                     this.y = 29.65 + pu * (-0.1113) + pv * (-0.9160) + pn * (-0.3854);
@@ -1577,8 +1577,8 @@
         function rebuildParticles() {
             if (liquidMesh) worldGroup.remove(liquidMesh);
 
-            // Capped to 200 for BVH performance, and 80 for the Heart Model to prevent overflow
-            const maxParticles = state.isHeartModel ? 80 : 200;
+            // Capped to 200 for BVH performance, and 40 for the Heart Model to prevent overflow
+            const maxParticles = state.isHeartModel ? 40 : 200;
             state.particleDensity = Math.min(parseInt(elements.particlesVal.innerText), maxParticles);
 
             bloodParticles = [];
