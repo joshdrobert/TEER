@@ -1486,14 +1486,18 @@
             }
 
             update(fOpen, vPeak, tCycle, pLa, pLv) {
+                if (state.mode === 'manual' && fOpen < 0.05 && vPeak < 0.05) {
+                    this.hidden = true;
+                    this.x = 99999; this.y = 99999; this.z = 99999;
+                    return; // Freeze all physics while hidden
+                } else if (this.hidden) {
+                    this.hidden = false;
+                    this.reset();
+                }
+
                 this.age++;
                 if (this.age > this.maxAge || this.z < state.zMin - 30.0) {
-                    if (state.mode === 'manual' && fOpen < 0.05 && vPeak < 0.05) {
-                        // Hide inactive particles out of bounds until flow resumes
-                        this.x = 99999; this.y = 99999; this.z = 99999;
-                    } else {
-                        this.reset();
-                    }
+                    this.reset();
                 }
 
                 // --- 1. Newtonian Forces ---
