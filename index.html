@@ -1245,6 +1245,10 @@
                             }
                         }
                         if (count > 10) {
+                            const mx = sumX / count;
+                            const my = sumY / count;
+                            const mz = sumZ / count;
+
                             // Revert to tip-points centroid. This is CRITICAL because the tip points perfectly locate the true orifice (the coaptation zone).
                             // If we use bounding box center, the split line (for deformation) is offset, causing the mesh to tear in the middle of a leaflet!
                             cx = mx;
