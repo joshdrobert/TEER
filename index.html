@@ -1484,50 +1484,51 @@
                     this.vz -= pressureDiff * 150.0 * dt;
                 }
 
-                // Apply velocity
-                this.x += this.vx * dt;
-                this.y += this.vy * dt;
-                this.z += this.vz * dt;
+                // Desired movement step
+                const dx = this.vx * dt;
+                const dy = this.vy * dt;
+                const dz = this.vz * dt;
+                const stepLength = Math.sqrt(dx*dx + dy*dy + dz*dz);
 
-                // --- 2. Mesh Collision (BVH) ---
-                if (valveMesh && valveGeometry && valveGeometry.boundsTree) {
-                    // Check if particle is roughly within bounding box
-                    const bounds = valveGeometry.boundingBox;
-                    if (this.x > bounds.min.x && this.x < bounds.max.x &&
-                        this.y > bounds.min.y && this.y < bounds.max.y &&
-                        this.z > bounds.min.z && this.z < bounds.max.z) {
+                // --- 2. Mesh Collision (BVH Raycast Sweep) ---
+                let collided = false;
+                if (valveMesh && valveGeometry && valveGeometry.boundsTree && stepLength > 0.001) {
+                    const startPos = new THREE.Vector3(this.x, this.y, this.z);
+                    const dir = new THREE.Vector3(dx, dy, dz).normalize();
+                    
+                    const raycaster = new THREE.Raycaster(startPos, dir, 0, stepLength + this.radius);
+                    raycaster.firstHitOnly = true; // three-mesh-bvh optimization
+                    
+                    const intersects = raycaster.intersectObject(valveMesh);
+                    
+                    if (intersects.length > 0) {
+                        collided = true;
+                        const hit = intersects[0];
                         
-                        const point = new THREE.Vector3(this.x, this.y, this.z);
-                        const closest = {};
+                        // Move particle to hit point slightly offset by radius to prevent sinking
+                        this.x = hit.point.x + hit.face.normal.x * this.radius;
+                        this.y = hit.point.y + hit.face.normal.y * this.radius;
+                        this.z = hit.point.z + hit.face.normal.z * this.radius;
                         
-                        // Find closest point on the mesh
-                        valveGeometry.boundsTree.closestPointToPoint(point, closest);
-                        
-                        if (closest.point) {
-                            const dist = closest.distance;
-                            if (dist < this.radius && dist > 0.001) {
-                                // Collision detected! Resolve penetration
-                                const overlap = this.radius - dist;
-                                // Normal points from mesh surface TO the particle
-                                const normal = new THREE.Vector3().subVectors(point, closest.point).normalize();
-                                
-                                this.x += normal.x * overlap;
-                                this.y += normal.y * overlap;
-                                this.z += normal.z * overlap;
-                                
-                                // Reflect velocity (bounce) and add friction (slide)
-                                const dot = this.vx * normal.x + this.vy * normal.y + this.vz * normal.z;
-                                if (dot < 0) {
-                                    const restitution = 0.3; // Viscous bounce
-                                    const friction = 0.95;   // Slides slightly
-                                    
-                                    this.vx = (this.vx - (1 + restitution) * dot * normal.x) * friction;
-                                    this.vy = (this.vy - (1 + restitution) * dot * normal.y) * friction;
-                                    this.vz = (this.vz - (1 + restitution) * dot * normal.z) * friction;
-                                }
-                            }
+                        // Reflect velocity (bounce) and add friction (slide)
+                        const normal = hit.face.normal;
+                        const dot = this.vx * normal.x + this.vy * normal.y + this.vz * normal.z;
+                        if (dot < 0) {
+                            const restitution = 0.3; // Viscous bounce
+                            const friction = 0.85;   // Slides slightly
+                            
+                            this.vx = (this.vx - (1 + restitution) * dot * normal.x) * friction;
+                            this.vy = (this.vy - (1 + restitution) * dot * normal.y) * friction;
+                            this.vz = (this.vz - (1 + restitution) * dot * normal.z) * friction;
                         }
                     }
+                }
+
+                // If no collision, apply full movement step
+                if (!collided) {
+                    this.x += dx;
+                    this.y += dy;
+                    this.z += dz;
                 }
 
                 // Cap max velocity to avoid tunneling
