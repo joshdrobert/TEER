@@ -1453,7 +1453,7 @@
             reset() {
                 let radiusMult;
                 if (state.isHeartModel) {
-                    radiusMult = 0.15; // Extremely tight flow, directly over the leaflets
+                    radiusMult = 0.08; // Narrower flow so it doesn't spill over
                 } else {
                     radiusMult = state.isOriginalSTL ? 0.4 : 0.3;
                 }
@@ -1463,7 +1463,7 @@
                 if (state.isHeartModel) {
                     const pu = radius * Math.cos(angle);
                     const pv = radius * Math.sin(angle);
-                    const pn = -2.0 - Math.random() * 5.0; // Spawn much lower, close to the valve orifice
+                    const pn = -10.0 - Math.random() * 8.0; // Spawn higher up in the atrium
 
                     this.x = 22.29 + pu * 0.9896 + pv * (-0.0667) + pn * (-0.1273);
                     this.y = 29.65 + pu * (-0.1113) + pv * (-0.9160) + pn * (-0.3854);
