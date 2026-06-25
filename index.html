@@ -494,6 +494,7 @@
     <!-- Three.js and OrbitControls via CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/three-mesh-ui@6.5.4/build/three-mesh-ui.min.js"></script>
 
     <script>
         // --- 1. Custom Geometry Parsers (Self-Contained) ---
@@ -870,6 +871,8 @@
         // --- 4. Three.js Setup & Graphics Engine ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
+        const worldGroup = new THREE.Group();
+        scene.add(worldGroup);
         scene.fog = new THREE.FogExp2(0x080c14, 0.002);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
@@ -916,7 +919,7 @@
                 opacity: 0.08
             });
             cylinderWireframe = new THREE.Mesh(cylGeom, cylMat);
-            scene.add(cylinderWireframe);
+            worldGroup.add(cylinderWireframe);
         }
 
         // Lighting
@@ -938,7 +941,7 @@
         // --- MitraClip 3D Object ---
         // --- MitraClip 3D Object & CAD Loader ---
         let clipMesh = new THREE.Group();
-        scene.add(clipMesh);
+        worldGroup.add(clipMesh);
         clipMesh.visible = false;
 
         const clipArms = {
@@ -1366,13 +1369,15 @@
                     } else {
                         valveMesh = new THREE.Mesh(valveGeometry, valveMaterial);
                     }
-                    scene.add(valveMesh);
+                    worldGroup.add(valveMesh);
 
                     // Rebuild visuals & camera control targets
                     updateCylinderRepresentation();
                     controls.target.set(cx, cy, state.zMin + state.zLen / 2);
                     camera.position.set(cx + state.R_cylinder * 2, cy - state.R_cylinder * 2, state.zMax + 50);
                     controls.update();
+            updateVR();
+            updateVR();
 
                     // Rebuild particle bounding box limits
                     rebuildParticles();
@@ -1716,7 +1721,7 @@
                 depthWrite: false
             });
             trailMesh = new THREE.LineSegments(trailGeometry, trailMat);
-            scene.add(trailMesh);
+            worldGroup.add(trailMesh);
 
             // --- Head Points (blood droplet sprites) ---
             const headPositions = new Float32Array(state.particleDensity * 3);
@@ -1752,7 +1757,7 @@
             });
 
             particlesMesh = new THREE.Points(particlesGeometry, pMaterial);
-            scene.add(particlesMesh);
+            worldGroup.add(particlesMesh);
         }
 
         // --- 7. Live canvas Real-time Pressures Chart Plotter ---
@@ -1813,12 +1818,214 @@
             chartCtx.fillText("LA: " + Math.round(laVal) + " mmHg", 10, 30);
         }
 
+        
+        // --- VR Setup ---
+        renderer.xr.enabled = true;
+
+        const vrButton = document.createElement('button');
+        vrButton.textContent = 'ENTER VR';
+        vrButton.style.position = 'absolute';
+        vrButton.style.bottom = '20px';
+        vrButton.style.padding = '12px 24px';
+        vrButton.style.border = '1px solid var(--accent-blue)';
+        vrButton.style.borderRadius = '8px';
+        vrButton.style.background = 'rgba(0,229,255,0.1)';
+        vrButton.style.color = '#fff';
+        vrButton.style.font = 'bold 14px "Outfit", sans-serif';
+        vrButton.style.textAlign = 'center';
+        vrButton.style.outline = 'none';
+        vrButton.style.zIndex = '999';
+        vrButton.style.cursor = 'pointer';
+        vrButton.style.left = 'calc(50% - 60px)';
+        document.body.appendChild(vrButton);
+
+        let currentSession = null;
+        if ('xr' in navigator) {
+            navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
+                if (supported) {
+                    vrButton.onclick = () => {
+                        if (currentSession === null) {
+                            navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor', 'bounded-floor'] }).then(onSessionStarted);
+                        } else {
+                            currentSession.end();
+                        }
+                    };
+                } else {
+                    vrButton.textContent = 'VR NOT SUPPORTED';
+                    vrButton.style.opacity = '0.5';
+                }
+            });
+        }
+
+        function onSessionStarted(session) {
+            session.addEventListener('end', onSessionEnded);
+            renderer.xr.setSession(session);
+            vrButton.textContent = 'EXIT VR';
+            currentSession = session;
+            
+            // Adjust worldGroup position for VR so it's in front of the user
+            worldGroup.position.set(-state.cx, -state.cy, -state.zMax - 100);
+            worldGroup.scale.set(0.5, 0.5, 0.5);
+        }
+        function onSessionEnded() {
+            currentSession.removeEventListener('end', onSessionEnded);
+            vrButton.textContent = 'ENTER VR';
+            currentSession = null;
+            // Reset world
+            worldGroup.position.set(0, 0, 0);
+            worldGroup.scale.set(1, 1, 1);
+        }
+
+        // --- VR Controllers & UI ---
+        const controller1 = renderer.xr.getController(0);
+        const controller2 = renderer.xr.getController(1);
+        scene.add(controller1);
+        scene.add(controller2);
+
+        const lineGeom = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -200)]);
+        const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.5, transparent: true });
+        controller1.add(new THREE.Line(lineGeom, lineMat));
+        controller2.add(new THREE.Line(lineGeom, lineMat));
+
+        let grabbingController = null;
+        const raycaster = new THREE.Raycaster();
+        const tempMatrix = new THREE.Matrix4();
+        
+        // 3D UI Panel
+        const vrUIGroup = new THREE.Group();
+        worldGroup.add(vrUIGroup);
+        
+        const vrPanel = new ThreeMeshUI.Block({
+            width: 80,
+            height: 100,
+            padding: 5,
+            justifyContent: 'center',
+            alignContent: 'center',
+            fontFamily: 'https://unpkg.com/three-mesh-ui/examples/assets/Roboto-msdf.json',
+            fontTexture: 'https://unpkg.com/three-mesh-ui/examples/assets/Roboto-msdf.png',
+            backgroundColor: new THREE.Color(0x0d1423),
+            backgroundOpacity: 0.9
+        });
+        vrPanel.position.set(state.cx - 80, state.cy, state.zMax + 50);
+        vrPanel.rotation.y = Math.PI / 4;
+        vrUIGroup.add(vrPanel);
+
+        vrPanel.add(new ThreeMeshUI.Text({ content: 'TEER VR Controls\n', fontSize: 6, fontColor: new THREE.Color(0x00e5ff) }));
+        vrPanel.add(new ThreeMeshUI.Text({ content: 'Use thumbstick to open/close clip\n\n', fontSize: 4 }));
+
+        function createButton(textStr, onClick) {
+            const btn = new ThreeMeshUI.Block({
+                width: 60, height: 15, justifyContent: 'center', alignContent: 'center', margin: 2,
+                backgroundColor: new THREE.Color(0x1a2436)
+            });
+            btn.add(new ThreeMeshUI.Text({ content: textStr, fontSize: 5 }));
+            btn.setupState({ state: 'idle', attributes: { backgroundColor: new THREE.Color(0x1a2436) } });
+            btn.setupState({ state: 'hovered', attributes: { backgroundColor: new THREE.Color(0x00e5ff) } });
+            btn.setupState({ state: 'selected', attributes: { backgroundColor: new THREE.Color(0xff3366) } });
+            btn.onClickHandler = onClick;
+            vrPanel.add(btn);
+            return btn;
+        }
+
+        const btnNext = createButton('Next Valve', () => {
+            const opts = Array.from(elements.geometrySelect.options);
+            let idx = opts.findIndex(o => o.value === elements.geometrySelect.value);
+            idx = (idx + 1) % opts.length;
+            elements.geometrySelect.value = opts[idx].value;
+            elements.geometrySelect.dispatchEvent(new Event('change'));
+        });
+        
+        const btnPrev = createButton('Prev Valve', () => {
+            const opts = Array.from(elements.geometrySelect.options);
+            let idx = opts.findIndex(o => o.value === elements.geometrySelect.value);
+            idx = (idx - 1 + opts.length) % opts.length;
+            elements.geometrySelect.value = opts[idx].value;
+            elements.geometrySelect.dispatchEvent(new Event('change'));
+        });
+
+        const objsToTest = [btnNext, btnPrev];
+
+        function onSelectStart(event) {
+            const controller = event.target;
+            tempMatrix.identity().extractRotation(controller.matrixWorld);
+            raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+            raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+            
+            const intersects = raycaster.intersectObjects(objsToTest.map(b => b.frame), true);
+            if (intersects.length > 0) {
+                const hitObj = intersects[0].object;
+                const btn = objsToTest.find(b => b.frame === hitObj);
+                if (btn) {
+                    btn.setState('selected');
+                    setTimeout(() => { btn.setState('idle'); }, 200);
+                    if (btn.onClickHandler) btn.onClickHandler();
+                }
+            } else if (!grabbingController) {
+                grabbingController = controller;
+                scene.attach(worldGroup);
+                grabbingController.attach(worldGroup);
+            }
+        }
+
+        function onSelectEnd(event) {
+            if (grabbingController === event.target) {
+                scene.attach(worldGroup);
+                grabbingController = null;
+            }
+        }
+
+        controller1.addEventListener('selectstart', onSelectStart);
+        controller1.addEventListener('selectend', onSelectEnd);
+        controller2.addEventListener('selectstart', onSelectStart);
+        controller2.addEventListener('selectend', onSelectEnd);
+
+        // --- Render Loop Additions ---
+        function updateVR() {
+            ThreeMeshUI.update();
+            
+            // Hover logic
+            objsToTest.forEach(b => { if (b.currentState !== 'selected') b.setState('idle'); });
+            [controller1, controller2].forEach(controller => {
+                if (!controller.visible) return;
+                tempMatrix.identity().extractRotation(controller.matrixWorld);
+                raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+                raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+                const intersects = raycaster.intersectObjects(objsToTest.map(b => b.frame), true);
+                if (intersects.length > 0) {
+                    const hitObj = intersects[0].object;
+                    const btn = objsToTest.find(b => b.frame === hitObj);
+                    if (btn && btn.currentState !== 'selected') btn.setState('hovered');
+                }
+            });
+
+            // Thumbstick for clip
+            if (currentSession) {
+                for (const source of currentSession.inputSources) {
+                    if (source.gamepad && source.gamepad.axes.length >= 4) {
+                        const yAxis = source.gamepad.axes[3]; // Typically right thumbstick Y on Quest
+                        if (Math.abs(yAxis) > 0.2) {
+                            let target = parseFloat(elements.clipSlider.value) + yAxis * 2.0;
+                            target = Math.max(0, Math.min(120, target));
+                            elements.clipSlider.value = target;
+                            state.clipAngle = target;
+                            elements.clipSlider.dispatchEvent(new Event('input'));
+                        }
+                    }
+                }
+            }
+        }
+
+
         // --- 8. Simulation Main Render Loop (FSI) ---
         let lastTime = 0;
         let angleTime = 0;
 
+        renderer.setAnimationLoop(animate);
+
         function animate(timestamp) {
-            requestAnimationFrame(animate);
+            // WebXR requires renderer.setAnimationLoop instead of requestAnimationFrame
+        // We will switch to it
+        // // requestAnimationFrame(animate);
 
             if (!lastTime) lastTime = timestamp;
             const delta = (timestamp - lastTime) / 1000.0;
@@ -2298,7 +2505,7 @@
         loadGeometry("./segmented_valve_mesh_smoothed.stl");
 
         // Kickoff animation loop
-        requestAnimationFrame(animate);
+        // requestAnimationFrame(animate);
 
     </script>
 </body>
