@@ -672,14 +672,26 @@
             return geometry;
         }
 
-        function detectSTLGroupIDs(geometry, cy) {
+        function detectSTLGroupIDs(geometry, cx, cy, url, openDirection) {
             const positions = geometry.attributes.position.array;
             const size = positions.length / 3;
             const groupIDs = new Int32Array(size);
+            const isOriginalSTL = url.includes('segmented_valve_mesh_smoothed.stl');
+            
+            const cosA = Math.cos(state.angle);
+            const sinA = Math.sin(state.angle);
+
             for (let i = 0; i < size; i++) {
                 const idx = i * 3;
+                const x = positions[idx];
                 const y = positions[idx + 1];
-                groupIDs[i] = (y <= cy) ? 2 : 1; // Split into anterior (1) and posterior (2) by Y centroid
+                if (isOriginalSTL) {
+                    groupIDs[i] = (y <= cy) ? 1 : 2; // Original STL: lower Y is anterior (1), higher Y is posterior (2)
+                } else {
+                    // Project onto the opening direction vector (perpendicular to the commissure line)
+                    const v = -(x - cx) * sinA + (y - cy) * cosA;
+                    groupIDs[i] = (v > 0) ? 1 : 2; // v > 0 is Anterior (1), v <= 0 is Posterior (2)
+                }
             }
             return groupIDs;
         }
@@ -715,7 +727,10 @@
             zOrifice: 0,
             cx: 0,
             cy: 0,
-            R_cylinder: 0
+            R_cylinder: 0,
+            angle: 0.0,
+            vComm: { x: 1.0, y: 0.0 },
+            vOpen: { x: 0.0, y: 1.0 }
         };
 
         // --- 3. UI Setup & Event Bindings ---
@@ -756,6 +771,15 @@
             camIso: document.getElementById('cam-iso')
         };
 
+        // Populate the dropdown with new valves from the valves folder
+        for (let i = 1; i <= 105; i++) {
+            const num = String(i).padStart(3, '0');
+            const option = document.createElement('option');
+            option.value = `./valves/train_${num}-label_surface.stl`;
+            option.textContent = `Patient Valve ${num} (STL)`;
+            elements.geometrySelect.appendChild(option);
+        }
+
         // Bind DOM elements to controls
         elements.modeAuto.addEventListener('click', () => {
             state.mode = 'auto';
@@ -791,7 +815,7 @@
 
         elements.clipPosSlider.addEventListener('input', (e) => {
             const userVal = parseFloat(e.target.value);
-            state.clipXOffset = state.isHeartModel ? userVal : (userVal - 15.0);
+            state.clipXOffset = (state.isHeartModel || !state.isOriginalSTL) ? userVal : (userVal - 15.0);
             elements.clipPosVal.innerText = (userVal >= 0 ? '+' : '') + userVal.toFixed(1) + ' mm';
         });
 
@@ -1160,6 +1184,9 @@
                     let cy = (bbox.min.y + bbox.max.y) / 2;
 
                     // Update states
+                    const isOriginalSTL = url.includes('segmented_valve_mesh_smoothed.stl');
+                    state.isOriginalSTL = isOriginalSTL;
+
                     if (isHeartModel) {
                         cx = 22.29;
                         cy = 29.65;
@@ -1175,7 +1202,7 @@
                         state.zLen = zLen;
                         state.R_cylinder = r_cyl;
                         state.zOrifice = state.zMin + 0.2 * state.zLen;
-                        state.clipXOffset = -15.0;
+                        state.clipXOffset = isOriginalSTL ? -15.0 : 0.0;
                     }
                     state.isHeartModel = isHeartModel;
 
@@ -1187,13 +1214,110 @@
                         elements.clipPosVal.innerText = "0.0 mm";
                     }
 
-                    if (url.endsWith('.stl')) {
+                    if (isOriginalSTL) {
                         cx = 145.0;
                         cy = 86.0;
                     }
 
+                    // Detect open direction using PCA near leaflet tips (z < zMin + 0.35 * zLen)
+                    let openDirection = 'Y'; // Default
+                    let angle = 0.0;
+                    let vComm = { x: 1.0, y: 0.0 };
+                    let vOpen = { x: 0.0, y: 1.0 };
+
+                    if (!isHeartModel && !isOriginalSTL) {
+                        let sumX = 0, sumY = 0, sumZ = 0, count = 0;
+                        const zThreshold = state.zMin + 0.35 * state.zLen;
+                        for (let i = 0; i < positions.length; i += 3) {
+                            const z = positions[i + 2];
+                            if (z < zThreshold) {
+                                sumX += positions[i];
+                                sumY += positions[i + 1];
+                                sumZ += z;
+                                count++;
+                            }
+                        }
+                        if (count > 10) {
+                            const mx = sumX / count;
+                            const my = sumY / count;
+                            const mz = sumZ / count;
+                            
+                            // Center coordinate aligned with tip-points centroid
+                            cx = mx;
+                            cy = my;
+                            // Set orifice Z at the actual tip-point mean Z
+                            state.zOrifice = mz;
+
+                            let covXX = 0, covXY = 0, covYY = 0;
+                            for (let i = 0; i < positions.length; i += 3) {
+                                const z = positions[i + 2];
+                                if (z < zThreshold) {
+                                    const dx = positions[i] - mx;
+                                    const dy = positions[i + 1] - my;
+                                    covXX += dx * dx;
+                                    covXY += dx * dy;
+                                    covYY += dy * dy;
+                                }
+                            }
+                            covXX /= count;
+                            covXY /= count;
+                            covYY /= count;
+
+                            const trace = covXX + covYY;
+                            const det = covXX * covYY - covXY * covXY;
+                            const term = Math.sqrt(Math.max(0, trace * trace - 4 * det));
+                            const lambda1 = (trace + term) / 2;
+
+                            let vx = 1, vy = 0;
+                            if (Math.abs(covXY) > 1e-5) {
+                                vx = lambda1 - covYY;
+                                vy = covXY;
+                            } else if (covXX < covYY) {
+                                vx = 0;
+                                vy = 1;
+                            }
+                            const len = Math.sqrt(vx * vx + vy * vy);
+                            if (len > 0) {
+                                vx /= len;
+                                vy /= len;
+                            }
+
+                            // vx, vy represents the commissure vector
+                            vComm = { x: vx, y: vy };
+                            angle = Math.atan2(vy, vx);
+
+                            // vOpen is orthogonal to vComm: vOpen = [-vy, vx]
+                            let vox = -vy;
+                            let voy = vx;
+                            // Ensure vOpen points towards positive Y (anterior side)
+                            if (voy < 0) {
+                                vox = -vox;
+                                voy = -voy;
+                            }
+                            vOpen = { x: vox, y: voy };
+
+                            if (Math.abs(voy) > Math.abs(vox)) {
+                                openDirection = 'X'; // Commissure is more vertical (along Y), so opening is along X
+                            } else {
+                                openDirection = 'Y'; // Commissure is more horizontal (along X), so opening is along Y
+                            }
+                            console.log(`[PCA-DETAILED] Mesh detected: angle = ${(angle * 180 / Math.PI).toFixed(1)}°, openDirection = ${openDirection}, vComm = [${vx.toFixed(3)}, ${vy.toFixed(3)}], vOpen = [${vox.toFixed(3)}, ${voy.toFixed(3)}]`);
+                        }
+                    } else if (isOriginalSTL) {
+                        angle = 0.0;
+                        vComm = { x: 1.0, y: 0.0 };
+                        vOpen = { x: 0.0, y: 1.0 };
+                        openDirection = 'Y';
+                    }
+
+                    state.openDirection = openDirection;
+                    state.angle = angle;
+                    state.vComm = vComm;
+                    state.vOpen = vOpen;
+
                     state.cx = cx;
                     state.cy = cy;
+                    console.log("[DEBUG-VALVE] URL:", url, "cx:", state.cx, "cy:", state.cy, "zMin:", state.zMin, "zMax:", state.zMax, "zLen:", state.zLen, "R_cylinder:", state.R_cylinder);
 
                     // Keep a copy of original positions for deformation
                     origPositions = new Float32Array(positions.length);
@@ -1201,7 +1325,7 @@
 
                     // If STL mesh, we need to generate Group IDs dynamically based on Y centroid
                     if (url.endsWith('.stl')) {
-                        vertexGroups = detectSTLGroupIDs(geomData, cy);
+                        vertexGroups = detectSTLGroupIDs(geomData, cx, cy, url, openDirection);
                     }
 
                     // Setup Material
@@ -1285,13 +1409,18 @@
             controls.update();
         });
 
-        // --- 6. Particle Physics Blood Simulator ---
+        // --- 6. Particle Physics Blood Simulator (Streamline Trails) ---
+        const TRAIL_LENGTH = 10;
         let particlesGeometry = null;
         let particlesMesh = null;
+        let trailGeometry = null;
+        let trailMesh = null;
         let bloodParticles = [];
 
         class BloodParticle {
             constructor() {
+                this.trail = [];
+                this.speedColor = new THREE.Color(0.7, 0.05, 0.05);
                 this.reset();
             }
 
@@ -1315,7 +1444,7 @@
                     this.vz = 0;
                     this.age = 0;
                     this.maxAge = 220 + Math.random() * 100;
-                    this.speedColor = new THREE.Color();
+                    this.speedColor = new THREE.Color(0.7, 0.05, 0.05);
                 } else {
                     const radiusMult = 0.7;
                     const radius = state.R_cylinder * radiusMult * Math.sqrt(Math.random());
@@ -1330,12 +1459,21 @@
                     this.vz = 0;
                     this.age = 0;
                     this.maxAge = 220 + Math.random() * 100;
-                    this.speedColor = new THREE.Color();
+                    this.speedColor = new THREE.Color(0.7, 0.05, 0.05);
+                }
+                // Initialize trail at current position (avoids teleportation lines)
+                this.trail = [];
+                for (let t = 0; t < TRAIL_LENGTH; t++) {
+                    this.trail.push({ x: this.x, y: this.y, z: this.z });
                 }
             }
 
             update(fOpen, vPeak, tCycle, pLa, pLv) {
                 this.age++;
+
+                // Save current position to trail history before moving
+                this.trail.pop();
+                this.trail.unshift({ x: this.x, y: this.y, z: this.z });
 
                 const speedScale = state.isHeartModel ? 0.28 : 0.05;
 
@@ -1450,9 +1588,19 @@
 
                         let dOrifice = r_xy;
                         if (state.mitraClip) {
-                            const clipX = state.cx + state.clipXOffset;
-                            const d1 = Math.sqrt(Math.pow(this.x - (clipX - 8.0), 2) + Math.pow(this.y - state.cy, 2));
-                            const d2 = Math.sqrt(Math.pow(this.x - (clipX + 8.0), 2) + Math.pow(this.y - state.cy, 2));
+                            const cosA = Math.cos(state.angle);
+                            const sinA = Math.sin(state.angle);
+                            const clipX = state.cx + state.clipXOffset * cosA;
+                            const clipY = state.cy + state.clipXOffset * sinA;
+                            
+                            // Compute distance to the two stream centers on either side of the clip along the commissure
+                            const x1 = clipX - 8.0 * cosA;
+                            const y1 = clipY - 8.0 * sinA;
+                            const x2 = clipX + 8.0 * cosA;
+                            const y2 = clipY + 8.0 * sinA;
+                            
+                            const d1 = Math.sqrt(Math.pow(this.x - x1, 2) + Math.pow(this.y - y1, 2));
+                            const d2 = Math.sqrt(Math.pow(this.x - x2, 2) + Math.pow(this.y - y2, 2));
                             dOrifice = Math.min(d1, d2);
                         }
 
@@ -1474,8 +1622,11 @@
                             this.vx = vRadial * (this.x - state.cx) / (r_xy + 1e-5);
                             this.vy = vRadial * (this.y - state.cy) / (r_xy + 1e-5);
                         } else {
-                            this.vx = (state.cx - this.x) * 0.01;
-                            this.vy = (state.cy - this.y) * 0.01;
+                            // Convergent funneling toward orifice center (atrial side)
+                            const zAbove = Math.max(this.z - state.zOrifice, 0.01);
+                            const convergeFactor = 0.06 + 0.18 * Math.exp(-zAbove / (state.zLen * 0.18));
+                            this.vx = (state.cx - this.x) * convergeFactor;
+                            this.vy = (state.cy - this.y) * convergeFactor;
                         }
                     } else if (state.cardiacPhase === 'systole') {
                         const r_xy = Math.sqrt(Math.pow(this.x - state.cx, 2) + Math.pow(this.y - state.cy, 2));
@@ -1516,45 +1667,80 @@
                     }
                 }
 
-                // Compute color mapping based on speed (Blue for inflow, Red/Orange for regurgitation/vorticity)
-                const speed = Math.sqrt(Math.pow(this.vx, 2) + Math.pow(this.vy, 2) + Math.pow(this.vz, 2));
+                // Blood color: oxygenated arterial red spectrum (left heart = bright red)
+                const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy + this.vz * this.vz);
+                const speedNorm = Math.min(speed / 8.0, 1.0);
                 if (state.cardiacPhase === 'diastole') {
-                    this.speedColor.setHSL(0.55 + Math.min(speed / 15.0, 1.0) * 0.15, 1.0, 0.5);
+                    // Bright oxygenated crimson for forward transmitral flow
+                    this.speedColor.setRGB(
+                        0.55 + speedNorm * 0.40,
+                        0.02 + speedNorm * 0.12,
+                        0.02 + speedNorm * 0.05
+                    );
                 } else {
-                    this.speedColor.setHSL(0.0 + Math.min(speed / 10.0, 1.0) * 0.12, 1.0, 0.5);
+                    // Darker venous red for regurgitant/systolic flow
+                    this.speedColor.setRGB(
+                        0.45 + speedNorm * 0.30,
+                        0.01 + speedNorm * 0.06,
+                        0.03 + speedNorm * 0.08
+                    );
                 }
             }
         }
 
         function rebuildParticles() {
             if (particlesMesh) scene.remove(particlesMesh);
+            if (trailMesh) scene.remove(trailMesh);
 
             bloodParticles = [];
             for (let i = 0; i < state.particleDensity; i++) {
                 bloodParticles.push(new BloodParticle());
             }
 
-            const positions = new Float32Array(state.particleDensity * 3);
-            const colors = new Float32Array(state.particleDensity * 3);
+            // --- Trail Streamline Segments (LineSegments) ---
+            const segsPerParticle = TRAIL_LENGTH;
+            const vertsPerParticle = segsPerParticle * 2;
+            const totalTrailVerts = state.particleDensity * vertsPerParticle;
+
+            const trailPositions = new Float32Array(totalTrailVerts * 3);
+            const trailColors = new Float32Array(totalTrailVerts * 3);
+
+            trailGeometry = new THREE.BufferGeometry();
+            trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+            trailGeometry.setAttribute('color', new THREE.BufferAttribute(trailColors, 3));
+
+            const trailMat = new THREE.LineBasicMaterial({
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.75,
+                depthWrite: false
+            });
+            trailMesh = new THREE.LineSegments(trailGeometry, trailMat);
+            scene.add(trailMesh);
+
+            // --- Head Points (blood droplet sprites) ---
+            const headPositions = new Float32Array(state.particleDensity * 3);
+            const headColors = new Float32Array(state.particleDensity * 3);
 
             particlesGeometry = new THREE.BufferGeometry();
-            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(headPositions, 3));
+            particlesGeometry.setAttribute('color', new THREE.BufferAttribute(headColors, 3));
 
-            // Custom Circular texture
+            // Soft blood-cell droplet texture
             const canvas = document.createElement('canvas');
-            canvas.width = 16;
-            canvas.height = 16;
+            canvas.width = 32;
+            canvas.height = 32;
             const ctx = canvas.getContext('2d');
-            const grad = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
-            grad.addColorStop(0, 'rgba(255,255,255,1)');
-            grad.addColorStop(0.3, 'rgba(255,255,255,0.8)');
-            grad.addColorStop(1, 'rgba(255,255,255,0)');
+            const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+            grad.addColorStop(0, 'rgba(255, 240, 240, 1.0)');
+            grad.addColorStop(0.2, 'rgba(255, 160, 160, 0.9)');
+            grad.addColorStop(0.5, 'rgba(220, 50, 50, 0.55)');
+            grad.addColorStop(1, 'rgba(139, 0, 0, 0)');
             ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, 16, 16);
+            ctx.fillRect(0, 0, 32, 32);
             const texture = new THREE.CanvasTexture(canvas);
 
-            const pSize = state.isHeartModel ? 0.8 : 2.2;
+            const pSize = state.isHeartModel ? 1.6 : 3.2;
 
             const pMaterial = new THREE.PointsMaterial({
                 size: pSize,
@@ -1750,9 +1936,12 @@
                         m.makeBasis(xAxis, yAxis, zAxis);
                         clipMesh.rotation.setFromRotationMatrix(m);
                     } else {
-                        const clipX = state.cx + state.clipXOffset;
-                        clipMesh.position.set(clipX, state.cy, state.zOrifice);
-                        clipMesh.rotation.set(Math.PI, 0, Math.PI / 2); // Open/close along Y-axis
+                        const cosA = Math.cos(state.angle);
+                        const sinA = Math.sin(state.angle);
+                        const clipX = state.cx + state.clipXOffset * cosA;
+                        const clipY = state.cy + state.clipXOffset * sinA;
+                        clipMesh.position.set(clipX, clipY, state.zOrifice);
+                        clipMesh.rotation.set(Math.PI, 0, Math.PI / 2 - state.angle);
                     }
 
                     if (state.mitraClip) {
@@ -1883,8 +2072,8 @@
                         positions[idx] = 22.29 + newPu * 0.9896 + newPv * (-0.0667) + newPn * (-0.1273);
                         positions[idx + 1] = 29.65 + newPu * (-0.1113) + newPv * (-0.9160) + newPn * (-0.3854);
                         positions[idx + 2] = (-23.19) + newPu * (-0.0909) + newPv * 0.3955 + newPn * (-0.9139);
-                    } else {
-                        // Original STL deformation
+                    } else if (state.isOriginalSTL) {
+                        // Original STL deformation (open -> closed)
                         const zNorm = (state.zMax - oz) / (state.zLen + 1e-5);
                         dBend = Math.pow(Math.min(Math.max(zNorm, 0.0), 1.0), 2.0);
 
@@ -1925,6 +2114,73 @@
                             const pinchStrength = wPinch * Math.min(1.0, dBend * 1.6);
                             positions[idx + 1] = positions[idx + 1] + (state.cy - positions[idx + 1]) * pinchStrength;
                         }
+                    } else {
+                        // Patient STL deformation (closed → open) — size-aware, group-based
+                        const zNorm = (state.zMax - oz) / (state.zLen + 1e-5);
+                        dBend = Math.pow(Math.min(Math.max(zNorm, 0.0), 1.0), 1.5);
+
+                        let dx = 0;
+                        let dy = 0;
+                        let dz = 0;
+
+                        const cosA = Math.cos(state.angle);
+                        const sinA = Math.sin(state.angle);
+                        const u = (ox - state.cx) * cosA + (oy - state.cy) * sinA;
+                        const v = -(ox - state.cx) * sinA + (oy - state.cy) * cosA;
+
+                        // Scale max deflection proportional to valve dimensions
+                        const D_max_scaled = Math.min(state.R_cylinder * 0.35, 22.0);
+                        const D_z_scaled = Math.min(state.zLen * 0.06, 5.0);
+
+                        if (state.cardiacPhase === 'diastole') {
+                            const openFactor = state.fOpen;
+                            
+                            if (gid === 1) {
+                                // Anterior leaflet opens in +vOpen direction
+                                const dv = D_max_scaled * openFactor * dBend;
+                                dx = dv * state.vOpen.x;
+                                dy = dv * state.vOpen.y;
+                                dz = -D_z_scaled * openFactor * dBend;
+                            } else if (gid === 2) {
+                                // Posterior leaflet opens in -vOpen direction
+                                const dv = -D_max_scaled * openFactor * dBend;
+                                dx = dv * state.vOpen.x;
+                                dy = dv * state.vOpen.y;
+                                dz = -D_z_scaled * openFactor * dBend;
+                            } else if (gid === 3) {
+                                // Chordae: minor passive follow
+                                const leafletDir = (v > 0) ? 1.0 : -1.0;
+                                const dv = leafletDir * 0.15 * D_max_scaled * openFactor * dBend;
+                                dx = dv * state.vOpen.x;
+                                dy = dv * state.vOpen.y;
+                                dz = -D_z_scaled * 0.4 * openFactor * dBend;
+                            }
+                        } else {
+                            // Systole: STLs are already closed — subtle pressure doming only
+                            const w_z = Math.min(1.0, (pLv - 5.0) / 115.0);
+                            const domeMag = Math.min(state.zLen * 0.02, 1.5);
+                            if (gid === 1 || gid === 2 || gid === 3) {
+                                dz = domeMag * w_z * dBend;
+                            }
+                        }
+
+                        positions[idx] = ox + dx;
+                        positions[idx + 1] = oy + dy;
+                        positions[idx + 2] = oz + dz;
+
+                        // MitraClip pinching
+                        if (state.mitraClip) {
+                            const clipU = state.clipXOffset;
+                            const uDist = Math.abs(u - clipU);
+                            const wPinch = Math.exp(-Math.pow(uDist / 8.0, 2));
+                            let pinchStrength = wPinch * Math.min(1.0, dBend * 1.6);
+                            if (gid === 3) pinchStrength *= 0.1;
+                            
+                            const vPinched = v * (1.0 - pinchStrength);
+                            
+                            positions[idx] = state.cx + u * cosA - vPinched * sinA;
+                            positions[idx + 1] = state.cy + u * sinA + vPinched * cosA;
+                        }
                     }
 
                     // Dynamic colors based on color mode
@@ -1953,26 +2209,74 @@
                 valveGeometry.attributes.color.needsUpdate = true;
                 valveGeometry.computeVertexNormals();
 
-                // 3. Blood Particles physics loop update
-                if (particlesMesh) {
+                // 3. Blood Flow Streamline Rendering (trails + heads)
+                if (particlesMesh && trailMesh && bloodParticles.length > 0) {
                     const pPositions = particlesGeometry.attributes.position.array;
                     const pColors = particlesGeometry.attributes.color.array;
+                    const tPos = trailGeometry.attributes.position.array;
+                    const tCol = trailGeometry.attributes.color.array;
+                    const segsPerParticle = TRAIL_LENGTH;
+                    const vertsPerParticle = segsPerParticle * 2;
 
                     for (let i = 0; i < state.particleDensity; i++) {
                         const p = bloodParticles[i];
                         p.update(state.fOpen, vPeak, state.tCycle, pLa, pLv);
 
-                        const idx = i * 3;
-                        pPositions[idx] = p.x;
-                        pPositions[idx + 1] = p.y;
-                        pPositions[idx + 2] = p.z;
+                        // Update head point
+                        const hIdx = i * 3;
+                        pPositions[hIdx] = p.x;
+                        pPositions[hIdx + 1] = p.y;
+                        pPositions[hIdx + 2] = p.z;
+                        pColors[hIdx] = p.speedColor.r;
+                        pColors[hIdx + 1] = p.speedColor.g;
+                        pColors[hIdx + 2] = p.speedColor.b;
 
-                        pColors[idx] = p.speedColor.r;
-                        pColors[idx + 1] = p.speedColor.g;
-                        pColors[idx + 2] = p.speedColor.b;
+                        // Update trail segments
+                        const tBase = i * vertsPerParticle * 3;
+
+                        // Segment 0: head → trail[0]
+                        tPos[tBase]     = p.x;
+                        tPos[tBase + 1] = p.y;
+                        tPos[tBase + 2] = p.z;
+                        tPos[tBase + 3] = p.trail[0].x;
+                        tPos[tBase + 4] = p.trail[0].y;
+                        tPos[tBase + 5] = p.trail[0].z;
+
+                        const r = p.speedColor.r, g = p.speedColor.g, b = p.speedColor.b;
+                        const fade0 = 0.9;
+                        tCol[tBase]     = r;
+                        tCol[tBase + 1] = g;
+                        tCol[tBase + 2] = b;
+                        tCol[tBase + 3] = r * fade0;
+                        tCol[tBase + 4] = g * fade0;
+                        tCol[tBase + 5] = b * fade0;
+
+                        // Segments 1..N-1: trail[s-1] → trail[s]
+                        for (let s = 1; s < segsPerParticle; s++) {
+                            const vi = tBase + s * 6;
+                            const t0 = p.trail[s - 1];
+                            const t1 = p.trail[s];
+                            tPos[vi]     = t0.x;
+                            tPos[vi + 1] = t0.y;
+                            tPos[vi + 2] = t0.z;
+                            tPos[vi + 3] = t1.x;
+                            tPos[vi + 4] = t1.y;
+                            tPos[vi + 5] = t1.z;
+
+                            const fadeA = 1.0 - (s / (segsPerParticle + 1));
+                            const fadeB = 1.0 - ((s + 1) / (segsPerParticle + 1));
+                            tCol[vi]     = r * fadeA;
+                            tCol[vi + 1] = g * fadeA;
+                            tCol[vi + 2] = b * fadeA;
+                            tCol[vi + 3] = r * fadeB;
+                            tCol[vi + 4] = g * fadeB;
+                            tCol[vi + 5] = b * fadeB;
+                        }
                     }
                     particlesGeometry.attributes.position.needsUpdate = true;
                     particlesGeometry.attributes.color.needsUpdate = true;
+                    trailGeometry.attributes.position.needsUpdate = true;
+                    trailGeometry.attributes.color.needsUpdate = true;
                 }
             }
 

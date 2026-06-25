@@ -115,8 +115,18 @@ def _run_fenics_simulation(base_vtu: Path, case_dir: Path, time_steps: int) -> N
     # 1. Load STL valve mesh and determine bounds dynamically
     valve_mesh = pv.read(base_vtu)
     bounds = valve_mesh.bounds
+    pts = valve_mesh.points
+    z_min, z_max = bounds[4], bounds[5]
+    z_len = z_max - z_min
+    is_original_stl = z_len > 80.0
+    
     cx = (bounds[0] + bounds[1]) / 2.0
     cy = (bounds[2] + bounds[3]) / 2.0
+    if not is_original_stl:
+        tip_pts = pts[pts[:, 2] < z_min + 0.35 * z_len]
+        if len(tip_pts) > 10:
+            cx = tip_pts[:, 0].mean()
+            cy = tip_pts[:, 1].mean()
 
     x_min, x_max = bounds[0] - 15.0, bounds[1] + 15.0
     y_min, y_max = bounds[2] - 15.0, bounds[3] + 15.0
@@ -402,10 +412,34 @@ def _load_stl_valve(path: Path) -> pv.PolyData:
     pts[:, 2] = z_max + z_min - pts[:, 2]
     mesh.points = pts
 
-    # Assign GroupID: split into anterior/posterior by Y centroid
+    # Assign GroupID dynamically using PCA-detected orientation and orifice center
+    is_original_stl = "segmented_valve_mesh_smoothed" in path.name
+    cx = pts[:, 0].mean()
     cy = pts[:, 1].mean()
-    group_ids = np.ones(len(pts), dtype=np.int32)  # anterior (1)
-    group_ids[pts[:, 1] > cy] = 2  # posterior (2)
+
+    group_ids = np.ones(len(pts), dtype=np.int32)  # default to anterior (1)
+    if is_original_stl:
+        # Original STL: lower Y is anterior (1), higher Y is posterior (2)
+        group_ids[pts[:, 1] > cy] = 2
+    else:
+        z_len = z_max - z_min
+        tip_pts = pts[pts[:, 2] < z_min + 0.35 * z_len]
+        if len(tip_pts) > 10:
+            cx = tip_pts[:, 0].mean()
+            cy = tip_pts[:, 1].mean()
+            
+            xy = tip_pts[:, :2]
+            cov = np.cov(xy.T)
+            evals, evecs = np.linalg.eigh(cov)
+            pc1 = evecs[:, -1]
+            theta = np.arctan2(pc1[1], pc1[0])
+            
+            # Project onto the opening direction vector (perpendicular to the commissure)
+            v = -(pts[:, 0] - cx) * np.sin(theta) + (pts[:, 1] - cy) * np.cos(theta)
+            # v > 0 is Anterior (1), v <= 0 is Posterior (2)
+            group_ids[v <= 0] = 2
+        else:
+            group_ids[pts[:, 1] <= cy] = 2
 
     mesh.point_data["GroupID"] = group_ids
     return _strip_arrays(mesh)
@@ -715,6 +749,31 @@ def _run_synthetic_proxy_simulation(valve_mesh: pv.PolyData, case_dir: Path,
     py = points[:, 1]
     pz = points[:, 2]
 
+    # Dynamic PCA to detect valve commissural orientation & compute orifice center
+    is_original_stl = (z_max - z_min) > 80.0
+    angle = 0.0
+    v_open = np.array([0.0, 1.0])
+    
+    # Orifice center using tip points (Z < z_min + 0.35 * z_len)
+    cx = (bounds[0] + bounds[1]) / 2.0
+    cy = (bounds[2] + bounds[3]) / 2.0
+    if not is_original_stl:
+        tip_pts = pts_orig[pts_orig[:, 2] < z_min + 0.35 * z_len]
+        if len(tip_pts) > 10:
+            cx = tip_pts[:, 0].mean()
+            cy = tip_pts[:, 1].mean()
+            z_orifice = tip_pts[:, 2].mean()  # Orifice at actual tip-point Z
+            
+            xy = tip_pts[:, :2]
+            cov = np.cov(xy.T)
+            evals, evecs = np.linalg.eigh(cov)
+            pc1 = evecs[:, -1]
+            angle = np.arctan2(pc1[1], pc1[0])
+            pc2 = evecs[:, 0]
+            if pc2[1] < 0:
+                pc2 = -pc2
+            v_open = pc2
+
     d_axis = np.sqrt((px - cx)**2 + (py - cy)**2)
     R_cylinder = 0.5 * max(bounds[1] - bounds[0], bounds[3] - bounds[2]) + 5.0
 
@@ -763,24 +822,43 @@ def _run_synthetic_proxy_simulation(valve_mesh: pv.PolyData, case_dir: Path,
         
         z_pts = pts_orig[:, 2]
         z_norm = (z_pts - z_min) / (z_max - z_min + 1e-5)
-        d_bend = (1.0 - np.clip(z_norm, 0.0, 1.0))**2
+        d_bend = (1.0 - np.clip(z_norm, 0.0, 1.0))**1.5
         
-        D_max = 16.0  # max Y deflection in mm
-        D_z_max = 4.0  # max Z downward deflection in mm
+        # Scale deflection proportional to valve dimensions
+        valve_radius = max(bounds[1] - bounds[0], bounds[3] - bounds[2]) / 2.0
+        D_max = min(valve_radius * 0.35, 22.0) if not is_original_stl else 16.0
+        D_z_max = min(z_len * 0.06, 5.0) if not is_original_stl else 4.0
         
+        dx = np.zeros_like(z_pts)
         dy = np.zeros_like(z_pts)
         dz = np.zeros_like(z_pts)
         
-        # Group 1 (Anterior, Y <= cy) moves in -Y
-        dy = np.where(gids == 1, -D_max * f_open * d_bend, dy)
-        # Group 2 (Posterior, Y > cy) moves in +Y
-        dy = np.where(gids == 2, +D_max * f_open * d_bend, dy)
-        # Group 3 (Chordae/Papillary) deforms slightly towards the centerline
-        dy = np.where(gids == 3, np.where(pts_orig[:, 1] <= cy, -0.2 * D_max * f_open * d_bend, +0.2 * D_max * f_open * d_bend), dy)
-        
-        # Leaflets stretch downward when opening
-        dz = np.where(np.isin(gids, [1, 2, 3]), -D_z_max * f_open * d_bend, dz)
-        
+        if f_open > 0.01:
+            # Diastole: open leaflets
+            if is_original_stl:
+                is_leaflet = np.isin(gids, [1, 2])
+                dy = np.where(is_leaflet, np.sign(pts_orig[:, 1] - cy) * D_max * f_open * d_bend, dy)
+                dy = np.where(gids == 3, np.sign(pts_orig[:, 1] - cy) * 0.2 * D_max * f_open * d_bend, dy)
+            else:
+                # Group-based opening: gid 1 (anterior) opens in +vOpen, gid 2 (posterior) in -vOpen
+                dv = np.where(gids == 1, D_max * f_open * d_bend,
+                     np.where(gids == 2, -D_max * f_open * d_bend,
+                     np.where(gids == 3, np.where(
+                         (-(pts_orig[:, 0] - cx) * np.sin(angle) + (pts_orig[:, 1] - cy) * np.cos(angle)) > 0,
+                         0.15 * D_max * f_open * d_bend,
+                         -0.15 * D_max * f_open * d_bend), 0.0)))
+                
+                dx = dv * v_open[0]
+                dy = dv * v_open[1]
+            
+            dz = np.where(np.isin(gids, [1, 2, 3]), -D_z_max * f_open * d_bend, dz)
+        else:
+            # Systole: remain closed, subtle dome upwards
+            w_z = np.clip((p_lv_val - 5.0) / 115.0, 0.0, 1.0)
+            dome_mag = min(z_len * 0.02, 1.5) if not is_original_stl else 1.5
+            dz = np.where(np.isin(gids, [1, 2, 3]), dome_mag * w_z * d_bend, dz)
+            
+        pts[:, 0] += dx
         pts[:, 1] += dy
         pts[:, 2] += dz
         
