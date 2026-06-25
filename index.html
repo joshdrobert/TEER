@@ -1488,7 +1488,12 @@
             update(fOpen, vPeak, tCycle, pLa, pLv) {
                 this.age++;
                 if (this.age > this.maxAge || this.z < state.zMin - 30.0) {
-                    this.reset();
+                    if (state.mode === 'manual' && fOpen < 0.05 && vPeak < 0.05) {
+                        // Hide inactive particles out of bounds until flow resumes
+                        this.x = 99999; this.y = 99999; this.z = 99999;
+                    } else {
+                        this.reset();
+                    }
                 }
 
                 // --- 1. Newtonian Forces ---
@@ -1955,7 +1960,9 @@
 
             if (valveGeometry && origPositions && vertexGroups) {
                 // 1. Resolve physiological state & pressures
-                angleTime += delta * (state.heartRate / 60.0);
+                if (state.mode === 'auto' || (state.mode === 'manual' && state.pushing)) {
+                    angleTime += delta * (state.heartRate / 60.0);
+                }
                 state.tCycle = angleTime % 1.0;
 
                 // Calculate dynamic effective regurgitation gap based on clip proximity
