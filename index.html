@@ -473,7 +473,10 @@
             <div id="telemetry-flow" class="telemetry-value blue">-- mL/s</div>
         </div>
         <div class="telemetry-card">
-            <div class="telemetry-label">Mitral Regurgitation Vol.</div>
+            <div class="telemetry-label">
+                Mitral Regurgitation Vol.<br>
+                <span style="font-size: 10px; color: var(--text-sub);">Moving Avg: <span id="telemetry-leak-avg">--</span> mL/s</span>
+            </div>
             <div id="telemetry-leak" class="telemetry-value red">-- mL/s</div>
         </div>
 
@@ -782,6 +785,7 @@
             telemetryLv: document.getElementById('telemetry-lv'),
             telemetryFlow: document.getElementById('telemetry-flow'),
             telemetryLeak: document.getElementById('telemetry-leak'),
+            telemetryLeakAvg: document.getElementById('telemetry-leak-avg'),
             chartCanvas: document.getElementById('chart-canvas'),
             camAtrial: document.getElementById('cam-atrial'),
             camVent: document.getElementById('cam-vent'),
@@ -2048,7 +2052,16 @@
                 elements.telemetryLa.innerText = pLa.toFixed(1) + " mmHg";
                 elements.telemetryLv.innerText = pLv.toFixed(1) + " mmHg";
                 elements.telemetryFlow.innerText = (state.cardiacPhase === 'diastole' ? qFlow.toFixed(0) : "0") + " mL/s";
-                elements.telemetryLeak.innerText = (state.cardiacPhase === 'systole' ? Math.abs(qFlow * (effectiveGap / 10.0)).toFixed(0) : "0") + " mL/s";
+                
+                const currentLeak = (state.cardiacPhase === 'systole') ? Math.abs(qFlow * (effectiveGap / 10.0)) : 0;
+                elements.telemetryLeak.innerText = currentLeak.toFixed(0) + " mL/s";
+
+                // Moving average for leak
+                if (!state.leakHistory) state.leakHistory = [];
+                state.leakHistory.push(currentLeak);
+                if (state.leakHistory.length > 60) state.leakHistory.shift(); // ~1 second window at 60fps
+                const avgLeak = state.leakHistory.reduce((a, b) => a + b, 0) / state.leakHistory.length;
+                if (elements.telemetryLeakAvg) elements.telemetryLeakAvg.innerText = avgLeak.toFixed(0);
 
                 updateLiveChart(pLa, pLv);
 
