@@ -2031,14 +2031,13 @@
                         pLv = 4.0;
                         vPeak = -180.0 * fOpen;
                     } else {
+                        // NOT pushing: everything is completely frozen — no flow, no leak, no particles
                         state.cardiacPhase = 'systole';
                         pLv = 110.0;
                         pLa = 8.0;
-                        qFlow = (pLa - pLv) / 3.0;
+                        qFlow = 0;
                         fOpen = 0.0;
-
-                        const maxPeakLeak = 80.0 * Math.min(1.0, Math.abs(qFlow) / 38.0);
-                        vPeak = (effectiveGap > 0) ? maxPeakLeak * (effectiveGap / 10.0) : 0;
+                        vPeak = 0;
                     }
                 }
 
@@ -2249,13 +2248,16 @@
                             }
                         } else {
                             const w_z = Math.min(1.0, (pLv - 5.0) / 115.0);
+                            // Amplify dBend at the tips so they meet fully at centerline
+                            const closeBend = Math.pow(dBend, 1.5);
                             
                             if (gid === 1 || gid === 2) {
-                                dy = (state.cy - oy) * dBend;
-                                dz = +1.5 * w_z * dBend;
+                                // Pull fully to centerline (cy) for complete coaptation
+                                dy = (state.cy - oy) * closeBend;
+                                dz = +1.5 * w_z * closeBend;
                             } else if (gid === 3) {
-                                dy = (state.cy - oy) * 0.2 * dBend;
-                                dz = +1.5 * w_z * dBend;
+                                dy = (state.cy - oy) * 0.2 * closeBend;
+                                dz = +1.5 * w_z * closeBend;
                             }
                         }
 
@@ -2312,11 +2314,30 @@
                                 dz = -D_z_scaled * 0.4 * openFactor * dBend;
                             }
                         } else {
-                            // Systole: STLs are already closed — subtle pressure doming only
+                            // Systole: actively close the leaflets by pulling them toward the commissure centerline
                             const w_z = Math.min(1.0, (pLv - 5.0) / 115.0);
                             const domeMag = Math.min(state.zLen * 0.02, 1.5);
-                            if (gid === 1 || gid === 2 || gid === 3) {
-                                dz = domeMag * w_z * dBend;
+                            // Amplify dBend at the tips for complete coaptation
+                            const closeBend = Math.pow(dBend, 1.5);
+
+                            if (gid === 1) {
+                                // Pull anterior leaflet fully to center (v=0)
+                                const dv = -v * closeBend;
+                                dx = dv * (-sinA);
+                                dy = dv * cosA;
+                                dz = domeMag * w_z * closeBend;
+                            } else if (gid === 2) {
+                                // Pull posterior leaflet fully to center (v=0)
+                                const dv = -v * closeBend;
+                                dx = dv * (-sinA);
+                                dy = dv * cosA;
+                                dz = domeMag * w_z * closeBend;
+                            } else if (gid === 3) {
+                                // Chordae: minor follow
+                                const dv = -v * 0.15 * closeBend;
+                                dx = dv * (-sinA);
+                                dy = dv * cosA;
+                                dz = domeMag * 0.4 * w_z * closeBend;
                             }
                         }
 
