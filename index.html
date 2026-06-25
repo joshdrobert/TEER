@@ -999,8 +999,36 @@
         @media (max-width: 768px) {
             .container { padding: 0 20px; }
             .navbar { padding: 0 20px; }
-            .nav-links { display: none; }
+            
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 72px;
+                left: 0;
+                right: 0;
+                background: rgba(6, 10, 19, 0.95);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                flex-direction: column;
+                padding: 24px;
+                border-bottom: 1px solid var(--border);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            }
+            .nav-links.mobile-open {
+                display: flex;
+            }
+            
             .nav-toggle { display: block; }
+            
+            .hero-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+            .hero-actions .btn-primary, 
+            .hero-actions .btn-secondary {
+                width: 100%;
+                justify-content: center;
+            }
 
             .hero { padding-top: 80px; }
             .hero h1 { font-size: 36px; }
@@ -1533,9 +1561,24 @@
         })();
 
         // ============================================================
-        // SCROLL-DRIVEN ANIMATIONS
+        // SCROLL-DRIVEN ANIMATIONS & MOBILE MENU
         // ============================================================
         (function() {
+            // Mobile menu toggle
+            const navToggle = document.getElementById('nav-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            if (navToggle && navLinks) {
+                navToggle.addEventListener('click', () => {
+                    navLinks.classList.toggle('mobile-open');
+                });
+                // Close menu when clicking a link
+                navLinks.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        navLinks.classList.remove('mobile-open');
+                    });
+                });
+            }
+
             // Navbar scroll state
             const navbar = document.getElementById('navbar');
             window.addEventListener('scroll', () => {
