@@ -1712,7 +1712,6 @@
                 roughness: 0.05,
                 transmission: 0.7,
                 ior: 1.33,
-                thickness: 5.0,
                 transparent: true,
                 opacity: 0.95,
                 side: THREE.DoubleSide
@@ -2479,8 +2478,7 @@
                             }
                         }
                     }
-                    liquidMesh.update();
-
+                    
                     // MarchingCubes default geometry spans from [-1, -1, -1] to [1, 1, 1].
                     // Scale it by half the desired size to map [-1, 1] to [-size/2, size/2].
                     liquidMesh.position.set(state.cx, state.cy, state.zOrifice);
