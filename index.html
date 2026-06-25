@@ -1898,7 +1898,7 @@
             height: 0.35,
             padding: 0.02,
             justifyContent: 'center',
-            alignContent: 'center',
+            alignItems: 'center',
             fontFamily: 'https://unpkg.com/three-mesh-ui/examples/assets/Roboto-msdf.json',
             fontTexture: 'https://unpkg.com/three-mesh-ui/examples/assets/Roboto-msdf.png',
             backgroundColor: new THREE.Color(0x0d1423),
@@ -1915,7 +1915,7 @@
 
         function createButton(textStr, onClick) {
             const btn = new ThreeMeshUI.Block({
-                width: 0.2, height: 0.035, justifyContent: 'center', alignContent: 'center', margin: 0.005,
+                width: 0.2, height: 0.035, justifyContent: 'center', alignItems: 'center', margin: 0.005,
                 backgroundColor: new THREE.Color(0x1a2436), borderRadius: 0.01
             });
             btn.add(new ThreeMeshUI.Text({ content: textStr, fontSize: 0.012 }));
@@ -1985,10 +1985,11 @@
                 raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
                 raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
                 
-                const intersects = raycaster.intersectObjects(objsToTest.map(b => b.frame), true);
+                const validObjs = objsToTest.map(b => b.frame || b).filter(Boolean);
+                const intersects = raycaster.intersectObjects(validObjs, true);
                 if (intersects.length > 0) {
                     const hitObj = intersects[0].object;
-                    const btn = objsToTest.find(b => b.frame === hitObj);
+                    const btn = objsToTest.find(b => b.frame === hitObj || b === hitObj || (b.children && b.children.includes(hitObj)));
                     if (btn) {
                         btn.setState('selected');
                         setTimeout(() => { btn.setState('idle'); }, 200);
@@ -2044,10 +2045,11 @@
                 tempMatrix.identity().extractRotation(controller1.matrixWorld);
                 raycaster.ray.origin.setFromMatrixPosition(controller1.matrixWorld);
                 raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
-                const intersects = raycaster.intersectObjects(objsToTest.map(b => b.frame), true);
+                const validObjs = objsToTest.map(b => b.frame || b).filter(Boolean);
+                const intersects = raycaster.intersectObjects(validObjs, true);
                 if (intersects.length > 0) {
                     const hitObj = intersects[0].object;
-                    const btn = objsToTest.find(b => b.frame === hitObj);
+                    const btn = objsToTest.find(b => b.frame === hitObj || b === hitObj || (b.children && b.children.includes(hitObj)));
                     if (btn && btn.currentState !== 'selected') btn.setState('hovered');
                 }
             }
@@ -2084,6 +2086,8 @@
             }
         }
 
+        let lastTime = 0;
+        let angleTime = 0;
         renderer.setAnimationLoop(animate);
 
         function animate(timestamp) {
@@ -2096,7 +2100,11 @@
             lastTime = timestamp;
 
             controls.update();
-            updateVR();
+            try {
+                updateVR();
+            } catch(e) {
+                console.error("VR update error:", e);
+            }
 
             if (valveGeometry && origPositions && vertexGroups) {
                 // 1. Resolve physiological state & pressures
