@@ -10,6 +10,14 @@ class CORSHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
+    def do_GET(self):
+        # Route / to landing.html, /workspace to index.html
+        if self.path == '/' or self.path == '/index.html':
+            self.path = '/landing.html'
+        elif self.path == '/workspace' or self.path == '/workspace/':
+            self.path = '/index.html'
+        return super().do_GET()
+
     def end_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
@@ -27,7 +35,8 @@ def main():
             print(f"=========================================================")
             print(f"  TEER Interactive 3D Web Simulation Server")
             print(f"  Serving directory: {DIRECTORY}")
-            print(f"  URL: http://localhost:{PORT}")
+            print(f"  Landing page:  http://localhost:{PORT}/")
+            print(f"  3D Workspace:  http://localhost:{PORT}/workspace")
             print(f"=========================================================")
             sys.stdout.flush()
             httpd.serve_forever()

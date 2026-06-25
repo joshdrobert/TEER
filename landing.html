@@ -1,0 +1,1611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEER — Precision-Guided Mitral Valve Repair Platform</title>
+    <meta name="description" content="AI-powered clinical decision support for Transcatheter Edge-to-Edge Repair. Patient-specific 3D simulation, real-time hemodynamics, and MitraClip optimization.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================================
+           DESIGN SYSTEM — TEER Clinical Landing Page
+           ============================================================ */
+        :root {
+            --bg-deep: #060a13;
+            --bg-section: #0a1122;
+            --bg-card: rgba(13, 20, 35, 0.6);
+            --bg-card-hover: rgba(13, 20, 35, 0.85);
+            --accent: #00e5ff;
+            --accent-glow: rgba(0, 229, 255, 0.15);
+            --accent-warm: #ff6b6b;
+            --accent-gold: #f0b429;
+            --accent-green: #34d399;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --text-tertiary: #6b7280;
+            --border: rgba(255, 255, 255, 0.06);
+            --border-hover: rgba(0, 229, 255, 0.25);
+            --gradient-accent: linear-gradient(135deg, #00e5ff 0%, #0070f3 100%);
+            --gradient-warm: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            --gradient-hero: radial-gradient(ellipse at 70% 40%, rgba(0, 229, 255, 0.08) 0%, transparent 60%);
+            --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+            --shadow-glow: 0 0 40px rgba(0, 229, 255, 0.1);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ============================================================
+           UTILITY
+           ============================================================ */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+
+        .section-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-label::before {
+            content: '';
+            display: inline-block;
+            width: 24px;
+            height: 1px;
+            background: var(--accent);
+        }
+
+        .section-heading {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(32px, 5vw, 48px);
+            font-weight: 700;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            margin-bottom: 20px;
+        }
+
+        .section-subheading {
+            font-size: 18px;
+            font-weight: 300;
+            color: var(--text-secondary);
+            max-width: 600px;
+            line-height: 1.7;
+        }
+
+        /* Scroll-driven reveal animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s var(--transition), transform 0.8s var(--transition);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
+        .reveal-delay-4 { transition-delay: 0.4s; }
+
+        /* ============================================================
+           1. NAVIGATION
+           ============================================================ */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 0 32px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(6, 10, 19, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.4s, background 0.4s;
+        }
+
+        .navbar.scrolled {
+            background: rgba(6, 10, 19, 0.92);
+            border-bottom-color: var(--border);
+            box-shadow: 0 1px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+        }
+
+        .nav-logo-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            color: var(--text-primary);
+        }
+
+        .nav-logo-pulse {
+            display: inline-block;
+            color: var(--accent);
+            animation: logoPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes logoPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.05); }
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 36px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color var(--transition);
+            letter-spacing: 0.3px;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--bg-deep);
+            background: var(--gradient-accent);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform var(--transition), box-shadow var(--transition);
+            box-shadow: 0 2px 16px rgba(0, 229, 255, 0.25);
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 24px rgba(0, 229, 255, 0.4);
+        }
+
+        .nav-cta svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Mobile nav toggle */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        /* ============================================================
+           2. HERO SECTION
+           ============================================================ */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 72px;
+            overflow: hidden;
+            background: var(--gradient-hero);
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(0, 229, 255, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 80% 20%, rgba(0, 112, 243, 0.06) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        /* Animated grid background */
+        .hero-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse at 60% 50%, rgba(0,0,0,0.4) 0%, transparent 70%);
+            -webkit-mask-image: radial-gradient(ellipse at 60% 50%, rgba(0,0,0,0.4) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 64px;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-text {
+            max-width: 560px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 100px;
+            border: 1px solid var(--border);
+            background: rgba(0, 229, 255, 0.06);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--accent);
+            margin-bottom: 28px;
+            letter-spacing: 0.3px;
+        }
+
+        .hero-badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            animation: badgePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes badgePulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4); }
+            50% { opacity: 0.8; box-shadow: 0 0 0 4px rgba(52, 211, 153, 0); }
+        }
+
+        .hero h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(40px, 5.5vw, 64px);
+            font-weight: 800;
+            line-height: 1.08;
+            letter-spacing: -0.03em;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 .accent-text {
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-description {
+            font-size: 18px;
+            font-weight: 300;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 16px;
+            max-width: 480px;
+        }
+
+        /* Typing animation for tagline */
+        .hero-tagline {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            color: var(--accent);
+            margin-bottom: 40px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .hero-tagline .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 16px;
+            background: var(--accent);
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 32px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--bg-deep);
+            background: var(--gradient-accent);
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform var(--transition), box-shadow var(--transition);
+            box-shadow: 0 4px 20px rgba(0, 229, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 229, 255, 0.45);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 28px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            text-decoration: none;
+            transition: all var(--transition);
+        }
+
+        .btn-secondary:hover {
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Hero 3D Canvas */
+        .hero-canvas-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            max-width: 560px;
+            justify-self: end;
+        }
+
+        .hero-canvas-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 229, 255, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+            animation: canvasGlow 4s ease-in-out infinite;
+        }
+
+        @keyframes canvasGlow {
+            0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        #hero-3d-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: var(--radius);
+        }
+
+        /* ============================================================
+           3. PROBLEM STATEMENT
+           ============================================================ */
+        .problem {
+            padding: 120px 0;
+            background: var(--bg-section);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ECG trace background */
+        .ecg-trace {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 200%;
+            height: 60px;
+            opacity: 0.08;
+            animation: ecgScroll 12s linear infinite;
+        }
+
+        @keyframes ecgScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .problem-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            margin-top: 56px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 36px 32px;
+            text-align: center;
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-hover);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .stat-number {
+            font-family: 'Outfit', sans-serif;
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+
+        .stat-number.cyan { color: var(--accent); }
+        .stat-number.warm { color: var(--accent-warm); }
+        .stat-number.gold { color: var(--accent-gold); }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .problem-narrative {
+            margin-top: 56px;
+            max-width: 720px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+
+        .problem-narrative p {
+            font-size: 17px;
+            font-weight: 300;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .problem-narrative strong {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* ============================================================
+           4. PLATFORM CAPABILITIES
+           ============================================================ */
+        .platform {
+            padding: 120px 0;
+            position: relative;
+        }
+
+        .platform-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 56px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 40px 36px;
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-accent);
+            opacity: 0;
+            transition: opacity var(--transition);
+        }
+
+        .feature-card:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-card-hover);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--accent-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            transition: transform var(--transition);
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1);
+        }
+
+        .feature-icon svg {
+            width: 24px;
+            height: 24px;
+            color: var(--accent);
+        }
+
+        .feature-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .feature-desc {
+            font-size: 15px;
+            font-weight: 300;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* ============================================================
+           5. CLINICAL PIPELINE
+           ============================================================ */
+        .pipeline {
+            padding: 120px 0;
+            background: var(--bg-section);
+            overflow: hidden;
+        }
+
+        .pipeline-track {
+            display: flex;
+            gap: 0;
+            margin-top: 56px;
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        .pipeline-track::before {
+            content: '';
+            position: absolute;
+            top: 36px;
+            left: 36px;
+            right: 36px;
+            height: 2px;
+            background: var(--border);
+        }
+
+        .pipeline-step {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            padding: 0 12px;
+        }
+
+        .pipeline-node {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+            transition: all var(--transition);
+        }
+
+        .pipeline-step:hover .pipeline-node {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+            transform: scale(1.08);
+        }
+
+        .pipeline-node svg {
+            width: 28px;
+            height: 28px;
+            color: var(--accent);
+        }
+
+        .pipeline-step-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .pipeline-step-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .pipeline-step-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            max-width: 160px;
+        }
+
+        /* Animated flow line */
+        .pipeline-flow {
+            position: absolute;
+            top: 36px;
+            left: 36px;
+            height: 2px;
+            background: var(--gradient-accent);
+            width: 0;
+            z-index: 1;
+            transition: width 2s ease-out;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+        }
+
+        .pipeline-track.visible .pipeline-flow {
+            width: calc(100% - 72px);
+        }
+
+        /* ============================================================
+           6. EVIDENCE & DATA
+           ============================================================ */
+        .evidence {
+            padding: 120px 0;
+        }
+
+        .evidence-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            margin-top: 56px;
+            align-items: start;
+        }
+
+        .evidence-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .evidence-stat {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px 32px;
+            transition: border-color var(--transition);
+        }
+
+        .evidence-stat:hover {
+            border-color: var(--border-hover);
+        }
+
+        .evidence-stat-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--accent);
+            white-space: nowrap;
+            min-width: 120px;
+        }
+
+        .evidence-stat-text {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .evidence-stat-text strong {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .clinical-note {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: var(--radius);
+            padding: 36px 40px;
+        }
+
+        .clinical-note-header {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--accent);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .clinical-note p {
+            font-size: 16px;
+            font-weight: 300;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-style: italic;
+        }
+
+        .clinical-note p strong {
+            color: var(--text-primary);
+            font-weight: 500;
+            font-style: normal;
+        }
+
+        .clinical-note-footer {
+            margin-top: 20px;
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        /* ============================================================
+           7. FOOTER CTA + FOOTER
+           ============================================================ */
+        .footer-cta {
+            padding: 100px 0;
+            background: var(--bg-section);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .footer-cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 229, 255, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .footer-cta h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(28px, 4vw, 44px);
+            font-weight: 700;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .footer-cta .section-subheading {
+            margin: 0 auto 40px;
+            text-align: center;
+        }
+
+        .footer {
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .footer-logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 2px;
+        }
+
+        .footer-copy {
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            list-style: none;
+        }
+
+        .footer-links a {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        /* Heartbeat footer line */
+        .heartbeat-line {
+            width: 100%;
+            height: 40px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .heartbeat-line svg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            animation: heartbeatScroll 8s linear infinite;
+        }
+
+        @keyframes heartbeatScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 1024px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                gap: 48px;
+                text-align: center;
+            }
+
+            .hero-text {
+                max-width: 100%;
+            }
+
+            .hero-description {
+                margin: 0 auto 16px;
+            }
+
+            .hero-tagline {
+                justify-content: center;
+            }
+
+            .hero-actions {
+                justify-content: center;
+            }
+
+            .hero-canvas-wrapper {
+                max-width: 400px;
+                justify-self: center;
+            }
+
+            .platform-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .problem-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .evidence-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pipeline-track {
+                flex-direction: column;
+                gap: 24px;
+                align-items: flex-start;
+            }
+
+            .pipeline-track::before {
+                top: 0;
+                bottom: 0;
+                left: 36px;
+                width: 2px;
+                height: auto;
+                right: auto;
+            }
+
+            .pipeline-step {
+                flex-direction: row;
+                text-align: left;
+                gap: 20px;
+                padding: 0;
+            }
+
+            .pipeline-step-desc {
+                max-width: none;
+            }
+
+            .pipeline-flow {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 0 20px; }
+            .navbar { padding: 0 20px; }
+            .nav-links { display: none; }
+            .nav-toggle { display: block; }
+
+            .hero { padding-top: 80px; }
+            .hero h1 { font-size: 36px; }
+
+            .problem, .platform, .pipeline, .evidence, .footer-cta {
+                padding: 80px 0;
+            }
+
+            .footer-inner {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .footer-left {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+         1. NAVIGATION
+         ============================================================ -->
+    <nav class="navbar" id="navbar">
+        <a href="/" class="nav-logo">
+            <span class="nav-logo-text"><span class="nav-logo-pulse">T</span>EER</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="#platform">Platform</a></li>
+            <li><a href="#pipeline">Clinical Pipeline</a></li>
+            <li><a href="#evidence">Evidence</a></li>
+        </ul>
+        <a href="/workspace" class="nav-cta">
+            Launch Simulator
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+    </nav>
+
+    <!-- ============================================================
+         2. HERO SECTION
+         ============================================================ -->
+    <section class="hero" id="hero">
+        <div class="hero-grid"></div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <div class="hero-badge">
+                        <span class="hero-badge-dot"></span>
+                        Clinical Decision Support System
+                    </div>
+                    <h1>
+                        Precision-Guided<br>
+                        <span class="accent-text">Mitral Valve</span><br>
+                        Repair
+                    </h1>
+                    <p class="hero-description">
+                        Patient-specific 3D simulation and real-time hemodynamic analysis for Transcatheter Edge-to-Edge Repair planning.
+                    </p>
+                    <div class="hero-tagline">
+                        <span id="typed-text"></span><span class="cursor"></span>
+                    </div>
+                    <div class="hero-actions">
+                        <a href="/workspace" class="btn-primary">
+                            Launch Interactive Simulator
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                        <a href="#pipeline" class="btn-secondary">
+                            See How It Works
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="hero-canvas-wrapper">
+                    <canvas id="hero-3d-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         3. PROBLEM STATEMENT
+         ============================================================ -->
+    <section class="problem" id="problem">
+        <div class="container">
+            <div class="section-label reveal">The Clinical Challenge</div>
+            <h2 class="section-heading reveal reveal-delay-1">Why TEER Needs a Digital Twin</h2>
+            <p class="section-subheading reveal reveal-delay-2">
+                Mitral regurgitation affects millions, yet interventional planning still relies on 2D imaging and operator intuition.
+            </p>
+
+            <div class="problem-stats">
+                <div class="stat-card reveal reveal-delay-1">
+                    <div class="stat-number cyan" data-target="4" data-suffix="M+">0</div>
+                    <div class="stat-label">patients globally with clinically<br>significant mitral regurgitation</div>
+                </div>
+                <div class="stat-card reveal reveal-delay-2">
+                    <div class="stat-number warm" data-target="30" data-suffix="%">0</div>
+                    <div class="stat-label">of patients experience suboptimal<br>outcomes without pre-procedural simulation</div>
+                </div>
+                <div class="stat-card reveal reveal-delay-3">
+                    <div class="stat-number gold" data-target="50" data-prefix="$" data-suffix="K+">0</div>
+                    <div class="stat-label">average per-procedure cost — making<br>first-attempt success critical</div>
+                </div>
+            </div>
+
+            <div class="problem-narrative reveal">
+                <p>
+                    Current TEER planning depends on 2D transesophageal echocardiography and the interventionalist's mental model of complex 3D anatomy. <strong>Without patient-specific simulation, clip placement is often iterative</strong> — leading to prolonged procedure times, suboptimal hemodynamic outcomes, and increased risk of residual regurgitation. TEER CDSS bridges this gap with <strong>real-time 3D simulation directly from patient imaging data</strong>.
+                </p>
+            </div>
+        </div>
+
+        <!-- ECG trace background decoration -->
+        <svg class="ecg-trace" viewBox="0 0 2400 60" preserveAspectRatio="none">
+            <polyline fill="none" stroke="rgba(0, 229, 255, 0.6)" stroke-width="1.5"
+                points="0,30 80,30 100,30 110,15 120,45 130,10 140,50 150,30 170,30 250,30 330,30 350,30 360,15 370,45 380,10 390,50 400,30 420,30 500,30 580,30 600,30 610,15 620,45 630,10 640,50 650,30 670,30 750,30 830,30 850,30 860,15 870,45 880,10 890,50 900,30 920,30 1000,30 1080,30 1100,30 1110,15 1120,45 1130,10 1140,50 1150,30 1170,30 1200,30" />
+        </svg>
+    </section>
+
+    <!-- ============================================================
+         4. PLATFORM CAPABILITIES
+         ============================================================ -->
+    <section class="platform" id="platform">
+        <div class="container">
+            <div class="section-label reveal">Core Capabilities</div>
+            <h2 class="section-heading reveal reveal-delay-1">Full-Stack Simulation Platform</h2>
+            <p class="section-subheading reveal reveal-delay-2">
+                From patient imaging to hemodynamic prediction — every step is integrated, interactive, and real-time.
+            </p>
+
+            <div class="platform-grid">
+                <div class="feature-card reveal reveal-delay-1">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    </div>
+                    <h3 class="feature-title">Patient-Specific 3D Reconstruction</h3>
+                    <p class="feature-desc">Segment real 3D TEE imaging into patient-specific mitral valve meshes using the MVSeg2023 deep learning pipeline. 105 validated patient geometries included.</p>
+                </div>
+
+                <div class="feature-card reveal reveal-delay-2">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                    </div>
+                    <h3 class="feature-title">Real-Time Fluid-Structure Interaction</h3>
+                    <p class="feature-desc">Physics-based blood flow simulation with Marching Cubes isosurface rendering, BVH continuous raycasting collision, and Newtonian particle dynamics.</p>
+                </div>
+
+                <div class="feature-card reveal reveal-delay-3">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/></svg>
+                    </div>
+                    <h3 class="feature-title">MitraClip G4 Virtual Deployment</h3>
+                    <p class="feature-desc">Place, reposition, and evaluate clip effects on double-orifice flow and residual regurgitation in real-time. Full 6-DOF articulated NT G4 CAD model.</p>
+                </div>
+
+                <div class="feature-card reveal reveal-delay-4">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    </div>
+                    <h3 class="feature-title">Hemodynamic Telemetry Dashboard</h3>
+                    <p class="feature-desc">Live LA/LV pressure waveforms, transmitral flow rate, peak regurgitation volume tracking, and real-time cardiac phase indicators — all updating at 60fps.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         5. CLINICAL PIPELINE
+         ============================================================ -->
+    <section class="pipeline" id="pipeline">
+        <div class="container">
+            <div class="section-label reveal">End-to-End Workflow</div>
+            <h2 class="section-heading reveal reveal-delay-1">From Imaging to Intervention</h2>
+            <p class="section-subheading reveal reveal-delay-2">
+                A unified computational pipeline that transforms raw echocardiographic data into actionable surgical insight.
+            </p>
+
+            <div class="pipeline-track reveal" id="pipeline-track">
+                <div class="pipeline-flow"></div>
+
+                <div class="pipeline-step">
+                    <div class="pipeline-node">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21"/></svg>
+                    </div>
+                    <div class="pipeline-step-num">STEP 01</div>
+                    <div class="pipeline-step-title">TEE Acquisition</div>
+                    <div class="pipeline-step-desc">3D transesophageal echo volumes</div>
+                </div>
+
+                <div class="pipeline-step">
+                    <div class="pipeline-node">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a10 10 0 0 1 0 20 10 10 0 0 1 0-20z"/><path d="M12 8v4l2 2"/></svg>
+                    </div>
+                    <div class="pipeline-step-num">STEP 02</div>
+                    <div class="pipeline-step-title">AI Segmentation</div>
+                    <div class="pipeline-step-desc">Deep learning leaflet labeling</div>
+                </div>
+
+                <div class="pipeline-step">
+                    <div class="pipeline-node">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    </div>
+                    <div class="pipeline-step-num">STEP 03</div>
+                    <div class="pipeline-step-title">Mesh Generation</div>
+                    <div class="pipeline-step-desc">Patient-specific 3D valve surface</div>
+                </div>
+
+                <div class="pipeline-step">
+                    <div class="pipeline-node">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    </div>
+                    <div class="pipeline-step-num">STEP 04</div>
+                    <div class="pipeline-step-title">FSI Simulation</div>
+                    <div class="pipeline-step-desc">Real-time hemodynamic modeling</div>
+                </div>
+
+                <div class="pipeline-step">
+                    <div class="pipeline-node">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="m12 1 0 4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/></svg>
+                    </div>
+                    <div class="pipeline-step-num">STEP 05</div>
+                    <div class="pipeline-step-title">Clip Optimization</div>
+                    <div class="pipeline-step-desc">Virtual MitraClip deployment</div>
+                </div>
+
+                <div class="pipeline-step">
+                    <div class="pipeline-node">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    </div>
+                    <div class="pipeline-step-num">STEP 06</div>
+                    <div class="pipeline-step-title">Clinical Report</div>
+                    <div class="pipeline-step-desc">Physician-ready export payload</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         6. EVIDENCE & DATA
+         ============================================================ -->
+    <section class="evidence" id="evidence">
+        <div class="container">
+            <div class="section-label reveal">Platform Evidence</div>
+            <h2 class="section-heading reveal reveal-delay-1">Built on Real Patient Data</h2>
+            <p class="section-subheading reveal reveal-delay-2">
+                Validated against clinical datasets with comprehensive patient geometry coverage.
+            </p>
+
+            <div class="evidence-grid">
+                <div class="evidence-stats">
+                    <div class="evidence-stat reveal reveal-delay-1">
+                        <div class="evidence-stat-value">105</div>
+                        <div class="evidence-stat-text">
+                            <strong>Patient-specific valve meshes</strong> segmented from 3D TEE volumes in the MVSeg2023 training library
+                        </div>
+                    </div>
+                    <div class="evidence-stat reveal reveal-delay-2">
+                        <div class="evidence-stat-value">60fps</div>
+                        <div class="evidence-stat-text">
+                            <strong>Real-time BVH collision physics</strong> with continuous raycasting sweep for zero-tunneling fluid interaction
+                        </div>
+                    </div>
+                    <div class="evidence-stat reveal reveal-delay-3">
+                        <div class="evidence-stat-value">6 DOF</div>
+                        <div class="evidence-stat-text">
+                            <strong>MitraClip G4 articulation</strong> with independent arm, gripper, and body actuation from CAD-accurate geometry
+                        </div>
+                    </div>
+                </div>
+
+                <div class="clinical-note reveal reveal-delay-2">
+                    <div class="clinical-note-header">Clinical Workflow Impact</div>
+                    <p>
+                        "The ability to <strong>virtually deploy a MitraClip onto a patient-specific mitral valve geometry</strong> and immediately observe the hemodynamic consequences — transmitral gradient changes, residual regurgitation volume, and double-orifice flow patterns — provides interventionalists with a <strong>pre-procedural rehearsal environment</strong> that has never existed at this level of fidelity and interactivity."
+                    </p>
+                    <div class="clinical-note-footer">
+                        — TEER CDSS Platform Capability Statement
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         7. FOOTER CTA + FOOTER
+         ============================================================ -->
+    <section class="footer-cta">
+        <div class="container">
+            <div class="section-label reveal" style="justify-content: center;">Ready to Simulate</div>
+            <h2 class="reveal reveal-delay-1">Explore the Future of<br>Interventional Planning</h2>
+            <p class="section-subheading reveal reveal-delay-2">
+                Load real patient geometries. Deploy virtual clips. Analyze hemodynamics in real-time.
+            </p>
+            <a href="/workspace" class="btn-primary reveal reveal-delay-3" style="font-size: 17px; padding: 18px 40px;">
+                Launch Interactive Simulator
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+        </div>
+    </section>
+
+    <!-- Heartbeat line -->
+    <div class="heartbeat-line">
+        <svg viewBox="0 0 2400 40" preserveAspectRatio="none">
+            <polyline fill="none" stroke="rgba(0, 229, 255, 0.2)" stroke-width="1.5"
+                points="0,20 80,20 100,20 110,8 120,32 130,4 140,36 150,20 170,20 250,20 330,20 350,20 360,8 370,32 380,4 390,36 400,20 420,20 500,20 580,20 600,20 610,8 620,32 630,4 640,36 650,20 670,20 750,20 830,20 850,20 860,8 870,32 880,4 890,36 900,20 920,20 1000,20 1080,20 1100,20 1110,8 1120,32 1130,4 1140,36 1150,20 1170,20 1200,20" />
+        </svg>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-inner">
+                <div class="footer-left">
+                    <span class="footer-logo">TEER</span>
+                    <span class="footer-copy">© 2026 TEER CDSS. Research use only.</span>
+                </div>
+                <ul class="footer-links">
+                    <li><a href="https://github.com/joshdrobert/TEER" target="_blank" rel="noopener">GitHub</a></li>
+                    <li><a href="/workspace">Simulator</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ============================================================
+         THREE.JS — Hero Valve Visualization
+         ============================================================ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // ============================================================
+        // HERO 3D VALVE VISUALIZATION
+        // ============================================================
+        (function() {
+            const canvas = document.getElementById('hero-3d-canvas');
+            if (!canvas) return;
+
+            const renderer = new THREE.WebGLRenderer({
+                canvas: canvas,
+                antialias: true,
+                alpha: true
+            });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setClearColor(0x000000, 0);
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 2000);
+            camera.position.set(200, 150, 250);
+            camera.lookAt(0, 0, 60);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x334455, 0.8);
+            scene.add(ambientLight);
+
+            const keyLight = new THREE.DirectionalLight(0x00e5ff, 0.7);
+            keyLight.position.set(100, 200, 150);
+            scene.add(keyLight);
+
+            const rimLight = new THREE.DirectionalLight(0x0070f3, 0.4);
+            rimLight.position.set(-150, -50, 100);
+            scene.add(rimLight);
+
+            const fillLight = new THREE.DirectionalLight(0xffffff, 0.2);
+            fillLight.position.set(0, -200, -100);
+            scene.add(fillLight);
+
+            // Ambient particles
+            const particleCount = 200;
+            const particleGeom = new THREE.BufferGeometry();
+            const particlePositions = new Float32Array(particleCount * 3);
+            for (let i = 0; i < particleCount; i++) {
+                particlePositions[i * 3] = (Math.random() - 0.5) * 500;
+                particlePositions[i * 3 + 1] = (Math.random() - 0.5) * 500;
+                particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 500;
+            }
+            particleGeom.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+            const particleMat = new THREE.PointsMaterial({
+                color: 0x00e5ff,
+                size: 1.5,
+                transparent: true,
+                opacity: 0.3,
+                sizeAttenuation: true
+            });
+            const particles = new THREE.Points(particleGeom, particleMat);
+            scene.add(particles);
+
+            // Load the STL valve mesh
+            function parseSTL(buffer) {
+                const dv = new DataView(buffer);
+                const numTriangles = dv.getUint32(80, true);
+                const positions = new Float32Array(numTriangles * 9);
+                let offset = 84;
+
+                for (let i = 0; i < numTriangles; i++) {
+                    offset += 12; // skip normal
+                    for (let v = 0; v < 9; v++) {
+                        positions[i * 9 + v] = dv.getFloat32(offset, true);
+                        offset += 4;
+                    }
+                    offset += 2; // attribute byte count
+                }
+
+                const geometry = new THREE.BufferGeometry();
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                geometry.computeVertexNormals();
+                geometry.computeBoundingBox();
+                return geometry;
+            }
+
+            let valveMesh = null;
+
+            fetch('./segmented_valve_mesh_smoothed.stl')
+                .then(r => r.arrayBuffer())
+                .then(buffer => {
+                    const geometry = parseSTL(buffer);
+
+                    // Center the geometry
+                    geometry.computeBoundingBox();
+                    const center = new THREE.Vector3();
+                    geometry.boundingBox.getCenter(center);
+                    geometry.translate(-center.x, -center.y, -center.z);
+
+                    // Create mesh with premium material
+                    const material = new THREE.MeshPhongMaterial({
+                        color: 0x0a1a2e,
+                        emissive: 0x001830,
+                        specular: 0x00e5ff,
+                        shininess: 60,
+                        transparent: true,
+                        opacity: 0.85,
+                        side: THREE.DoubleSide,
+                        wireframe: false
+                    });
+
+                    valveMesh = new THREE.Mesh(geometry, material);
+                    scene.add(valveMesh);
+
+                    // Wireframe overlay
+                    const wireMat = new THREE.MeshBasicMaterial({
+                        color: 0x00e5ff,
+                        wireframe: true,
+                        transparent: true,
+                        opacity: 0.08
+                    });
+                    const wireframe = new THREE.Mesh(geometry.clone(), wireMat);
+                    valveMesh.add(wireframe);
+                })
+                .catch(err => console.warn('Could not load hero mesh:', err));
+
+            // Resize handler
+            function resize() {
+                const rect = canvas.parentElement.getBoundingClientRect();
+                const size = Math.min(rect.width, rect.height);
+                renderer.setSize(size, size);
+                camera.aspect = 1;
+                camera.updateProjectionMatrix();
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            // Animation loop
+            let time = 0;
+            function animate() {
+                requestAnimationFrame(animate);
+                time += 0.005;
+
+                if (valveMesh) {
+                    valveMesh.rotation.y = time * 0.5;
+                    valveMesh.rotation.x = Math.sin(time * 0.3) * 0.1 + 0.2;
+                }
+
+                // Gentle particle drift
+                particles.rotation.y = time * 0.05;
+                particles.rotation.x = time * 0.02;
+
+                renderer.render(scene, camera);
+            }
+            animate();
+        })();
+
+        // ============================================================
+        // TYPED TEXT ANIMATION
+        // ============================================================
+        (function() {
+            const phrases = [
+                'Patient-Specific Simulation',
+                'Real-Time Hemodynamics',
+                'MitraClip Optimization',
+                '105 Patient Geometries',
+                'Physics-Based Blood Flow'
+            ];
+            const el = document.getElementById('typed-text');
+            if (!el) return;
+
+            let phraseIdx = 0;
+            let charIdx = 0;
+            let deleting = false;
+
+            function tick() {
+                const phrase = phrases[phraseIdx];
+
+                if (!deleting) {
+                    el.textContent = phrase.substring(0, charIdx + 1);
+                    charIdx++;
+                    if (charIdx === phrase.length) {
+                        deleting = true;
+                        setTimeout(tick, 2000);
+                        return;
+                    }
+                    setTimeout(tick, 60);
+                } else {
+                    el.textContent = phrase.substring(0, charIdx);
+                    charIdx--;
+                    if (charIdx < 0) {
+                        deleting = false;
+                        charIdx = 0;
+                        phraseIdx = (phraseIdx + 1) % phrases.length;
+                        setTimeout(tick, 400);
+                        return;
+                    }
+                    setTimeout(tick, 30);
+                }
+            }
+
+            setTimeout(tick, 1000);
+        })();
+
+        // ============================================================
+        // SCROLL-DRIVEN ANIMATIONS
+        // ============================================================
+        (function() {
+            // Navbar scroll state
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                navbar.classList.toggle('scrolled', window.scrollY > 40);
+            });
+
+            // Intersection Observer for reveal animations
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, {
+                threshold: 0.15,
+                rootMargin: '0px 0px -40px 0px'
+            });
+
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+            // Animated counters
+            const counterObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !entry.target.dataset.counted) {
+                        entry.target.dataset.counted = 'true';
+                        animateCounter(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            document.querySelectorAll('.stat-number[data-target]').forEach(el => {
+                counterObserver.observe(el);
+            });
+
+            function animateCounter(el) {
+                const target = parseInt(el.dataset.target);
+                const prefix = el.dataset.prefix || '';
+                const suffix = el.dataset.suffix || '';
+                const duration = 2000;
+                const startTime = performance.now();
+
+                function update(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    // Ease out cubic
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    const current = Math.floor(eased * target);
+                    el.textContent = prefix + current + suffix;
+
+                    if (progress < 1) {
+                        requestAnimationFrame(update);
+                    }
+                }
+
+                requestAnimationFrame(update);
+            }
+
+            // Pipeline flow animation
+            const pipelineTrack = document.getElementById('pipeline-track');
+            if (pipelineTrack) {
+                const pipelineObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                        }
+                    });
+                }, { threshold: 0.3 });
+                pipelineObserver.observe(pipelineTrack);
+            }
+        })();
+    </script>
+</body>
+</html>
