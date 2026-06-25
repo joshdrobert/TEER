@@ -1249,11 +1249,11 @@
                             const my = sumY / count;
                             const mz = sumZ / count;
                             
-                            // Center coordinate aligned with tip-points centroid
-                            cx = mx;
-                            cy = my;
-                            // Set orifice Z at the actual tip-point mean Z
-                            state.zOrifice = mz;
+                            // Revert to using bounding box center for flow origin, as tip points can be asymmetrical
+                            cx = (bbox.min.x + bbox.max.x) / 2;
+                            cy = (bbox.min.y + bbox.max.y) / 2;
+                            // Set orifice Z slightly above tips
+                            state.zOrifice = mz + 2.0;
 
                             let covXX = 0, covXY = 0, covYY = 0;
                             for (let i = 0; i < positions.length; i += 3) {
@@ -1301,6 +1301,14 @@
                                 vox = -vox;
                                 voy = -voy;
                             }
+                            
+                            // Bulk readjust angle for the numbered valves by applying a -15 degree tweak and centering it better
+                            const angleTweak = -15.0 * Math.PI / 180.0;
+                            const newVox = vox * Math.cos(angleTweak) - voy * Math.sin(angleTweak);
+                            const newVoy = vox * Math.sin(angleTweak) + voy * Math.cos(angleTweak);
+                            vox = newVox; voy = newVoy;
+                            angle += angleTweak;
+                            
                             vOpen = { x: vox, y: voy };
 
                             if (Math.abs(voy) > Math.abs(vox)) {
