@@ -495,6 +495,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://unpkg.com/three-mesh-ui@6.5.4/build/three-mesh-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/MarchingCubes.js"></script>
 
     <script>
         // --- 1. Custom Geometry Parsers (Self-Contained) ---
@@ -1697,70 +1698,32 @@
         }
 
         function rebuildParticles() {
-            if (particlesMesh) scene.remove(particlesMesh);
-            if (trailMesh) scene.remove(trailMesh);
+            if (liquidMesh) worldGroup.remove(liquidMesh);
+
+            // Force particle density to a safe max for Marching Cubes
+            state.particleDensity = Math.min(parseInt(elements.particlesVal.innerText), 150);
 
             bloodParticles = [];
             for (let i = 0; i < state.particleDensity; i++) {
                 bloodParticles.push(new BloodParticle());
             }
 
-            // --- Trail Streamline Segments (LineSegments) ---
-            const segsPerParticle = TRAIL_LENGTH;
-            const vertsPerParticle = segsPerParticle * 2;
-            const totalTrailVerts = state.particleDensity * vertsPerParticle;
-
-            const trailPositions = new Float32Array(totalTrailVerts * 3);
-            const trailColors = new Float32Array(totalTrailVerts * 3);
-
-            trailGeometry = new THREE.BufferGeometry();
-            trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
-            trailGeometry.setAttribute('color', new THREE.BufferAttribute(trailColors, 3));
-
-            const trailMat = new THREE.LineBasicMaterial({
-                vertexColors: true,
+            // Create Physical Liquid Material
+            const liquidMat = new THREE.MeshPhysicalMaterial({
+                color: 0x660000,
+                metalness: 0.1,
+                roughness: 0.05,
+                transmission: 0.7,
+                ior: 1.33,
+                thickness: 5.0,
                 transparent: true,
-                opacity: 0.75,
-                depthWrite: false
-            });
-            trailMesh = new THREE.LineSegments(trailGeometry, trailMat);
-            worldGroup.add(trailMesh);
-
-            // --- Head Points (blood droplet sprites) ---
-            const headPositions = new Float32Array(state.particleDensity * 3);
-            const headColors = new Float32Array(state.particleDensity * 3);
-
-            particlesGeometry = new THREE.BufferGeometry();
-            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(headPositions, 3));
-            particlesGeometry.setAttribute('color', new THREE.BufferAttribute(headColors, 3));
-
-            // Soft blood-cell droplet texture
-            const canvas = document.createElement('canvas');
-            canvas.width = 32;
-            canvas.height = 32;
-            const ctx = canvas.getContext('2d');
-            const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
-            grad.addColorStop(0, 'rgba(255, 240, 240, 1.0)');
-            grad.addColorStop(0.2, 'rgba(255, 160, 160, 0.9)');
-            grad.addColorStop(0.5, 'rgba(220, 50, 50, 0.55)');
-            grad.addColorStop(1, 'rgba(139, 0, 0, 0)');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, 32, 32);
-            const texture = new THREE.CanvasTexture(canvas);
-
-            const pSize = state.isHeartModel ? 1.6 : 3.2;
-
-            const pMaterial = new THREE.PointsMaterial({
-                size: pSize,
-                map: texture,
-                vertexColors: true,
-                transparent: true,
-                blending: THREE.AdditiveBlending,
-                depthWrite: false
+                opacity: 0.95,
+                side: THREE.DoubleSide
             });
 
-            particlesMesh = new THREE.Points(particlesGeometry, pMaterial);
-            worldGroup.add(particlesMesh);
+            // Initialize Marching Cubes (Resolution 36 for performance)
+            liquidMesh = new THREE.MarchingCubes(36, liquidMat, false, false, 100000);
+            worldGroup.add(liquidMesh);
         }
 
         // --- 7. Live canvas Real-time Pressures Chart Plotter ---
@@ -2489,74 +2452,42 @@
                 valveGeometry.attributes.color.needsUpdate = true;
                 valveGeometry.computeVertexNormals();
 
-                // 3. Blood Flow Streamline Rendering (trails + heads)
-                if (particlesMesh && trailMesh && bloodParticles.length > 0) {
-                    const pPositions = particlesGeometry.attributes.position.array;
-                    const pColors = particlesGeometry.attributes.color.array;
-                    const tPos = trailGeometry.attributes.position.array;
-                    const tCol = trailGeometry.attributes.color.array;
-                    const segsPerParticle = TRAIL_LENGTH;
-                    const vertsPerParticle = segsPerParticle * 2;
+                // 3. Blood Flow Liquid Physics Rendering
+                if (liquidMesh && bloodParticles.length > 0) {
+                    liquidMesh.reset();
+
+                    const liquidSize = 140.0; // mm
+                    const minX = state.cx - liquidSize / 2;
+                    const minY = state.cy - liquidSize / 2;
+                    const minZ = state.zOrifice - liquidSize / 2;
+
+                    let pLaTemp = (typeof pLa !== 'undefined') ? pLa : 10;
+                    let pLvTemp = (typeof pLv !== 'undefined') ? pLv : 10;
+                    let vPeakTemp = (typeof vPeak !== 'undefined') ? vPeak : 0;
+                    let fOpenTemp = (typeof state.fOpen !== 'undefined') ? state.fOpen : 1.0;
 
                     for (let i = 0; i < state.particleDensity; i++) {
                         const p = bloodParticles[i];
-                        p.update(state.fOpen, vPeak, state.tCycle, pLa, pLv);
+                        p.update(fOpenTemp, vPeakTemp, state.tCycle, pLaTemp, pLvTemp);
 
-                        // Update head point
-                        const hIdx = i * 3;
-                        pPositions[hIdx] = p.x;
-                        pPositions[hIdx + 1] = p.y;
-                        pPositions[hIdx + 2] = p.z;
-                        pColors[hIdx] = p.speedColor.r;
-                        pColors[hIdx + 1] = p.speedColor.g;
-                        pColors[hIdx + 2] = p.speedColor.b;
+                        if (p.age <= p.maxAge) {
+                            // Map coordinates to [0, 1] grid expected by Marching Cubes
+                            const mx = (p.x - minX) / liquidSize;
+                            const my = (p.y - minY) / liquidSize;
+                            const mz = (p.z - minZ) / liquidSize;
 
-                        // Update trail segments
-                        const tBase = i * vertsPerParticle * 3;
-
-                        // Segment 0: head → trail[0]
-                        tPos[tBase]     = p.x;
-                        tPos[tBase + 1] = p.y;
-                        tPos[tBase + 2] = p.z;
-                        tPos[tBase + 3] = p.trail[0].x;
-                        tPos[tBase + 4] = p.trail[0].y;
-                        tPos[tBase + 5] = p.trail[0].z;
-
-                        const r = p.speedColor.r, g = p.speedColor.g, b = p.speedColor.b;
-                        const fade0 = 0.9;
-                        tCol[tBase]     = r;
-                        tCol[tBase + 1] = g;
-                        tCol[tBase + 2] = b;
-                        tCol[tBase + 3] = r * fade0;
-                        tCol[tBase + 4] = g * fade0;
-                        tCol[tBase + 5] = b * fade0;
-
-                        // Segments 1..N-1: trail[s-1] → trail[s]
-                        for (let s = 1; s < segsPerParticle; s++) {
-                            const vi = tBase + s * 6;
-                            const t0 = p.trail[s - 1];
-                            const t1 = p.trail[s];
-                            tPos[vi]     = t0.x;
-                            tPos[vi + 1] = t0.y;
-                            tPos[vi + 2] = t0.z;
-                            tPos[vi + 3] = t1.x;
-                            tPos[vi + 4] = t1.y;
-                            tPos[vi + 5] = t1.z;
-
-                            const fadeA = 1.0 - (s / (segsPerParticle + 1));
-                            const fadeB = 1.0 - ((s + 1) / (segsPerParticle + 1));
-                            tCol[vi]     = r * fadeA;
-                            tCol[vi + 1] = g * fadeA;
-                            tCol[vi + 2] = b * fadeA;
-                            tCol[vi + 3] = r * fadeB;
-                            tCol[vi + 4] = g * fadeB;
-                            tCol[vi + 5] = b * fadeB;
+                            if (mx > 0.05 && mx < 0.95 && my > 0.05 && my < 0.95 && mz > 0.05 && mz < 0.95) {
+                                // Add blob: (x, y, z, strength, subtract)
+                                liquidMesh.addBall(mx, my, mz, 0.08, 12);
+                            }
                         }
                     }
-                    particlesGeometry.attributes.position.needsUpdate = true;
-                    particlesGeometry.attributes.color.needsUpdate = true;
-                    trailGeometry.attributes.position.needsUpdate = true;
-                    trailGeometry.attributes.color.needsUpdate = true;
+                    liquidMesh.update();
+
+                    // MarchingCubes default geometry spans from [-1, -1, -1] to [1, 1, 1].
+                    // Scale it by half the desired size to map [-1, 1] to [-size/2, size/2].
+                    liquidMesh.position.set(state.cx, state.cy, state.zOrifice);
+                    liquidMesh.scale.set(liquidSize / 2, liquidSize / 2, liquidSize / 2);
                 }
             }
 
