@@ -500,16 +500,18 @@
 
     <script>
         // Polyfill THREE.Triangle.getInterpolation for older Three.js (r128) used by newer three-mesh-bvh
-        if (!THREE.Triangle.prototype.getInterpolation) {
+        if (!THREE.Triangle.getInterpolation) {
             const _v0 = new THREE.Vector3();
-            THREE.Triangle.prototype.getInterpolation = function ( point, p1, p2, p3, v1, v2, v3, target ) {
-                this.getBarycoord( point, p1, p2, p3, _v0 );
+            const polyfill = function ( point, p1, p2, p3, v1, v2, v3, target ) {
+                THREE.Triangle.getBarycoord( point, p1, p2, p3, _v0 );
                 target.setScalar( 0 );
                 target.addScaledVector( v1, _v0.x );
                 target.addScaledVector( v2, _v0.y );
                 target.addScaledVector( v3, _v0.z );
                 return target;
             };
+            THREE.Triangle.getInterpolation = polyfill;
+            THREE.Triangle.prototype.getInterpolation = polyfill;
         }
 
         // --- 1. Custom Geometry Parsers (Self-Contained) ---
