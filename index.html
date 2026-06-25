@@ -1451,16 +1451,19 @@
             }
 
             reset() {
-                const isOrig = state.isOriginalSTL;
-                // Keep the spawn radius tight so particles don't spawn outside the funnel walls!
-                const radiusMult = isOrig ? 0.4 : 0.3; 
+                let radiusMult;
+                if (state.isHeartModel) {
+                    radiusMult = 0.15; // Extremely tight flow, directly over the leaflets
+                } else {
+                    radiusMult = state.isOriginalSTL ? 0.4 : 0.3;
+                }
                 const radius = state.R_cylinder * radiusMult * Math.sqrt(Math.random());
                 const angle = Math.random() * Math.PI * 2;
 
                 if (state.isHeartModel) {
                     const pu = radius * Math.cos(angle);
                     const pv = radius * Math.sin(angle);
-                    const pn = -12.0 - Math.random() * 18.0;
+                    const pn = -2.0 - Math.random() * 5.0; // Spawn much lower, close to the valve orifice
 
                     this.x = 22.29 + pu * 0.9896 + pv * (-0.0667) + pn * (-0.1273);
                     this.y = 29.65 + pu * (-0.1113) + pv * (-0.9160) + pn * (-0.3854);
@@ -1574,8 +1577,9 @@
         function rebuildParticles() {
             if (liquidMesh) worldGroup.remove(liquidMesh);
 
-            // Capped to 200 for BVH performance
-            state.particleDensity = Math.min(parseInt(elements.particlesVal.innerText), 200);
+            // Capped to 200 for BVH performance, and 80 for the Heart Model to prevent overflow
+            const maxParticles = state.isHeartModel ? 80 : 200;
+            state.particleDensity = Math.min(parseInt(elements.particlesVal.innerText), maxParticles);
 
             bloodParticles = [];
             for (let i = 0; i < state.particleDensity; i++) {
