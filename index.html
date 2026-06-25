@@ -496,7 +496,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://unpkg.com/three-mesh-ui@6.5.4/build/three-mesh-ui.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/MarchingCubes.js"></script>
-    <script src="https://unpkg.com/three-mesh-bvh@0.7.3/build/index.umd.js"></script>
+    <script src="https://unpkg.com/three-mesh-bvh@0.7.3/build/index.umd.cjs"></script>
 
     <script>
         // --- 1. Custom Geometry Parsers (Self-Contained) ---
@@ -1852,6 +1852,13 @@
         controller1.addEventListener('selectend', onSelectEnd);
         controller2.addEventListener('selectstart', onSelectStart);
         controller2.addEventListener('selectend', onSelectEnd);
+
+        // Initialize three-mesh-bvh
+        if (window.MeshBVHLib) {
+            THREE.BufferGeometry.prototype.computeBoundsTree = window.MeshBVHLib.computeBoundsTree;
+            THREE.BufferGeometry.prototype.disposeBoundsTree = window.MeshBVHLib.disposeBoundsTree;
+            THREE.Mesh.prototype.raycast = window.MeshBVHLib.acceleratedRaycast;
+        }
 
         // --- Render Loop Additions ---
         function updateVR() {
