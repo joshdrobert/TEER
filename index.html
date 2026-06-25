@@ -475,7 +475,7 @@
         <div class="telemetry-card">
             <div class="telemetry-label">
                 Mitral Regurgitation Vol.<br>
-                <span style="font-size: 10px; color: var(--text-sub);">Moving Avg: <span id="telemetry-leak-avg">--</span> mL/s</span>
+                <span style="font-size: 10px; color: var(--text-sub);">Peak Max: <span id="telemetry-leak-max">--</span> mL/s</span>
             </div>
             <div id="telemetry-leak" class="telemetry-value red">-- mL/s</div>
         </div>
@@ -785,7 +785,7 @@
             telemetryLv: document.getElementById('telemetry-lv'),
             telemetryFlow: document.getElementById('telemetry-flow'),
             telemetryLeak: document.getElementById('telemetry-leak'),
-            telemetryLeakAvg: document.getElementById('telemetry-leak-avg'),
+            telemetryLeakMax: document.getElementById('telemetry-leak-max'),
             chartCanvas: document.getElementById('chart-canvas'),
             camAtrial: document.getElementById('cam-atrial'),
             camVent: document.getElementById('cam-vent'),
@@ -2056,12 +2056,17 @@
                 const currentLeak = (state.cardiacPhase === 'systole') ? Math.abs(qFlow * (effectiveGap / 10.0)) : 0;
                 elements.telemetryLeak.innerText = currentLeak.toFixed(0) + " mL/s";
 
-                // Moving average for leak
-                if (!state.leakHistory) state.leakHistory = [];
-                state.leakHistory.push(currentLeak);
-                if (state.leakHistory.length > 60) state.leakHistory.shift(); // ~1 second window at 60fps
-                const avgLeak = state.leakHistory.reduce((a, b) => a + b, 0) / state.leakHistory.length;
-                if (elements.telemetryLeakAvg) elements.telemetryLeakAvg.innerText = avgLeak.toFixed(0);
+                // Peak Max for the current heartbeat cycle
+                if (state.cardiacPhase === 'diastole') {
+                    state.peakLeak = 0; // reset during filling
+                } else {
+                    if (!state.peakLeak) state.peakLeak = 0;
+                    if (currentLeak > state.peakLeak) {
+                        state.peakLeak = currentLeak;
+                    }
+                }
+                
+                if (elements.telemetryLeakMax) elements.telemetryLeakMax.innerText = (state.peakLeak || 0).toFixed(0);
 
                 updateLiveChart(pLa, pLv);
 
