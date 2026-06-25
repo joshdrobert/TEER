@@ -2084,6 +2084,8 @@
             }
         }
 
+        renderer.setAnimationLoop(animate);
+
         function animate(timestamp) {
             // WebXR requires renderer.setAnimationLoop instead of requestAnimationFrame
         // We will switch to it
@@ -2094,6 +2096,7 @@
             lastTime = timestamp;
 
             controls.update();
+            updateVR();
 
             if (valveGeometry && origPositions && vertexGroups) {
                 // 1. Resolve physiological state & pressures
