@@ -364,45 +364,91 @@
         /* ============================================================
            RESPONSIVE (MOBILE)
            ============================================================ */
+        
+        /* Mobile FAB container (hidden on desktop) */
+        #mobile-nav {
+            display: none;
+        }
+
+        .mobile-close-btn {
+            display: none;
+        }
+
         @media (max-width: 768px) {
-            #left-control-panel {
-                top: 10px;
-                left: 10px;
-                right: 10px;
-                width: auto;
-                max-height: 40vh;
-                padding: 16px;
+            #mobile-nav {
+                display: flex;
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
                 gap: 12px;
-                border-radius: 12px;
+                z-index: 100;
+                width: 90%;
             }
-            #right-hud-panel {
-                top: auto;
-                bottom: 10px;
-                left: 10px;
-                right: 10px;
-                width: auto;
-                max-height: 40vh;
-                overflow-y: auto;
-                padding: 16px;
-                gap: 12px;
-                border-radius: 12px;
+
+            .mobile-nav-btn {
+                flex: 1;
+                background: rgba(13, 20, 35, 0.85);
+                backdrop-filter: blur(10px);
+                border: 1px solid var(--accent-blue);
+                color: var(--text-color);
+                padding: 14px;
+                border-radius: 30px;
+                font-family: inherit;
+                font-weight: 600;
+                font-size: 14px;
+                box-shadow: 0 4px 15px rgba(0, 229, 255, 0.2);
+                cursor: pointer;
             }
+
+            /* Bottom Sheet Style Panels */
+            #left-control-panel, #right-hud-panel {
+                top: auto !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                width: 100% !important;
+                max-height: 75vh !important;
+                border-radius: 24px 24px 0 0 !important;
+                padding: 24px 20px !important;
+                border: none !important;
+                border-top: 1px solid var(--border-color) !important;
+                background: rgba(13, 20, 35, 0.95) !important;
+                transform: translateY(120%);
+                transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                z-index: 200 !important;
+            }
+
+            #left-control-panel.mobile-active, #right-hud-panel.mobile-active {
+                transform: translateY(0);
+            }
+
+            .mobile-close-btn {
+                display: block;
+                position: absolute;
+                top: 16px;
+                right: 20px;
+                width: 32px;
+                height: 32px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+                text-align: center;
+                line-height: 32px;
+                font-size: 20px;
+                color: var(--text-color);
+                cursor: pointer;
+                z-index: 210;
+            }
+
             #hud-top-center {
-                top: calc(40vh + 20px);
+                top: 24px !important;
                 z-index: 5;
             }
-            h1 {
-                font-size: 16px;
-            }
-            .btn-grid {
-                grid-template-columns: 1fr;
-            }
-            #right-hud-panel .btn-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-            .telemetry-card {
-                padding: 8px 12px;
-            }
+
+            h1 { font-size: 18px; max-width: 85%; }
+            .subtitle { font-size: 10px; }
+            .btn-grid { grid-template-columns: 1fr; }
+            #right-hud-panel .btn-grid { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
@@ -422,6 +468,7 @@
 
     <!-- Left Control Panel -->
     <div id="left-control-panel" class="glass-panel">
+        <div class="mobile-close-btn" onclick="document.getElementById('left-control-panel').classList.remove('mobile-active')">&times;</div>
         <div>
             <div class="subtitle">TEER Clinical DSS</div>
             <h1>3D Mitral Valve FSI</h1>
@@ -502,6 +549,7 @@
 
     <!-- Right Telemetry Panel -->
     <div id="right-hud-panel" class="glass-panel">
+        <div class="mobile-close-btn" onclick="document.getElementById('right-hud-panel').classList.remove('mobile-active')">&times;</div>
         <div class="section-title">Hemodynamics Telemetry</div>
 
         <div class="telemetry-card">
@@ -537,6 +585,16 @@
     </div>
 
     <div id="canvas-container"></div>
+
+    <!-- Mobile Navigation Overlay Buttons -->
+    <div id="mobile-nav">
+        <button class="mobile-nav-btn" onclick="document.getElementById('left-control-panel').classList.add('mobile-active'); document.getElementById('right-hud-panel').classList.remove('mobile-active');">
+            Controls & Settings
+        </button>
+        <button class="mobile-nav-btn" onclick="document.getElementById('right-hud-panel').classList.add('mobile-active'); document.getElementById('left-control-panel').classList.remove('mobile-active');">
+            Telemetry HUD
+        </button>
+    </div>
 
     <!-- Three.js and OrbitControls via CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
