@@ -445,6 +445,12 @@
                 z-index: 5;
             }
 
+            #vr-btn {
+                bottom: 80px !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+            }
+
             h1 { font-size: 18px; max-width: 85%; }
             .subtitle { font-size: 10px; }
             .btn-grid { grid-template-columns: 1fr; }
@@ -1781,6 +1787,7 @@
         renderer.xr.enabled = true;
 
         const vrButton = document.createElement('button');
+        vrButton.id = 'vr-btn';
         vrButton.textContent = 'ENTER VR';
         vrButton.style.position = 'absolute';
         vrButton.style.bottom = '20px';
