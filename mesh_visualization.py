@@ -28,59 +28,55 @@ colors = [
 pv.set_plot_theme("document")
 
 
-def largest_boundary_loop_points(mesh):
+def pca_align(mesh):
+    pts = mesh.points.copy()
+    center = pts.mean(axis=0)
+    X = pts - center
+    _, _, vh = np.linalg.svd(X, full_matrices=False)
+    R = vh.T
+    if np.linalg.det(R) < 0:
+        R[:, -1] *= -1
+    mesh2 = mesh.copy()
+    mesh2.points = X @ R
+    return mesh2
+
+
+def openness_score(mesh):
+    pts = mesh.points
+    xspan = pts[:, 0].max() - pts[:, 0].min()
+    yspan = pts[:, 1].max() - pts[:, 1].min()
+    zspan = pts[:, 2].max() - pts[:, 2].min()
+
+    # prefer views where thickness is smaller relative to face extent
+    face_area = xspan * yspan
+    thinness = face_area / (zspan + 1e-6)
+
+    # reward boundary visibility
     edges = mesh.extract_feature_edges(
         boundary_edges=True,
         feature_edges=False,
         manifold_edges=False,
         non_manifold_edges=False,
     )
+    boundary_pts = edges.n_points
 
-    if edges.n_points == 0:
-        return None
-
-    conn = edges.connectivity()
-    region_ids = conn["RegionId"]
-    regions = np.unique(region_ids)
-
-    best_pts = None
-    best_n = -1
-
-    for rid in regions:
-        pts = conn.points[region_ids == rid]
-        if pts.shape[0] > best_n:
-            best_n = pts.shape[0]
-            best_pts = pts
-
-    return best_pts
+    return thinness + 0.05 * boundary_pts
 
 
-def camera_for_opening(mesh):
-    pts = largest_boundary_loop_points(mesh)
+def best_opening_view(mesh):
+    mesh = pca_align(mesh)
 
-    center = mesh.center
-    bounds = np.array(mesh.bounds).reshape(3, 2)
-    size = np.max(bounds[:, 1] - bounds[:, 0])
+    candidates = []
+    for rx in [0, 90, 180, 270]:
+        for ry in [0, 90, 180, 270]:
+            m = mesh.copy()
+            m = m.rotate_x(rx, inplace=False)
+            m = m.rotate_y(ry, inplace=False)
+            score = openness_score(m)
+            candidates.append((score, rx, ry, m))
 
-    if pts is None or len(pts) < 3:
-        return None, center, size
-
-    loop_center = pts.mean(axis=0)
-    X = pts - loop_center
-
-    # PCA on boundary loop to get best-fit plane
-    _, _, vh = np.linalg.svd(X, full_matrices=False)
-    normal = vh[-1]
-    normal = normal / np.linalg.norm(normal)
-
-    # Make the normal point outward from the object center toward the opening
-    if np.dot(normal, loop_center - np.array(center)) < 0:
-        normal = -normal
-
-    # Camera position: back off along opening normal
-    cam_pos = loop_center + normal * (2.5 * size)
-
-    return cam_pos, loop_center, size
+    candidates.sort(key=lambda x: x[0], reverse=True)
+    return candidates[0][3]
 
 
 n = len(selected_files)
@@ -111,6 +107,8 @@ for i, stl_path in enumerate(selected_files):
         split_vertices=True,
     )
 
+    mesh = best_opening_view(mesh)
+
     plotter.remove_all_lights()
     plotter.add_light(pv.Light(position=(1, 1, 1), intensity=0.8, light_type="camera light"))
     plotter.add_light(pv.Light(position=(-1, -1, 1), intensity=0.4, light_type="camera light"))
@@ -128,19 +126,8 @@ for i, stl_path in enumerate(selected_files):
     )
 
     plotter.add_text(key, font_size=16, color="black")
-
-    cam_pos, focal_point, size = camera_for_opening(mesh)
-
-    if cam_pos is None:
-        plotter.view_isometric()
-        plotter.reset_camera()
-    else:
-        plotter.camera_position = [
-            tuple(cam_pos),
-            tuple(focal_point),
-            (0, 0, 1),
-        ]
-
+    plotter.view_xy()
+    plotter.reset_camera()
     plotter.camera.zoom(1.15)
 
 for j in range(n, rows * cols):
