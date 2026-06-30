@@ -73,15 +73,10 @@ u_sol = problem.solve()
 u_sol.name = "velocity_like"
 
 # ---------- 5. Save to XDMF ----------
-with XDMFFile(mesh.comm, "mitral_velocity_like.xdmf", "w") as xdmf:
-    xdmf.write_mesh(mesh)
-    xdmf.write_function(u_sol)
-
-print("Wrote mitral_velocity_like.xdmf")
 
 from dolfinx import io
 
-with io.XDMFFile(mesh.comm, "mitral_velocity_like.pvd", "w",
+with io.XDMFFile(mesh.comm, "mitral_velocity_like.xdmf", "w",
                  encoding=io.XDMFFile.Encoding.ASCII) as xdmf:
     xdmf.write_mesh(mesh)
     xdmf.write_function(u_sol)
