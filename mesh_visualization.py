@@ -27,38 +27,61 @@ colors = [
 
 pv.set_plot_theme("document")
 
-def orient_mesh(mesh):
-    pts = mesh.points.copy()
-    center = pts.mean(axis=0)
-    X = pts - center
 
-    # PCA: principal axes
+def largest_boundary_loop_points(mesh):
+    edges = mesh.extract_feature_edges(
+        boundary_edges=True,
+        feature_edges=False,
+        manifold_edges=False,
+        non_manifold_edges=False,
+    )
+
+    if edges.n_points == 0:
+        return None
+
+    conn = edges.connectivity()
+    region_ids = conn["RegionId"]
+    regions = np.unique(region_ids)
+
+    best_pts = None
+    best_n = -1
+
+    for rid in regions:
+        pts = conn.points[region_ids == rid]
+        if pts.shape[0] > best_n:
+            best_n = pts.shape[0]
+            best_pts = pts
+
+    return best_pts
+
+
+def camera_for_opening(mesh):
+    pts = largest_boundary_loop_points(mesh)
+
+    center = mesh.center
+    bounds = np.array(mesh.bounds).reshape(3, 2)
+    size = np.max(bounds[:, 1] - bounds[:, 0])
+
+    if pts is None or len(pts) < 3:
+        return None, center, size
+
+    loop_center = pts.mean(axis=0)
+    X = pts - loop_center
+
+    # PCA on boundary loop to get best-fit plane
     _, _, vh = np.linalg.svd(X, full_matrices=False)
-    R = vh.T
-    Xr = X @ R
+    normal = vh[-1]
+    normal = normal / np.linalg.norm(normal)
 
-    # Make a consistent handed system
-    if np.linalg.det(R) < 0:
-        R[:, -1] *= -1
-        Xr = X @ R
+    # Make the normal point outward from the object center toward the opening
+    if np.dot(normal, loop_center - np.array(center)) < 0:
+        normal = -normal
 
-    # Heuristic: opening often corresponds to the side with more spread / less occupancy.
-    # We flip axes so the more "open" side tends toward +x/+z for the camera.
-    for ax in [0, 1, 2]:
-        q_low = np.percentile(Xr[:, ax], 5)
-        q_high = np.percentile(Xr[:, ax], 95)
-        if abs(q_low) > abs(q_high):
-            R[:, ax] *= -1
-            Xr[:, ax] *= -1
+    # Camera position: back off along opening normal
+    cam_pos = loop_center + normal * (2.5 * size)
 
-    mesh = mesh.copy()
-    mesh.points = Xr
+    return cam_pos, loop_center, size
 
-    # Extra fixed rotation so opening is more frontal, similar to first panel
-    mesh = mesh.rotate_y(90, inplace=False)
-    mesh = mesh.rotate_x(-25, inplace=False)
-
-    return mesh
 
 n = len(selected_files)
 cols = 5 if n >= 5 else n
@@ -88,8 +111,6 @@ for i, stl_path in enumerate(selected_files):
         split_vertices=True,
     )
 
-    mesh = orient_mesh(mesh)
-
     plotter.remove_all_lights()
     plotter.add_light(pv.Light(position=(1, 1, 1), intensity=0.8, light_type="camera light"))
     plotter.add_light(pv.Light(position=(-1, -1, 1), intensity=0.4, light_type="camera light"))
@@ -107,8 +128,19 @@ for i, stl_path in enumerate(selected_files):
     )
 
     plotter.add_text(key, font_size=16, color="black")
-    plotter.view_vector((1.5, -1.2, 0.8))   # fixed camera direction for all
-    plotter.reset_camera()
+
+    cam_pos, focal_point, size = camera_for_opening(mesh)
+
+    if cam_pos is None:
+        plotter.view_isometric()
+        plotter.reset_camera()
+    else:
+        plotter.camera_position = [
+            tuple(cam_pos),
+            tuple(focal_point),
+            (0, 0, 1),
+        ]
+
     plotter.camera.zoom(1.15)
 
 for j in range(n, rows * cols):
