@@ -1,4 +1,7 @@
+# macOS
 .DS_Store
+
+# Python
 __pycache__/
 *.py[cod]
 *.so
@@ -13,23 +16,39 @@ build/
 dist/
 *.egg-info/
 .eggs/
+
+# Virtual environments
 .venv/
 venv/
 env/
 ENV/
 .env
 .env.*
+
+# Notebooks
 .ipynb_checkpoints/
+
+# Node
+node_modules/
+
+# Runtime / data (local only)
+audit_logs/
 data/mvseg2023/
 artifacts/
 .cache/
 external/
-
-# Large geometry and mesh files (local only)
 segmented_valve_mesh_smoothed_final.msh
 
-# Temporary scratch scripts
-scratch_ns.py
+# Scratch / experimental scripts (kept locally, not tracked)
 scratch/
-
-
+scratch_ns.py
+patch.js
+patch2.js
+patch3.js
+patch_bvh.js
+patch_liquid.js
+patch_vr2.js
+marching.js
+test_dom.js
+test_physics.js
+vr_extractor.js
