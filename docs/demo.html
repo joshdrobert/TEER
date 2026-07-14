@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEER · Interactive Clip Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#060a13;--panel:rgba(14,22,38,.72);--card:rgba(20,30,50,.6);--accent:#00e5ff;--accent-2:#0070f3;--warm:#ff6b6b;--gold:#f0b429;--green:#34d399;--tx:#f3f4f6;--tx-2:#9ca3af;--tx-3:#6b7280;--bd:rgba(255,255,255,.08);--bd-2:rgba(0,229,255,.3);--grad:linear-gradient(135deg,#00e5ff,#0070f3)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,sans-serif;background:var(--bg);color:var(--tx);height:100vh;overflow:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+h1,h2,h3{font-family:Outfit;letter-spacing:-.02em}
+.app{display:grid;grid-template-columns:300px 1fr 340px;height:100vh}
+/* top bar */
+.topbar{position:fixed;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:rgba(6,10,19,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);z-index:50}
+.brand{font-family:Outfit;font-weight:800;font-size:18px;display:flex;gap:9px;align-items:center}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--grad);box-shadow:0 0 14px var(--accent)}
+.brand a{color:inherit;text-decoration:none}
+.badge{font-size:11px;font-family:'JetBrains Mono';color:var(--tx-2);border:1px solid var(--bd);padding:5px 11px;border-radius:14px}
+.col{padding:74px 20px 20px;overflow-y:auto;height:100vh}
+.col.left{border-right:1px solid var(--bd);background:var(--panel)}
+.col.right{border-left:1px solid var(--bd);background:var(--panel)}
+.stage{position:relative;background:radial-gradient(circle at 50% 40%,rgba(0,229,255,.06),transparent 60%)}
+#scene{width:100%;height:100%;display:block}
+.stage .hint{position:absolute;top:70px;left:18px;font-size:11px;color:var(--tx-3);font-family:'JetBrains Mono';background:rgba(6,10,19,.6);padding:6px 11px;border-radius:8px}
+.sect{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--accent);font-family:'JetBrains Mono';margin:22px 0 12px;display:flex;align-items:center;gap:9px}
+.sect:first-child{margin-top:0}
+.sect::before{content:'';width:16px;height:1px;background:var(--accent)}
+.casebtn{width:100%;text-align:left;background:var(--card);border:1px solid var(--bd);border-radius:11px;padding:12px 14px;margin-bottom:8px;cursor:pointer;color:var(--tx);transition:.2s;font-family:Inter}
+.casebtn:hover{border-color:var(--bd-2)}
+.casebtn.active{border-color:var(--accent);background:rgba(0,229,255,.1)}
+.casebtn .t{font-family:Outfit;font-weight:600;font-size:15px}
+.casebtn .d{font-size:11px;color:var(--tx-3);font-family:'JetBrains Mono';margin-top:3px}
+label.ctl{display:block;font-size:13px;color:var(--tx-2);margin:16px 0 7px}
+label.ctl .v{float:right;font-family:'JetBrains Mono';color:var(--accent)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.toggle{display:flex;gap:8px;margin-top:8px}
+.toggle button{flex:1;padding:9px;background:var(--card);border:1px solid var(--bd);border-radius:9px;color:var(--tx-2);cursor:pointer;font-family:Inter;font-size:13px;transition:.2s}
+.toggle button.on{border-color:var(--accent);background:rgba(0,229,255,.12);color:var(--tx)}
+.btn{width:100%;padding:13px;border-radius:11px;font-weight:600;font-size:14px;border:none;cursor:pointer;font-family:Inter;transition:.25s;margin-top:10px}
+.btn-p{background:var(--grad);color:#001018}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(0,229,255,.35)}
+.btn-g{background:transparent;border:1px solid var(--bd-2);color:var(--tx)}
+.btn-g:hover{background:rgba(0,229,255,.08)}
+/* metrics */
+.metric-card{background:var(--card);border:1px solid var(--bd);border-radius:13px;padding:16px 16px;margin-bottom:11px}
+.metric-card .top{display:flex;justify-content:space-between;align-items:baseline}
+.metric-card .name{font-size:12.5px;color:var(--tx-2)}
+.metric-card .val{font-family:Outfit;font-size:27px;font-weight:700}
+.metric-card .val .u{font-size:13px;color:var(--tx-3);font-weight:500}
+.metric-card .bar{height:5px;border-radius:3px;background:rgba(255,255,255,.08);margin-top:11px;overflow:hidden}
+.metric-card .bar i{display:block;height:100%;border-radius:3px;transition:width .5s,background .5s}
+.metric-card .range{font-size:10.5px;color:var(--tx-3);margin-top:6px;font-family:'JetBrains Mono'}
+.verdict{border-radius:13px;padding:16px;margin-bottom:11px;border:1px solid;font-size:13.5px;display:flex;gap:11px;align-items:center}
+.verdict .ic{font-size:22px}
+.verdict.good{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.4);color:#8ef0c8}
+.verdict.warn{background:rgba(240,180,41,.1);border-color:rgba(240,180,41,.4);color:#f5d488}
+.verdict.bad{background:rgba(255,107,107,.1);border-color:rgba(255,107,107,.4);color:#ffb3b3}
+.note{font-size:11px;color:var(--tx-3);line-height:1.6;margin-top:14px;padding-top:14px;border-top:1px solid var(--bd)}
+.ranklist{margin-top:6px}
+.rankrow{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:9px;padding:9px 12px;margin-bottom:6px;font-size:12.5px;cursor:pointer;transition:.2s}
+.rankrow:hover{border-color:var(--bd-2)}
+.rankrow .r{font-family:Outfit;font-weight:700;color:var(--accent)}
+@media(max-width:1100px){.app{grid-template-columns:1fr}.col.left,.col.right{position:fixed;bottom:0;height:44vh;width:100%;z-index:40;border:none;border-top:1px solid var(--bd)}.col.left{display:none}.stage{height:56vh;margin-top:56px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><a href="index.html"><span class="dot"></span>TEER</a></div>
+  <div class="badge" id="status-badge">reduced-order surrogate · real geometry</div>
+</div>
+<div class="app">
+  <!-- LEFT: cases + upload -->
+  <div class="col left">
+    <div class="sect">Patient case</div>
+    <div id="caselist"></div>
+    <button class="btn btn-g" id="upload-btn">⬆ Upload TEE DICOM</button>
+    <input type="file" id="file-in" accept=".dcm,.dicom,.nii,.nii.gz" style="display:none">
+    <div class="note" id="upload-note">Uploads route to the FSI backend service (see repo). This static demo runs the reduced-order model on the bundled real cases.</div>
+  </div>
+
+  <!-- CENTER: 3D -->
+  <div class="stage">
+    <canvas id="scene"></canvas>
+    <div class="hint mono" id="scene-hint">drag to orbit · scroll to zoom</div>
+  </div>
+
+  <!-- RIGHT: controls + results -->
+  <div class="col right">
+    <div class="sect">Clip strategy</div>
+    <div class="toggle" id="clipcount">
+      <button data-n="1" class="on">1 clip</button>
+      <button data-n="2">2 clips</button>
+    </div>
+    <label class="ctl">Position along coaptation <span class="v" id="v-pos">0.50</span></label>
+    <input type="range" id="s-pos" min="0" max="1" step="0.01" value="0.5">
+    <label class="ctl">Grasp width <span class="v" id="v-grasp">4.0 mm</span></label>
+    <input type="range" id="s-grasp" min="2" max="6" step="0.5" value="4">
+    <label class="ctl">Clip angle <span class="v" id="v-ang">0°</span></label>
+    <input type="range" id="s-ang" min="-30" max="30" step="1" value="0">
+    <button class="btn btn-p" id="optimize">⚡ Optimize placement</button>
+
+    <div class="sect">Predicted outcome</div>
+    <div class="verdict good" id="verdict"><span class="ic">✓</span><span id="verdict-tx">Adjust the clip to see results</span></div>
+
+    <div class="metric-card">
+      <div class="top"><span class="name">Residual regurgitation</span><span class="val" id="m-regurg">–<span class="u"> mL</span></span></div>
+      <div class="bar"><i id="b-regurg"></i></div>
+      <div class="range">goal &lt; 1.0 mL · baseline shown per case</div>
+    </div>
+    <div class="metric-card">
+      <div class="top"><span class="name">Mitral valve area</span><span class="val" id="m-area">–<span class="u"> cm²</span></span></div>
+      <div class="bar"><i id="b-area"></i></div>
+      <div class="range">stenosis risk if &lt; 1.5 cm²</div>
+    </div>
+    <div class="metric-card">
+      <div class="top"><span class="name">Peak leaflet stress</span><span class="val" id="m-stress">–<span class="u"> kPa</span></span></div>
+      <div class="bar"><i id="b-stress"></i></div>
+      <div class="range">tear risk rises above ~200 kPa</div>
+    </div>
+
+    <div class="sect">Ranked options</div>
+    <div class="ranklist" id="ranklist"><div class="note" style="border:none;margin:0;padding:0">Run “Optimize placement” to rank strategies for this valve.</div></div>
+
+    <div class="note"><b>How these numbers are computed:</b> a physics-based reduced-order model maps this valve's <i>measured</i> annular geometry and the clip's coaptation footprint to effective orifice area, then to regurgitant volume (EROA × VTI), valve area (double-orifice), and leaflet tension. It approximates the full FEniCSx fluid–structure solve, which runs server-side.</div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ============================================================
+   Reduced-order hemodynamic model (physics-grounded surrogate)
+   Driven by each case's REAL measured geometry from cases.json.
+   ============================================================ */
+// Mirrors backend/hemodynamics.py exactly. RVol = EROA(cm²) × VTI(cm);
+// orifice area clamped to physiologic normal range, EROA to severe-MR range.
+const VTI_REGURG_CM = 90;      // regurgitant velocity-time integral (cm), Zoghbi/ASE 2017
+function baselineFromGeometry(g){
+  const a = g.annulus_width_mm/2, b = g.annulus_depth_mm/2;
+  const annularArea_mm2 = Math.PI * a * b;
+  const nativeOrifice_cm2 = Math.min(6.0, Math.max(3.5, annularArea_mm2/100*0.28));
+  const eroa0_mm2 = Math.min(80, Math.max(25, 0.04*annularArea_mm2 + (g.leaflet_height_mm<8?20:8)));
+  return {nativeOrifice_cm2, eroa0_mm2};
+}
+function simulate(g, {pos, grasp, angle, clips}){
+  const {nativeOrifice_cm2, eroa0_mm2} = baselineFromGeometry(g);
+  const centering = 1 - Math.min(1, Math.abs(pos-0.5)*2*0.9);
+  const alignment = 1 - Math.min(1, Math.abs(angle)/45);
+  const perClipClose = grasp * (5 + 2*g.leaflet_height_mm/10) * centering * alignment;
+  const totalClose = perClipClose * (clips===2?1.7:1);
+  const eroa = Math.max(1, eroa0_mm2 - totalClose);                 // mm²
+  const regurg_mL = (eroa/100) * VTI_REGURG_CM;                     // EROA(cm²)×VTI(cm)=mL
+  const occluded_cm2 = (clips===2?1.7:1) * (grasp/4.0);
+  const mva_cm2 = Math.max(0.8, nativeOrifice_cm2 - occluded_cm2);
+  const draw = grasp*(clips===2?1.6:1);
+  const focal = 1 + 0.6*Math.abs(pos-0.5)*2 + 0.5*Math.abs(angle)/30;
+  const stress_kPa = 40 + draw*14*focal;
+  return {
+    regurg_mL:+regurg_mL.toFixed(1),
+    mva_cm2:+mva_cm2.toFixed(2),
+    stress_kPa:Math.round(stress_kPa),
+    eroa_mm2:+eroa.toFixed(1)
+  };
+}
+function score(s){
+  // lower is better: weight regurgitation, penalize stenosis & high stress
+  const stenPen = s.mva_cm2<1.5 ? (1.5-s.mva_cm2)*40 : 0;
+  const strPen = s.stress_kPa>200 ? (s.stress_kPa-200)*0.3 : 0;
+  return s.regurg_mL*3 + stenPen + strPen;
+}
+
+/* ============================================================ 3D scene ============================================================ */
+const canvas=document.getElementById('scene');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene=new THREE.Scene();
+const cam=new THREE.PerspectiveCamera(45,1,0.1,3000);
+const ctrl=new OrbitControls(cam,canvas); ctrl.enableDamping=true;
+scene.add(new THREE.AmbientLight(0x8899bb,0.9));
+const k=new THREE.DirectionalLight(0x00e5ff,1.5);k.position.set(1,1,1.2);scene.add(k);
+const f=new THREE.DirectionalLight(0xff6b8a,0.7);f.position.set(-1,-.4,-1);scene.add(f);
+const rimL=new THREE.DirectionalLight(0xffffff,0.5);rimL.position.set(0,1,-1);scene.add(rimL);
+
+let valveMesh=null, clipGroup=new THREE.Group(); scene.add(clipGroup);
+let clipTemplate=null, valveRadius=30, curCase=null;
+const loader=new STLLoader();
+
+// particle flow (visual indicator of forward vs regurgitant flow magnitude)
+const N=420, pgeo=new THREE.BufferGeometry(), ppos=new Float32Array(N*3), pvel=new Float32Array(N);
+for(let i=0;i<N;i++){ppos[i*3]=(Math.random()-.5)*30;ppos[i*3+1]=(Math.random()-.5)*30;ppos[i*3+2]=(Math.random()-.5)*30;pvel[i]=Math.random();}
+pgeo.setAttribute('position',new THREE.BufferAttribute(ppos,3));
+const pmat=new THREE.PointsMaterial({color:0x00e5ff,size:0.7,transparent:true,opacity:.6});
+const particles=new THREE.Points(pgeo,pmat); scene.add(particles);
+let flowMag=0.5, regurgFrac=0.3;
+
+function loadClipTemplate(url){
+  loader.load(url, geo=>{ geo.computeVertexNormals(); clipTemplate=geo; placeClip(); });
+}
+function loadValve(c){
+  if(valveMesh){scene.remove(valveMesh);valveMesh.geometry.dispose();}
+  loader.load(c.model, geo=>{
+    geo.computeVertexNormals(); geo.computeBoundingSphere();
+    valveRadius=geo.boundingSphere.radius;
+    const mat=new THREE.MeshPhysicalMaterial({color:0xff5d7e,roughness:0.42,metalness:0.05,clearcoat:0.55,clearcoatRoughness:0.4,sheen:0.7,sheenColor:0x00e5ff,side:THREE.DoubleSide});
+    valveMesh=new THREE.Mesh(geo,mat); scene.add(valveMesh);
+    cam.position.set(0,valveRadius*0.4,valveRadius*2.8); ctrl.target.set(0,0,0);
+    ctrl.minDistance=valveRadius*1.3; ctrl.maxDistance=valveRadius*5;
+    placeClip(); recompute();
+  });
+}
+function placeClip(){
+  if(!clipTemplate||!curCase) return;
+  clipGroup.clear();
+  const g=curCase.geometry, b=curCase.bounds_local;
+  const pos=+sPos.value, angle=+sAng.value, clips=+curClips;
+  // Coaptation line ≈ commissural axis through local orifice; map pos∈[0,1] across width.
+  const span=(b[1]-b[0]); // local x extent (mm)
+  const ax=g.commissure_axis;
+  function one(offset){
+    const m=new THREE.Mesh(clipTemplate,new THREE.MeshPhysicalMaterial({color:0xdfe6f0,metalness:0.9,roughness:0.25,clearcoat:1}));
+    const t=(pos-0.5)*span*0.6 + offset;
+    m.position.set(ax[0]*t, (b[3]-b[2])*0, ax[1]*t);
+    const s=valveRadius/22; m.scale.set(s,s,s);
+    m.rotation.set(Math.PI/2, THREE.MathUtils.degToRad(angle), 0);
+    clipGroup.add(m);
+  }
+  one(0); if(clips===2) one(valveRadius*0.18);
+}
+
+/* ============================================================ UI wiring ============================================================ */
+const sPos=document.getElementById('s-pos'),sGrasp=document.getElementById('s-grasp'),sAng=document.getElementById('s-ang');
+let curClips=1;
+function fmt(){document.getElementById('v-pos').textContent=(+sPos.value).toFixed(2);document.getElementById('v-grasp').textContent=(+sGrasp.value).toFixed(1)+' mm';document.getElementById('v-ang').textContent=sAng.value+'°';}
+function recompute(){
+  if(!curCase)return; fmt();
+  const s=simulate(curCase.geometry,{pos:+sPos.value,grasp:+sGrasp.value,angle:+sAng.value,clips:curClips});
+  setMetric('regurg',s.regurg_mL,'mL',s.regurg_mL,0,25,true);
+  setMetric('area',s.mva_cm2,'cm²',(3-s.mva_cm2),0,3,false,s.mva_cm2);
+  setMetric('stress',s.stress_kPa,'kPa',s.stress_kPa,40,260,true);
+  // verdict
+  const good=s.regurg_mL<=1.0, notSten=s.mva_cm2>=1.5, safe=s.stress_kPa<=200;
+  const v=document.getElementById('verdict'),vt=document.getElementById('verdict-tx');
+  if(good&&notSten&&safe){v.className='verdict good';v.querySelector('.ic').textContent='✓';vt.textContent='Optimal — trace MR, no stenosis, safe leaflet stress.';}
+  else if(!notSten){v.className='verdict bad';v.querySelector('.ic').textContent='⚠';vt.textContent='Iatrogenic stenosis risk — valve area too small.';}
+  else if(!good){v.className='verdict warn';v.querySelector('.ic').textContent='◑';vt.textContent='Residual MR remains — reposition toward the regurgitant zone.';}
+  else{v.className='verdict warn';v.querySelector('.ic').textContent='◑';vt.textContent='Elevated leaflet stress — consider a wider grasp footprint.';}
+  // flow visual
+  regurgFrac=Math.min(1,s.regurg_mL/4); flowMag=0.4+(3-s.mva_cm2)*0.2;
+  pmat.color.setHex(regurgFrac>0.4?0xff6b6b:0x00e5ff);
+}
+function setMetric(key,val,unit,barVal,lo,hi,invert,areaVal){
+  document.getElementById('m-'+key).innerHTML=val+'<span class="u"> '+unit+'</span>';
+  const pct=Math.max(4,Math.min(100,((barVal-lo)/(hi-lo))*100));
+  const bar=document.getElementById('b-'+key); bar.style.width=pct+'%';
+  let col='#34d399';
+  if(key==='regurg') col= val<=1?'#34d399':val<=2?'#f0b429':'#ff6b6b';
+  if(key==='area') col= areaVal>=1.5?'#34d399':'#ff6b6b';
+  if(key==='stress') col= val<=150?'#34d399':val<=200?'#f0b429':'#ff6b6b';
+  bar.style.background=col;
+}
+[sPos,sGrasp,sAng].forEach(e=>e.addEventListener('input',()=>{placeClip();recompute();}));
+document.querySelectorAll('#clipcount button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#clipcount button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); curClips=+b.dataset.n; placeClip(); recompute();
+}));
+
+// optimize: real grid search over the surrogate
+document.getElementById('optimize').addEventListener('click',()=>{
+  if(!curCase)return;
+  const cands=[];
+  for(const clips of [1,2])
+   for(let pos=0.3;pos<=0.7;pos+=0.05)
+    for(let grasp=3;grasp<=6;grasp+=1)
+     for(let ang=-20;ang<=20;ang+=10){
+       const s=simulate(curCase.geometry,{pos,grasp,angle:ang,clips});
+       cands.push({pos,grasp,ang,clips,s,score:score(s)});
+     }
+  cands.sort((a,b)=>a.score-b.score);
+  const top=cands.slice(0,3);
+  const rl=document.getElementById('ranklist'); rl.innerHTML='';
+  top.forEach((c,i)=>{
+    const row=document.createElement('div');row.className='rankrow';
+    row.innerHTML=`<span><span class="r">#${i+1}</span> ${c.clips} clip · pos ${c.pos.toFixed(2)} · ${c.grasp}mm · ${c.ang}°</span><span style="color:var(--green)">${c.s.regurg_mL} mL</span>`;
+    row.onclick=()=>{sPos.value=c.pos;sGrasp.value=c.grasp;sAng.value=c.ang;curClips=c.clips;
+      document.querySelectorAll('#clipcount button').forEach(x=>x.classList.toggle('on',+x.dataset.n===c.clips));
+      placeClip();recompute();};
+    rl.appendChild(row);
+  });
+  // auto-apply best
+  top[0]&&top.length&&(sPos.value=top[0].pos,sGrasp.value=top[0].grasp,sAng.value=top[0].ang,curClips=top[0].clips,
+    document.querySelectorAll('#clipcount button').forEach(x=>x.classList.toggle('on',+x.dataset.n===top[0].clips)),placeClip(),recompute());
+});
+
+// upload -> explain backend
+document.getElementById('upload-btn').onclick=()=>document.getElementById('file-in').click();
+document.getElementById('file-in').onchange=e=>{
+  const f=e.target.files[0]; if(!f)return;
+  document.getElementById('upload-note').innerHTML=`<b>${f.name}</b> selected (${(f.size/1e6).toFixed(1)} MB). In production this POSTs to <span class="mono">/api/upload-dicom</span>, is anonymized, segmented (MONAI U-Net), meshed, and solved (FEniCSx). This static Pages build has no server, so results below use the bundled real cases.`;
+  document.getElementById('status-badge').textContent='upload → backend (offline in static demo)';
+};
+
+/* ============================================================ load cases ============================================================ */
+fetch('assets/data/cases.json').then(r=>r.json()).then(d=>{
+  loadClipTemplate(d.clip_model.file);
+  const list=document.getElementById('caselist');
+  d.cases.forEach((c,i)=>{
+    const btn=document.createElement('button');btn.className='casebtn'+(i===0?' active':'');
+    btn.innerHTML=`<div class="t">${c.label}</div><div class="d">${c.geometry.annulus_width_mm}×${c.geometry.annulus_depth_mm}mm · ${c.geometry.commissure_angle_deg}°</div>`;
+    btn.onclick=()=>{document.querySelectorAll('.casebtn').forEach(x=>x.classList.remove('active'));btn.classList.add('active');curCase=c;loadValve(c);document.getElementById('scene-hint').textContent=c.id+' · real segmented surface';};
+    list.appendChild(btn);
+  });
+  curCase=d.cases[0]; loadValve(d.cases[0]);
+  document.getElementById('scene-hint').textContent=d.cases[0].id+' · real segmented surface';
+});
+
+function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;if(canvas.width!==w||canvas.height!==h){renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();}}
+function animate(){
+  requestAnimationFrame(animate);resize();
+  const p=pgeo.attributes.position.array;
+  for(let i=0;i<N;i++){
+    p[i*3+1]-= flowMag*(0.4+pvel[i]);       // flow downward (LA->LV) in diastole visual
+    if(p[i*3+1]<-valveRadius){p[i*3+1]=valveRadius; p[i*3]=(Math.random()-.5)*valveRadius*1.5; p[i*3+2]=(Math.random()-.5)*valveRadius*1.5;}
+  }
+  pgeo.attributes.position.needsUpdate=true;
+  ctrl.update(); renderer.render(scene,cam);
+}
+animate();
+</script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+{
+  "source": "MVSeg2023 3D TEE segmentations (real patient-derived surfaces)",
+  "note": "Geometry values are measured from the segmented meshes, not synthesized.",
+  "clip_model": {
+    "file": "assets/models/mitraclip_nt.stl",
+    "size_kb": 57.9
+  },
+  "cases": [
+    {
+      "id": "train_001",
+      "label": "Case 001",
+      "model": "assets/models/train_001.stl",
+      "faces_web": 24000,
+      "faces_original": 192042,
+      "size_kb": 1172.0,
+      "geometry": {
+        "annulus_width_mm": 50.2,
+        "annulus_depth_mm": 58.7,
+        "leaflet_height_mm": 36.1,
+        "annulus_span_mm": 77.2,
+        "commissure_angle_deg": 75.1,
+        "orifice_center_xy": [
+          45.72,
+          50.61
+        ],
+        "commissure_axis": [
+          0.257,
+          0.9664
+        ],
+        "opening_axis": [
+          -0.9664,
+          0.257
+        ]
+      },
+      "bounds_local": [
+        -25.088302612304688,
+        25.088302612304688,
+        -29.344398498535156,
+        29.344398498535156,
+        -18.04974937438965,
+        18.04974937438965
+      ],
+      "centroid_world": [
+        44.490623474121094,
+        49.70628261566162,
+        18.051565199450124
+      ]
+    },
+    {
+      "id": "train_005",
+      "label": "Case 005",
+      "model": "assets/models/train_005.stl",
+      "faces_web": 24000,
+      "faces_original": 154058,
+      "size_kb": 1172.0,
+      "geometry": {
+        "annulus_width_mm": 36.2,
+        "annulus_depth_mm": 45.1,
+        "leaflet_height_mm": 33.0,
+        "annulus_span_mm": 57.8,
+        "commissure_angle_deg": 88.9,
+        "orifice_center_xy": [
+          40.43,
+          37.07
+        ],
+        "commissure_axis": [
+          0.0186,
+          0.9998
+        ],
+        "opening_axis": [
+          -0.9998,
+          0.0186
+        ]
+      },
+      "bounds_local": [
+        -18.107681274414062,
+        18.107681274414062,
+        -22.534088134765625,
+        22.534088134765625,
+        -16.504287719726562,
+        16.504287719726562
+      ],
+      "centroid_world": [
+        42.518553733825684,
+        34.1831636428833,
+        16.505394229956437
+      ]
+    },
+    {
+      "id": "train_015",
+      "label": "Case 015",
+      "model": "assets/models/train_015.stl",
+      "faces_web": 23998,
+      "faces_original": 166998,
+      "size_kb": 1171.9,
+      "geometry": {
+        "annulus_width_mm": 45.4,
+        "annulus_depth_mm": 49.3,
+        "leaflet_height_mm": 23.0,
+        "annulus_span_mm": 67.0,
+        "commissure_angle_deg": 113.7,
+        "orifice_center_xy": [
+          40.64,
+          27.48
+        ],
+        "commissure_axis": [
+          -0.4012,
+          0.916
+        ],
+        "opening_axis": [
+          0.916,
+          0.4012
+        ]
+      },
+      "bounds_local": [
+        -22.69361114501953,
+        22.69361114501953,
+        -24.670063018798828,
+        24.670063018798828,
+        -11.471540451049805,
+        11.471540451049805
+      ],
+      "centroid_world": [
+        43.92021083831787,
+        29.438191413879395,
+        11.471729467302794
+      ]
+    },
+    {
+      "id": "train_032",
+      "label": "Case 032",
+      "model": "assets/models/train_032.stl",
+      "faces_web": 24000,
+      "faces_original": 173926,
+      "size_kb": 1172.0,
+      "geometry": {
+        "annulus_width_mm": 48.0,
+        "annulus_depth_mm": 54.4,
+        "leaflet_height_mm": 29.4,
+        "annulus_span_mm": 72.5,
+        "commissure_angle_deg": 103.0,
+        "orifice_center_xy": [
+          52.31,
+          33.91
+        ],
+        "commissure_axis": [
+          -0.2245,
+          0.9745
+        ],
+        "opening_axis": [
+          0.9745,
+          0.2245
+        ]
+      },
+      "bounds_local": [
+        -23.981475830078125,
+        23.981475830078125,
+        -27.201431274414062,
+        27.201431274414062,
+        -14.704412460327148,
+        14.704412460327148
+      ],
+      "centroid_world": [
+        51.3820104598999,
+        37.27218675613403,
+        14.704681000934215
+      ]
+    },
+    {
+      "id": "train_055",
+      "label": "Case 055",
+      "model": "assets/models/train_055.stl",
+      "faces_web": 24000,
+      "faces_original": 173308,
+      "size_kb": 1172.0,
+      "geometry": {
+        "annulus_width_mm": 49.7,
+        "annulus_depth_mm": 57.9,
+        "leaflet_height_mm": 27.7,
+        "annulus_span_mm": 76.3,
+        "commissure_angle_deg": 84.8,
+        "orifice_center_xy": [
+          40.95,
+          48.44
+        ],
+        "commissure_axis": [
+          0.0899,
+          0.996
+        ],
+        "opening_axis": [
+          -0.996,
+          0.0899
+        ]
+      },
+      "bounds_local": [
+        -24.85210418701172,
+        24.85210418701172,
+        -28.94824981689453,
+        28.94824981689453,
+        -13.847268104553223,
+        13.847268104553223
+      ],
+      "centroid_world": [
+        45.71168518066406,
+        44.967535972595215,
+        13.84745344001567
+      ]
+    },
+    {
+      "id": "train_087",
+      "label": "Case 087",
+      "model": "assets/models/train_087.stl",
+      "faces_web": 24000,
+      "faces_original": 208040,
+      "size_kb": 1172.0,
+      "geometry": {
+        "annulus_width_mm": 57.4,
+        "annulus_depth_mm": 69.0,
+        "leaflet_height_mm": 33.4,
+        "annulus_span_mm": 89.7,
+        "commissure_angle_deg": 79.1,
+        "orifice_center_xy": [
+          53.97,
+          55.0
+        ],
+        "commissure_axis": [
+          0.1898,
+          0.9818
+        ],
+        "opening_axis": [
+          -0.9818,
+          0.1898
+        ]
+      },
+      "bounds_local": [
+        -28.676334381103516,
+        28.676334381103516,
+        -34.50086975097656,
+        34.50086975097656,
+        -16.700231552124023,
+        16.700231552124023
+      ],
+      "centroid_world": [
+        57.05354595184326,
+        52.92500305175781,
+        16.700666360804462
+      ]
+    }
+  ]
+}

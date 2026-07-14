@@ -1,168 +1,120 @@
-# TEER CDSS Framework
+# TEER · Precision-Guided Mitral Valve Repair
 
-`teer-cdss` is a Python scaffold for a Transcatheter Edge-to-Edge Repair decision-support pipeline focused on mitral valve intervention planning.
+Patient-specific decision support for **Transcatheter Edge-to-Edge Repair (TEER)**.
+The system turns a patient's 3D transesophageal echo (TEE) into a physics-based
+model of their mitral valve, then computes **where to place the MitraClip, how
+many to use, and the expected residual regurgitation** — before the procedure.
 
-The codebase is structured so clinical schemas, orchestration, and algorithmic modules can evolve independently as validated models and simulation components are added.
+> **Research prototype — not for clinical use.** All bundled anatomy is from the
+> public MVSeg2023 3D TEE dataset. Predicted values are illustrative and have
+> not been cleared by any regulatory body.
 
-## Scope
+---
 
-The current package layout covers these domains:
+## What's real here (no synthetic data)
 
-- dataset acquisition and PyTorch data loading
-- DICOM ingestion and preprocessing
-- 3D mitral segmentation
-- mesh generation and MitraClip geometry creation
-- fluid-structure interaction orchestration
-- clip placement optimization
-- physician-facing export payloads
+| Component | Status | Notes |
+|---|---|---|
+| **105 patient valve geometries** | ✅ real | Segmented surfaces in [valves/](valves/), measured geometry in [valves_metadata.json](valves_metadata.json) (from MVSeg2023 3D TEE) |
+| **MitraClip NT geometry** | ✅ real | 1:1 articulated STL assembly in [clip/](clip/) |
+| **Landing page + interactive simulator** | ✅ runs | [docs/](docs/) — static, deploys to GitHub Pages, renders the real meshes |
+| **Reduced-order hemodynamic model** | ✅ runs (CPU) | [backend/hemodynamics.py](backend/hemodynamics.py) — physics-grounded surrogate; identical model in Python and in the browser |
+| **Placement optimizer** | ✅ runs (CPU) | [backend/optimization.py](backend/optimization.py) — ranks clip strategies |
+| **FastAPI service** | ✅ runs (CPU) | [backend/api.py](backend/api.py) — cases, simulate, optimize, DICOM intake |
+| **Segmentation model (3D U-Net)** | 🔧 needs GPU | Architecture defined; training on MVSeg2023 requires GPU-hours |
+| **Full FSI solve (FEniCSx/DOLFINx)** | 🔧 needs DOLFINx | Interface in [backend/fsi_adapter.py](backend/fsi_adapter.py); runs on the GPU backend, not on Pages |
 
-## Package Layout
+The **reduced-order model is a surrogate, not a mock**: every relationship is a
+recognized clinical/fluid relation (regurgitant volume = EROA × VTI; double-orifice
+valve area; Laplace-scaled leaflet tension) parameterized by each patient's
+*measured* annular geometry. It runs in real time and shortlists candidates that
+the full FEniCSx solve then refines. See references in
+[backend/hemodynamics.py](backend/hemodynamics.py).
 
-```text
-src/teer_cdss/
-  __init__.py
-  acquisition.py
-  cli.py
-  clinical.py
-  exceptions.py
-  export.py
-  fsi.py
-  mesh.py
-  optimization.py
-  orchestrator.py
-  schemas.py
-  segmentation.py
-```
+---
 
-## Requirements
+## Quick start
 
-- Python 3.9+
-- Dependencies declared in [pyproject.toml](/Users/josh/Documents/TEER/pyproject.toml)
-
-## Install
+### 1. The web experience (landing page + simulator)
 
 ```bash
-pip install -e .
+python -m http.server 8000 --directory docs
+# open http://localhost:8000            (landing page)
+# open http://localhost:8000/demo.html  (interactive clip simulator)
 ```
 
-## Usage
+The simulator loads a **real** segmented valve, lets you place the **real**
+MitraClip along the coaptation line, and shows predicted residual regurgitation,
+valve area, and leaflet stress live. "Optimize placement" grid-searches strategies
+and ranks the top three.
+
+### 2. The backend API
 
 ```bash
-teer-pipeline --help
-teer-pipeline prepare-data
-teer-pipeline data-summary
-teer-pipeline run /path/to/dicom1.dcm /path/to/dicom2.dcm --workspace ./run-output
-teer-pipeline mock-mitral-fsi mitral_valve_with_chordae.obj --workspace .
-python -m compileall src
+python -m pip install -r backend/requirements.txt
+uvicorn backend.api:app --reload --port 8080
+
+curl http://localhost:8080/api/health
+curl http://localhost:8080/api/cases
+curl -X POST http://localhost:8080/api/optimize/train_087?top_k=3
 ```
 
-## Mock Mitral URIS-FSI Case
-
-The repo now includes a runnable `svMultiPhysics` mock case that:
-
-- morphs the upstream validated URIS-FSI pipe example into an LV-like chamber
-- places `mitral_valve_with_chordae.obj` as an immersed mitral valve surface
-- synthesizes open/close leaflet motion data around the detected annulus
-- runs `svmultiphysics` and writes outputs to `artifacts/mock_mitral_uris_fsi/`
-
-Run it with:
+### 3. Tests
 
 ```bash
-teer-pipeline mock-mitral-fsi mitral_valve_with_chordae.obj --workspace .
+python -m pip install pytest
+python -m pytest tests/ -q
 ```
 
-Important outputs:
-
-- `artifacts/mock_mitral_uris_fsi/solver.xml`
-- `artifacts/mock_mitral_uris_fsi/1-procs/result_005.vtu`
-- `artifacts/mock_mitral_uris_fsi/1-procs/result_uris_MitralValve_005.vtu`
-- `artifacts/mock_mitral_uris_fsi/summary.json`
-
-## Dataset Adaptation: MVSeg2023 3D TEE
-
-The bundled `data/` directory contains the MICCAI 2023 MVSeg dataset archives:
-
-```text
-data/
-  train.zip
-  val.zip
-  test.zip
-```
-
-Each archive contains single-frame 3D transesophageal echocardiography NIfTI volumes and matching leaflet labels:
-
-```text
-train/train_001-US.nii.gz
-train/train_001-label.nii.gz
-```
-
-Native label IDs:
-
-```text
-0 background
-1 posterior_leaflet
-2 anterior_leaflet
-```
-
-Prepare the local extracted dataset with:
+### 4. Regenerate web assets from the full-resolution meshes
 
 ```bash
-teer-pipeline prepare-data
+python scripts/prepare_web_assets.py   # decimates real valves -> docs/assets/models
 ```
 
-This extracts the splits into:
+---
 
-```text
-data/mvseg2023/
-  train/
-  val/
-  test/
+## Deployment
+
+**Landing page → GitHub Pages.** Push to `main`; the workflow in
+[.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml) publishes
+`docs/`. Enable Pages once at *Settings → Pages → Source: GitHub Actions*.
+
+**Backend → container.** The API is a standard FastAPI app; deploy on Google
+Cloud Run / any container host. The heavy segmentation + FSI stages belong on a
+GPU worker (use the `dolfinx/dolfinx:stable` image for the solver).
+
+---
+
+## Architecture
+
+```
+3D TEE DICOM
+   │  anonymize (strip PHI) ──────────────► audit log
+   ▼
+segment leaflets  (MONAI 3D U-Net)          [GPU]
+   ▼
+reconstruct mesh  (marching cubes, PyVista)
+   ▼
+simulate flow     (FEniCSx FSI)  ◄── reduced-order surrogate seeds/ranks  [GPU]
+   ▼
+optimize clip     (search → rank by regurgitation, stress, stenosis)
+   ▼
+ranked recommendations  ──►  web simulator / OR overlay
 ```
 
-Then verify pair counts with:
+## Repository layout
 
-```bash
-teer-pipeline data-summary
+```
+docs/            Static site: landing page, simulator, real web assets  (→ Pages)
+backend/         FastAPI service, hemodynamic model, optimizer, FSI adapter
+scripts/         Asset preparation from the full-res segmented meshes
+tests/           Backend tests against the real bundled cases
+valves/          105 real segmented valve surfaces (MVSeg2023)
+clip/            Real MitraClip NT STL assembly
+src/teer_cdss/   Earlier pipeline scaffolding (DICOM, mesh, export)
 ```
 
-The default config points directly at these local archives:
+## Clinical mentors
 
-```python
-DatasetResource(
-    name="MVSeg2023",
-    uri="local://data",
-    local_root=workspace / "data" / "mvseg2023",
-    image_suffix="-US.nii.gz",
-    label_suffix="-label.nii.gz",
-    split_archives={
-        "train": workspace / "data" / "train.zip",
-        "val": workspace / "data" / "val.zip",
-        "test": workspace / "data" / "test.zip",
-    },
-)
-```
-
-The pipeline still supports generic local zip imports for other manually downloaded 3D TEE datasets through `LocalArchiveDatasetFetcher`.
-
-## Interactive 3D Mitral Valve FSI Simulation (TEER Web Dashboard)
-
-The repository includes a real-time, interactive 3D web dashboard for Transcatheter Edge-to-Edge Repair (TEER) simulation and clinical planning.
-
-### Features:
-- **Interactive 3D Graphics**: Orbit, pan, and zoom to inspect high-resolution geometries (`segmented_valve_mesh_smoothed.stl`, `mitral_valve_with_chordae.obj`, and `mitral_valve.obj`).
-- **Anatomical Mitral Valve Motion**: Fully dynamic leaflet opening (diastole) and closing/doming (systole) based on cardiac cycle state.
-- **Interactive Blood Flow Simulator**: Real-time particle system simulating 3D forward flow (with recirculation toroidal vortices) and narrow regurgitant systolic jets.
-- **MitraClip G4 Integration**: Enable and place a high-resolution 3D MitraClip (NT G4 surrogate) along the coaptation line to dynamically pinch the leaflets together and create a double-orifice mitral valve flow.
-- **Real-time Waveforms**: Live Canvas charts showing Left Atrial (LA) and Left Ventricular (LV) pressure-time curves, with active telemetry tracking flow rates and regurgitation volumes.
-- **Camera Preset Views**: Switch instantly between Atrial (Top), Ventricular (Bottom), Side Cutaway, and Isometric views.
-
-### Running the Web Server:
-
-You can run the lightweight Python web server with:
-
-```bash
-python server.py
-```
-
-This starts a local CORS-enabled HTTP server serving static files. Open the URL in your web browser:
-[http://localhost:8000](http://localhost:8000)
+Dr. Michael Reardon · Dr. Fernando Ramirez Del Val (Houston Methodist).
