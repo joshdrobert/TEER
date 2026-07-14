@@ -12,8 +12,7 @@
 body{font-family:Inter,sans-serif;background:var(--bg);color:var(--tx);height:100vh;overflow:hidden}
 .mono{font-family:'JetBrains Mono',monospace}
 h1,h2,h3{font-family:Outfit;letter-spacing:-.02em}
-.app{display:grid;grid-template-columns:300px 1fr 340px;height:100vh}
-/* top bar */
+.app{display:grid;grid-template-columns:300px 1fr 360px;height:100vh}
 .topbar{position:fixed;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:rgba(6,10,19,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);z-index:50}
 .brand{font-family:Outfit;font-weight:800;font-size:18px;display:flex;gap:9px;align-items:center}
 .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--grad);box-shadow:0 0 14px var(--accent)}
@@ -22,9 +21,18 @@ h1,h2,h3{font-family:Outfit;letter-spacing:-.02em}
 .col{padding:74px 20px 20px;overflow-y:auto;height:100vh}
 .col.left{border-right:1px solid var(--bd);background:var(--panel)}
 .col.right{border-left:1px solid var(--bd);background:var(--panel)}
-.stage{position:relative;background:radial-gradient(circle at 50% 40%,rgba(0,229,255,.06),transparent 60%)}
+.stage{position:relative;background:radial-gradient(circle at 50% 42%,rgba(0,229,255,.07),transparent 62%)}
 #scene{width:100%;height:100%;display:block}
-.stage .hint{position:absolute;top:70px;left:18px;font-size:11px;color:var(--tx-3);font-family:'JetBrains Mono';background:rgba(6,10,19,.6);padding:6px 11px;border-radius:8px}
+.stage .hint{position:absolute;top:68px;left:18px;font-size:11px;color:var(--tx-3);font-family:'JetBrains Mono';background:rgba(6,10,19,.6);padding:6px 11px;border-radius:8px}
+.presets{position:absolute;top:64px;right:18px;display:flex;gap:6px}
+.presets button{font-size:11px;font-family:'JetBrains Mono';color:var(--tx-2);background:rgba(6,10,19,.6);border:1px solid var(--bd);padding:6px 10px;border-radius:8px;cursor:pointer;transition:.2s}
+.presets button:hover,.presets button.on{border-color:var(--accent);color:var(--tx)}
+.phasepill{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;background:rgba(6,10,19,.72);border:1px solid var(--bd);border-radius:22px;padding:9px 18px;backdrop-filter:blur(8px)}
+.phasepill .lbl{font-family:Outfit;font-weight:700;font-size:15px}
+.phasepill .sub{font-size:11px;color:var(--tx-3);font-family:'JetBrains Mono'}
+.phasepill .pp{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+.playbtn{background:none;border:none;color:var(--tx-2);cursor:pointer;font-size:15px;padding:4px}
+.playbtn:hover{color:var(--tx)}
 .sect{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--accent);font-family:'JetBrains Mono';margin:22px 0 12px;display:flex;align-items:center;gap:9px}
 .sect:first-child{margin-top:0}
 .sect::before{content:'';width:16px;height:1px;background:var(--accent)}
@@ -44,16 +52,20 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(0,229,255,.35)}
 .btn-g{background:transparent;border:1px solid var(--bd-2);color:var(--tx)}
 .btn-g:hover{background:rgba(0,229,255,.08)}
-/* metrics */
-.metric-card{background:var(--card);border:1px solid var(--bd);border-radius:13px;padding:16px 16px;margin-bottom:11px}
+.telem{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.telem .t{background:var(--card);border:1px solid var(--bd);border-radius:11px;padding:11px 13px}
+.telem .t .n{font-family:Outfit;font-size:20px;font-weight:700}
+.telem .t .l{font-size:10.5px;color:var(--tx-3);margin-top:2px}
+#wave{width:100%;height:90px;display:block;background:rgba(0,0,0,.25);border:1px solid var(--bd);border-radius:11px;margin-top:4px}
+.metric-card{background:var(--card);border:1px solid var(--bd);border-radius:13px;padding:14px 16px;margin-bottom:10px}
 .metric-card .top{display:flex;justify-content:space-between;align-items:baseline}
 .metric-card .name{font-size:12.5px;color:var(--tx-2)}
-.metric-card .val{font-family:Outfit;font-size:27px;font-weight:700}
+.metric-card .val{font-family:Outfit;font-size:26px;font-weight:700}
 .metric-card .val .u{font-size:13px;color:var(--tx-3);font-weight:500}
-.metric-card .bar{height:5px;border-radius:3px;background:rgba(255,255,255,.08);margin-top:11px;overflow:hidden}
-.metric-card .bar i{display:block;height:100%;border-radius:3px;transition:width .5s,background .5s}
+.metric-card .bar{height:5px;border-radius:3px;background:rgba(255,255,255,.08);margin-top:10px;overflow:hidden}
+.metric-card .bar i{display:block;height:100%;border-radius:3px;transition:width .4s,background .4s}
 .metric-card .range{font-size:10.5px;color:var(--tx-3);margin-top:6px;font-family:'JetBrains Mono'}
-.verdict{border-radius:13px;padding:16px;margin-bottom:11px;border:1px solid;font-size:13.5px;display:flex;gap:11px;align-items:center}
+.verdict{border-radius:13px;padding:15px;margin-bottom:11px;border:1px solid;font-size:13.5px;display:flex;gap:11px;align-items:center}
 .verdict .ic{font-size:22px}
 .verdict.good{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.4);color:#8ef0c8}
 .verdict.warn{background:rgba(240,180,41,.1);border-color:rgba(240,180,41,.4);color:#f5d488}
@@ -63,34 +75,52 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .rankrow{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:9px;padding:9px 12px;margin-bottom:6px;font-size:12.5px;cursor:pointer;transition:.2s}
 .rankrow:hover{border-color:var(--bd-2)}
 .rankrow .r{font-family:Outfit;font-weight:700;color:var(--accent)}
-@media(max-width:1100px){.app{grid-template-columns:1fr}.col.left,.col.right{position:fixed;bottom:0;height:44vh;width:100%;z-index:40;border:none;border-top:1px solid var(--bd)}.col.left{display:none}.stage{height:56vh;margin-top:56px}}
+@media(max-width:1100px){.app{grid-template-columns:1fr}.col.left{display:none}.col.right{position:fixed;bottom:0;height:46vh;width:100%;z-index:40;border:none;border-top:1px solid var(--bd)}.stage{height:54vh;margin-top:56px}}
 </style>
 </head>
 <body>
 <div class="topbar">
   <div class="brand"><a href="index.html"><span class="dot"></span>TEER</a></div>
-  <div class="badge" id="status-badge">reduced-order surrogate · real geometry</div>
+  <div class="badge" id="status-badge">hosted demo · reduced-order surrogate on real geometry</div>
 </div>
 <div class="app">
-  <!-- LEFT: cases + upload -->
+  <!-- LEFT -->
   <div class="col left">
     <div class="sect">Patient case</div>
     <div id="caselist"></div>
     <button class="btn btn-g" id="upload-btn">⬆ Upload TEE DICOM</button>
     <input type="file" id="file-in" accept=".dcm,.dicom,.nii,.nii.gz" style="display:none">
-    <div class="note" id="upload-note">Uploads route to the FSI backend service (see repo). This static demo runs the reduced-order model on the bundled real cases.</div>
+    <div class="note" id="upload-note">This hosted demo runs a real-time reduced-order model on the bundled real valves. The full segmentation + FEniCSx fluid–structure pipeline runs server-side (see repo) — uploads route there.</div>
   </div>
 
-  <!-- CENTER: 3D -->
+  <!-- CENTER -->
   <div class="stage">
     <canvas id="scene"></canvas>
     <div class="hint mono" id="scene-hint">drag to orbit · scroll to zoom</div>
+    <div class="presets">
+      <button data-view="surgeon" class="on">Surgeon</button>
+      <button data-view="enface">En-face</button>
+      <button data-view="side">Side</button>
+    </div>
+    <div class="phasepill">
+      <button class="playbtn" id="play">⏸</button>
+      <span class="pp" id="phase-dot"></span>
+      <div><div class="lbl" id="phase-lbl">Diastole</div><div class="sub" id="phase-sub">mitral filling</div></div>
+    </div>
   </div>
 
-  <!-- RIGHT: controls + results -->
+  <!-- RIGHT -->
   <div class="col right">
+    <div class="sect">Live hemodynamics</div>
+    <canvas id="wave"></canvas>
+    <div class="telem" style="margin-top:10px">
+      <div class="t"><div class="n" id="tl-flow">–</div><div class="l">forward flow (mL/s)</div></div>
+      <div class="t"><div class="n" id="tl-rf">–</div><div class="l">regurgitant fraction</div></div>
+    </div>
+
     <div class="sect">Clip strategy</div>
     <div class="toggle" id="clipcount">
+      <button data-n="0" >No clip</button>
       <button data-n="1" class="on">1 clip</button>
       <button data-n="2">2 clips</button>
     </div>
@@ -104,11 +134,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 
     <div class="sect">Predicted outcome</div>
     <div class="verdict good" id="verdict"><span class="ic">✓</span><span id="verdict-tx">Adjust the clip to see results</span></div>
-
     <div class="metric-card">
       <div class="top"><span class="name">Residual regurgitation</span><span class="val" id="m-regurg">–<span class="u"> mL</span></span></div>
       <div class="bar"><i id="b-regurg"></i></div>
-      <div class="range">goal &lt; 1.0 mL · baseline shown per case</div>
+      <div class="range">goal &lt; 1.0 mL · severe MR ≈ 45–60 mL</div>
     </div>
     <div class="metric-card">
       <div class="top"><span class="name">Mitral valve area</span><span class="val" id="m-area">–<span class="u"> cm²</span></span></div>
@@ -124,7 +153,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="sect">Ranked options</div>
     <div class="ranklist" id="ranklist"><div class="note" style="border:none;margin:0;padding:0">Run “Optimize placement” to rank strategies for this valve.</div></div>
 
-    <div class="note"><b>How these numbers are computed:</b> a physics-based reduced-order model maps this valve's <i>measured</i> annular geometry and the clip's coaptation footprint to effective orifice area, then to regurgitant volume (EROA × VTI), valve area (double-orifice), and leaflet tension. It approximates the full FEniCSx fluid–structure solve, which runs server-side.</div>
+    <div class="note"><b>How these numbers are computed:</b> a physics-based reduced-order model maps this valve's <i>measured</i> annular geometry and the clip's coaptation footprint to effective orifice area, then to regurgitant volume (EROA × VTI), double-orifice valve area, and leaflet tension. It approximates the full FEniCSx fluid–structure solve, which runs server-side.</div>
   </div>
 </div>
 
@@ -140,202 +169,324 @@ import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 /* ============================================================
-   Reduced-order hemodynamic model (physics-grounded surrogate)
-   Driven by each case's REAL measured geometry from cases.json.
+   Reduced-order hemodynamic model — mirrors backend/hemodynamics.py.
+   RVol = EROA(cm²) × VTI(cm); orifice clamped to physiologic ranges.
    ============================================================ */
-// Mirrors backend/hemodynamics.py exactly. RVol = EROA(cm²) × VTI(cm);
-// orifice area clamped to physiologic normal range, EROA to severe-MR range.
-const VTI_REGURG_CM = 90;      // regurgitant velocity-time integral (cm), Zoghbi/ASE 2017
-function baselineFromGeometry(g){
-  const a = g.annulus_width_mm/2, b = g.annulus_depth_mm/2;
-  const annularArea_mm2 = Math.PI * a * b;
-  const nativeOrifice_cm2 = Math.min(6.0, Math.max(3.5, annularArea_mm2/100*0.28));
-  const eroa0_mm2 = Math.min(80, Math.max(25, 0.04*annularArea_mm2 + (g.leaflet_height_mm<8?20:8)));
-  return {nativeOrifice_cm2, eroa0_mm2};
+const VTI_REGURG_CM = 90;
+function baseline(g){
+  const a=g.annulus_width_mm/2,b=g.annulus_depth_mm/2, annular=Math.PI*a*b;
+  const nativeOrifice_cm2=Math.min(6,Math.max(3.5,annular/100*0.28));
+  const eroa0=Math.min(80,Math.max(25,0.04*annular+(g.leaflet_height_mm<8?20:8)));
+  return {annular,nativeOrifice_cm2,eroa0};
 }
-function simulate(g, {pos, grasp, angle, clips}){
-  const {nativeOrifice_cm2, eroa0_mm2} = baselineFromGeometry(g);
-  const centering = 1 - Math.min(1, Math.abs(pos-0.5)*2*0.9);
-  const alignment = 1 - Math.min(1, Math.abs(angle)/45);
-  const perClipClose = grasp * (5 + 2*g.leaflet_height_mm/10) * centering * alignment;
-  const totalClose = perClipClose * (clips===2?1.7:1);
-  const eroa = Math.max(1, eroa0_mm2 - totalClose);                 // mm²
-  const regurg_mL = (eroa/100) * VTI_REGURG_CM;                     // EROA(cm²)×VTI(cm)=mL
-  const occluded_cm2 = (clips===2?1.7:1) * (grasp/4.0);
-  const mva_cm2 = Math.max(0.8, nativeOrifice_cm2 - occluded_cm2);
-  const draw = grasp*(clips===2?1.6:1);
-  const focal = 1 + 0.6*Math.abs(pos-0.5)*2 + 0.5*Math.abs(angle)/30;
-  const stress_kPa = 40 + draw*14*focal;
-  return {
-    regurg_mL:+regurg_mL.toFixed(1),
-    mva_cm2:+mva_cm2.toFixed(2),
-    stress_kPa:Math.round(stress_kPa),
-    eroa_mm2:+eroa.toFixed(1)
-  };
+function simulate(g,{pos,grasp,angle,clips}){
+  const {nativeOrifice_cm2,eroa0}=baseline(g);
+  if(clips===0){
+    const regurg=(eroa0/100)*VTI_REGURG_CM;
+    return {regurg_mL:+regurg.toFixed(1),mva_cm2:+nativeOrifice_cm2.toFixed(2),stress_kPa:38,eroa_mm2:+eroa0.toFixed(1)};
+  }
+  const centering=1-Math.min(1,Math.abs(pos-0.5)*2*0.9);
+  const alignment=1-Math.min(1,Math.abs(angle)/45);
+  const perClip=grasp*(5+2*g.leaflet_height_mm/10)*centering*alignment;
+  const totalClose=perClip*(clips===2?1.7:1);
+  const eroa=Math.max(1,eroa0-totalClose);
+  const regurg=(eroa/100)*VTI_REGURG_CM;
+  const occluded=(clips===2?1.7:1)*(grasp/4);
+  const mva=Math.max(0.8,nativeOrifice_cm2-occluded);
+  const draw=grasp*(clips===2?1.6:1);
+  const focal=1+0.6*Math.abs(pos-0.5)*2+0.5*Math.abs(angle)/30;
+  return {regurg_mL:+regurg.toFixed(1),mva_cm2:+mva.toFixed(2),stress_kPa:Math.round(40+draw*14*focal),eroa_mm2:+eroa.toFixed(1)};
 }
-function score(s){
-  // lower is better: weight regurgitation, penalize stenosis & high stress
-  const stenPen = s.mva_cm2<1.5 ? (1.5-s.mva_cm2)*40 : 0;
-  const strPen = s.stress_kPa>200 ? (s.stress_kPa-200)*0.3 : 0;
-  return s.regurg_mL*3 + stenPen + strPen;
-}
+function score(s){return s.regurg_mL*3+(s.mva_cm2<1.5?(1.5-s.mva_cm2)*40:0)+(s.stress_kPa>200?(s.stress_kPa-200)*0.3:0);}
 
-/* ============================================================ 3D scene ============================================================ */
+/* ============================================================ Scene ============================================================ */
 const canvas=document.getElementById('scene');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 const scene=new THREE.Scene();
-const cam=new THREE.PerspectiveCamera(45,1,0.1,3000);
-const ctrl=new OrbitControls(cam,canvas); ctrl.enableDamping=true;
-scene.add(new THREE.AmbientLight(0x8899bb,0.9));
-const k=new THREE.DirectionalLight(0x00e5ff,1.5);k.position.set(1,1,1.2);scene.add(k);
-const f=new THREE.DirectionalLight(0xff6b8a,0.7);f.position.set(-1,-.4,-1);scene.add(f);
-const rimL=new THREE.DirectionalLight(0xffffff,0.5);rimL.position.set(0,1,-1);scene.add(rimL);
+const cam=new THREE.PerspectiveCamera(45,1,0.1,4000);
+const ctrl=new OrbitControls(cam,canvas); ctrl.enableDamping=true; ctrl.enablePan=false;
+scene.add(new THREE.AmbientLight(0x8899bb,0.75));
+scene.add(new THREE.HemisphereLight(0x9fc0ff,0x241a22,0.7));
+const kl=new THREE.DirectionalLight(0x00e5ff,1.4);kl.position.set(1,1.2,1);scene.add(kl);
+const fl=new THREE.DirectionalLight(0xff6b8a,0.6);fl.position.set(-1,-.5,-1);scene.add(fl);
+const rl=new THREE.DirectionalLight(0xffffff,0.7);rl.position.set(0.5,1,-1);scene.add(rl);
 
-let valveMesh=null, clipGroup=new THREE.Group(); scene.add(clipGroup);
-let clipTemplate=null, valveRadius=30, curCase=null;
 const loader=new STLLoader();
+let valveMesh=null, valveBaseGeo=null, clipTemplate=null, clipGroup=new THREE.Group(); scene.add(clipGroup);
+let curCase=null, R=30;                 // R = valve bounding radius
+let ori=new THREE.Vector3(), ex=new THREE.Vector3(1,0,0), ey=new THREE.Vector3(0,1,0); // orifice frame (XY basis)
+let zAtrial=15, zVentric=-15, zClip=6;
 
-// particle flow (visual indicator of forward vs regurgitant flow magnitude)
-const N=420, pgeo=new THREE.BufferGeometry(), ppos=new Float32Array(N*3), pvel=new Float32Array(N);
-for(let i=0;i<N;i++){ppos[i*3]=(Math.random()-.5)*30;ppos[i*3+1]=(Math.random()-.5)*30;ppos[i*3+2]=(Math.random()-.5)*30;pvel[i]=Math.random();}
-pgeo.setAttribute('position',new THREE.BufferAttribute(ppos,3));
-const pmat=new THREE.PointsMaterial({color:0x00e5ff,size:0.7,transparent:true,opacity:.6});
-const particles=new THREE.Points(pgeo,pmat); scene.add(particles);
-let flowMag=0.5, regurgFrac=0.3;
-
-function loadClipTemplate(url){
-  loader.load(url, geo=>{ geo.computeVertexNormals(); clipTemplate=geo; placeClip(); });
-}
 function loadValve(c){
   if(valveMesh){scene.remove(valveMesh);valveMesh.geometry.dispose();}
   loader.load(c.model, geo=>{
     geo.computeVertexNormals(); geo.computeBoundingSphere();
-    valveRadius=geo.boundingSphere.radius;
-    const mat=new THREE.MeshPhysicalMaterial({color:0xff5d7e,roughness:0.42,metalness:0.05,clearcoat:0.55,clearcoatRoughness:0.4,sheen:0.7,sheenColor:0x00e5ff,side:THREE.DoubleSide});
+    R=geo.boundingSphere.radius;
+    const b=c.bounds_local;                       // xmin,xmax,ymin,ymax,zmin,zmax
+    zAtrial=b[5]; zVentric=b[4]; zClip=b[5]*0.30;  // grasp at leaflet coaptation
+    // orifice centre in local frame = annulus centre(world) - mesh centroid(world),
+    // blended toward the geometric centre so the clip bisects the visible orifice.
+    const cw=c.centroid_world, oc=c.geometry.orifice_center_xy;
+    ori.set((oc[0]-cw[0])*0.5, (oc[1]-cw[1])*0.5, zClip);
+    // in-plane basis from measured axes
+    const vo=c.geometry.opening_axis, vc=c.geometry.commissure_axis;
+    ex.set(vo[0],vo[1],0).normalize();            // anteroposterior (arm span)
+    ey.set(vc[0],vc[1],0).normalize();            // commissural (coaptation line)
+    const mat=new THREE.MeshPhysicalMaterial({color:0xff6d8c,roughness:0.5,metalness:0.02,clearcoat:0.4,clearcoatRoughness:0.5,sheen:0.9,sheenColor:0x00e5ff,side:THREE.DoubleSide,transparent:true,opacity:0.4,depthWrite:false});
     valveMesh=new THREE.Mesh(geo,mat); scene.add(valveMesh);
-    cam.position.set(0,valveRadius*0.4,valveRadius*2.8); ctrl.target.set(0,0,0);
-    ctrl.minDistance=valveRadius*1.3; ctrl.maxDistance=valveRadius*5;
-    placeClip(); recompute();
+    valveBaseGeo=geo;
+    setView(curView);
+    placeClip(); recompute(); seedParticles();
   });
+}
+function loadClip(url){ loader.load(url,geo=>{geo.computeVertexNormals();clipTemplate=geo;placeClip();}); }
+
+function clipMatrix(offsetAlongCoapt, angleDeg){
+  // basis: X->ex (AP, arm span), Y->ey (commissure), Z = X×Y (flow axis, +atrial)
+  const X=ex.clone(), Y=ey.clone(), Z=new THREE.Vector3().crossVectors(X,Y).normalize();
+  Y.crossVectors(Z,X).normalize();
+  const m=new THREE.Matrix4().makeBasis(X,Y,Z);
+  // roll about flow axis by clip angle
+  const roll=new THREE.Matrix4().makeRotationAxis(Z, THREE.MathUtils.degToRad(angleDeg));
+  m.premultiply(roll);
+  const p=ori.clone().addScaledVector(ey, offsetAlongCoapt);
+  m.setPosition(p);
+  return m;
 }
 function placeClip(){
   if(!clipTemplate||!curCase) return;
   clipGroup.clear();
-  const g=curCase.geometry, b=curCase.bounds_local;
-  const pos=+sPos.value, angle=+sAng.value, clips=+curClips;
-  // Coaptation line ≈ commissural axis through local orifice; map pos∈[0,1] across width.
-  const span=(b[1]-b[0]); // local x extent (mm)
-  const ax=g.commissure_axis;
-  function one(offset){
-    const m=new THREE.Mesh(clipTemplate,new THREE.MeshPhysicalMaterial({color:0xdfe6f0,metalness:0.9,roughness:0.25,clearcoat:1}));
-    const t=(pos-0.5)*span*0.6 + offset;
-    m.position.set(ax[0]*t, (b[3]-b[2])*0, ax[1]*t);
-    const s=valveRadius/22; m.scale.set(s,s,s);
-    m.rotation.set(Math.PI/2, THREE.MathUtils.degToRad(angle), 0);
-    clipGroup.add(m);
-  }
-  one(0); if(clips===2) one(valveRadius*0.18);
+  if(curClips===0) return;
+  const grasp=+sGrasp.value, angle=+sAng.value, pos=+sPos.value;
+  const spanC=curCase.geometry.annulus_width_mm*0.28;   // travel range along coaptation
+  const centers = curClips===2 ? [-R*0.13, R*0.13] : [0];
+  const armScale = 0.55 + grasp/12;                     // real ~mm; grasp nudges span
+  centers.forEach(off=>{
+    const mesh=new THREE.Mesh(clipTemplate,new THREE.MeshStandardMaterial({color:0xdfe6f2,metalness:0.6,roughness:0.3,emissive:0x2a3a52,emissiveIntensity:0.5}));
+    const total=(pos-0.5)*spanC + off;
+    mesh.applyMatrix4(clipMatrix(total, angle));
+    mesh.scale.set(armScale,1,1);                        // scale arm span (local X) only
+    clipGroup.add(mesh);
+  });
 }
 
-/* ============================================================ UI wiring ============================================================ */
+/* ============================================================ Blood flow particles ============================================================ */
+const NF=720, NR=340;
+let fFwd, fReg, homeLobe;   // fwd geometry, reg geometry
+function makePoints(n,color,size){
+  const g=new THREE.BufferGeometry(); const p=new Float32Array(n*3); g.setAttribute('position',new THREE.BufferAttribute(p,3));
+  const m=new THREE.PointsMaterial({color,size,transparent:true,opacity:0.75,depthWrite:false,blending:THREE.AdditiveBlending});
+  const pts=new THREE.Points(g,m); scene.add(pts); return pts;
+}
+function seedParticles(){
+  if(fFwd){scene.remove(fFwd);scene.remove(fReg);}
+  fFwd=makePoints(NF,0x5fe0ff,R*0.06); fReg=makePoints(NR,0xff5566,R*0.075);
+  homeLobe=new Int8Array(NF);
+  const pf=fFwd.geometry.attributes.position.array;
+  for(let i=0;i<NF;i++){ homeLobe[i]=Math.random()<0.5?-1:1; const q=spawnFwd(i); pf[i*3]=q.x;pf[i*3+1]=q.y;pf[i*3+2]=q.z; }
+  const pr=fReg.geometry.attributes.position.array;
+  for(let i=0;i<NR;i++){ const q=spawnReg(); pr[i*3]=q.x;pr[i*3+1]=q.y;pr[i*3+2]=q.z; }
+  fFwd.geometry.attributes.position.needsUpdate=true; fReg.geometry.attributes.position.needsUpdate=true;
+}
+function diskSample(center,radius){
+  const t=Math.random()*Math.PI*2, r=radius*Math.sqrt(Math.random());
+  return center.clone().addScaledVector(ex, Math.cos(t)*r).addScaledVector(ey, Math.sin(t)*r);
+}
+let flowState={orificeR:8, lobeR:5, lobeOff:6, regR:2, regActive:true};
+function spawnFwd(i){
+  // forward flow starts on atrial side, within (single or double) orifice
+  let center=ori.clone();
+  if(curClips>0 && flowState.lobeOff>0.5){ center.addScaledVector(ey, homeLobe[i]*flowState.lobeOff); }
+  const p=diskSample(center, curClips>0?flowState.lobeR:flowState.orificeR);
+  p.z = zAtrial + Math.random()*R*0.5;
+  return p;
+}
+function spawnReg(){
+  // regurgitant jet emerges on ventricular side, narrow, near orifice centre
+  const p=diskSample(ori, flowState.regR);
+  p.z = zVentric - Math.random()*R*0.3;
+  return p;
+}
+
+/* ============================================================ Cardiac cycle + waveform ============================================================ */
+const CYCLE=1.0, SYS_FRAC=0.38;   // seconds; systole fraction
+let phase=0, playing=true, lastT=0;
+const wave=document.getElementById('wave'), wctx=wave.getContext('2d');
+const waveHist=[];
+function lvPressure(ph){ // mmHg, systole 0..SYS_FRAC
+  if(ph<SYS_FRAC){ const x=ph/SYS_FRAC; return 8+112*Math.sin(Math.PI*x)**0.8; }
+  const x=(ph-SYS_FRAC)/(1-SYS_FRAC); return 8+4*Math.max(0,1-x*3);
+}
+function laPressure(ph,regFrac){ // mmHg; v-wave in systole grows with MR
+  const base=9+2*Math.sin(ph*2*Math.PI);
+  if(ph<SYS_FRAC){ const x=ph/SYS_FRAC; return base+ (6+18*regFrac)*Math.sin(Math.PI*x); }
+  return base;
+}
+
+/* ============================================================ UI ============================================================ */
 const sPos=document.getElementById('s-pos'),sGrasp=document.getElementById('s-grasp'),sAng=document.getElementById('s-ang');
-let curClips=1;
+let curClips=1, curSim=null, curView='surgeon';
 function fmt(){document.getElementById('v-pos').textContent=(+sPos.value).toFixed(2);document.getElementById('v-grasp').textContent=(+sGrasp.value).toFixed(1)+' mm';document.getElementById('v-ang').textContent=sAng.value+'°';}
 function recompute(){
   if(!curCase)return; fmt();
   const s=simulate(curCase.geometry,{pos:+sPos.value,grasp:+sGrasp.value,angle:+sAng.value,clips:curClips});
-  setMetric('regurg',s.regurg_mL,'mL',s.regurg_mL,0,25,true);
-  setMetric('area',s.mva_cm2,'cm²',(3-s.mva_cm2),0,3,false,s.mva_cm2);
-  setMetric('stress',s.stress_kPa,'kPa',s.stress_kPa,40,260,true);
-  // verdict
-  const good=s.regurg_mL<=1.0, notSten=s.mva_cm2>=1.5, safe=s.stress_kPa<=200;
+  curSim=s;
+  setMetric('regurg',s.regurg_mL,'mL',s.regurg_mL,0,60,'#34d399');
+  setMetric('area',s.mva_cm2,'cm²',(3-s.mva_cm2),0,3,'#34d399',s.mva_cm2);
+  setMetric('stress',s.stress_kPa,'kPa',s.stress_kPa,40,260,'#34d399');
+  const good=s.regurg_mL<=1&&curClips>0, notSten=s.mva_cm2>=1.5, safe=s.stress_kPa<=200;
   const v=document.getElementById('verdict'),vt=document.getElementById('verdict-tx');
-  if(good&&notSten&&safe){v.className='verdict good';v.querySelector('.ic').textContent='✓';vt.textContent='Optimal — trace MR, no stenosis, safe leaflet stress.';}
+  if(curClips===0){v.className='verdict bad';v.querySelector('.ic').textContent='●';vt.textContent=`Native valve: severe MR, ${s.regurg_mL} mL regurgitant volume.`;}
+  else if(good&&notSten&&safe){v.className='verdict good';v.querySelector('.ic').textContent='✓';vt.textContent='Optimal — trace MR, no stenosis, safe leaflet stress.';}
   else if(!notSten){v.className='verdict bad';v.querySelector('.ic').textContent='⚠';vt.textContent='Iatrogenic stenosis risk — valve area too small.';}
   else if(!good){v.className='verdict warn';v.querySelector('.ic').textContent='◑';vt.textContent='Residual MR remains — reposition toward the regurgitant zone.';}
-  else{v.className='verdict warn';v.querySelector('.ic').textContent='◑';vt.textContent='Elevated leaflet stress — consider a wider grasp footprint.';}
-  // flow visual
-  regurgFrac=Math.min(1,s.regurg_mL/4); flowMag=0.4+(3-s.mva_cm2)*0.2;
-  pmat.color.setHex(regurgFrac>0.4?0xff6b6b:0x00e5ff);
+  else{v.className='verdict warn';v.querySelector('.ic').textContent='◑';vt.textContent='Elevated leaflet stress — widen the grasp footprint.';}
+  // flow state from metrics (map physiology -> visual field, all in mm)
+  const regFrac=Math.min(1,s.regurg_mL/60);
+  flowState.orificeR = 3 + (s.mva_cm2/6)*(R*0.32);
+  flowState.lobeOff  = curClips>0 ? Math.max(4, flowState.orificeR*0.75) : 0;
+  flowState.lobeR    = flowState.orificeR*0.6;
+  flowState.regR     = Math.max(1.2, Math.sqrt(s.eroa_mm2/Math.PI));
+  flowState.regFrac  = regFrac;
+  fReg.material.opacity = 0.35 + 0.6*regFrac;
 }
-function setMetric(key,val,unit,barVal,lo,hi,invert,areaVal){
+function setMetric(key,val,unit,barVal,lo,hi,_c,areaVal){
   document.getElementById('m-'+key).innerHTML=val+'<span class="u"> '+unit+'</span>';
-  const pct=Math.max(4,Math.min(100,((barVal-lo)/(hi-lo))*100));
+  const pct=Math.max(3,Math.min(100,((barVal-lo)/(hi-lo))*100));
   const bar=document.getElementById('b-'+key); bar.style.width=pct+'%';
   let col='#34d399';
-  if(key==='regurg') col= val<=1?'#34d399':val<=2?'#f0b429':'#ff6b6b';
-  if(key==='area') col= areaVal>=1.5?'#34d399':'#ff6b6b';
-  if(key==='stress') col= val<=150?'#34d399':val<=200?'#f0b429':'#ff6b6b';
+  if(key==='regurg') col=val<=1?'#34d399':val<=15?'#f0b429':'#ff6b6b';
+  if(key==='area') col=areaVal>=1.5?'#34d399':'#ff6b6b';
+  if(key==='stress') col=val<=150?'#34d399':val<=200?'#f0b429':'#ff6b6b';
   bar.style.background=col;
 }
 [sPos,sGrasp,sAng].forEach(e=>e.addEventListener('input',()=>{placeClip();recompute();}));
 document.querySelectorAll('#clipcount button').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#clipcount button').forEach(x=>x.classList.remove('on'));
-  b.classList.add('on'); curClips=+b.dataset.n; placeClip(); recompute();
+  b.classList.add('on'); curClips=+b.dataset.n; placeClip(); recompute(); seedParticles();
 }));
+document.getElementById('play').onclick=e=>{playing=!playing;e.target.textContent=playing?'⏸':'▶';};
 
-// optimize: real grid search over the surrogate
+// camera presets
+const views={
+  surgeon:()=>({p:new THREE.Vector3(R*1.4,R*1.9,R*2.2)}),
+  enface: ()=>({p:new THREE.Vector3(0,0,R*3.1)}),
+  side:   ()=>({p:new THREE.Vector3(R*3.1,R*0.3,0)}),
+};
+function setView(v){curView=v;const t=views[v]();cam.position.copy(t.p);ctrl.target.set(0,0,0);ctrl.minDistance=R*1.3;ctrl.maxDistance=R*5;
+  document.querySelectorAll('.presets button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));}
+document.querySelectorAll('.presets button').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+
+// optimize
 document.getElementById('optimize').addEventListener('click',()=>{
-  if(!curCase)return;
-  const cands=[];
-  for(const clips of [1,2])
-   for(let pos=0.3;pos<=0.7;pos+=0.05)
-    for(let grasp=3;grasp<=6;grasp+=1)
-     for(let ang=-20;ang<=20;ang+=10){
-       const s=simulate(curCase.geometry,{pos,grasp,angle:ang,clips});
-       cands.push({pos,grasp,ang,clips,s,score:score(s)});
-     }
+  if(!curCase)return; const cands=[];
+  for(const clips of [1,2]) for(let pos=0.3;pos<=0.7;pos+=0.05) for(let grasp=3;grasp<=6;grasp++) for(let ang=-20;ang<=20;ang+=10){
+    const s=simulate(curCase.geometry,{pos,grasp,angle:ang,clips}); cands.push({pos,grasp,ang,clips,s,score:score(s)});
+  }
   cands.sort((a,b)=>a.score-b.score);
-  const top=cands.slice(0,3);
   const rl=document.getElementById('ranklist'); rl.innerHTML='';
-  top.forEach((c,i)=>{
+  cands.slice(0,3).forEach((c,i)=>{
     const row=document.createElement('div');row.className='rankrow';
     row.innerHTML=`<span><span class="r">#${i+1}</span> ${c.clips} clip · pos ${c.pos.toFixed(2)} · ${c.grasp}mm · ${c.ang}°</span><span style="color:var(--green)">${c.s.regurg_mL} mL</span>`;
-    row.onclick=()=>{sPos.value=c.pos;sGrasp.value=c.grasp;sAng.value=c.ang;curClips=c.clips;
-      document.querySelectorAll('#clipcount button').forEach(x=>x.classList.toggle('on',+x.dataset.n===c.clips));
-      placeClip();recompute();};
-    rl.appendChild(row);
+    row.onclick=()=>apply(c); rl.appendChild(row);
   });
-  // auto-apply best
-  top[0]&&top.length&&(sPos.value=top[0].pos,sGrasp.value=top[0].grasp,sAng.value=top[0].ang,curClips=top[0].clips,
-    document.querySelectorAll('#clipcount button').forEach(x=>x.classList.toggle('on',+x.dataset.n===top[0].clips)),placeClip(),recompute());
+  apply(cands[0]);
 });
+function apply(c){sPos.value=c.pos;sGrasp.value=c.grasp;sAng.value=c.ang;curClips=c.clips;
+  document.querySelectorAll('#clipcount button').forEach(x=>x.classList.toggle('on',+x.dataset.n===c.clips));
+  placeClip();recompute();seedParticles();}
 
-// upload -> explain backend
+// upload
 document.getElementById('upload-btn').onclick=()=>document.getElementById('file-in').click();
-document.getElementById('file-in').onchange=e=>{
-  const f=e.target.files[0]; if(!f)return;
-  document.getElementById('upload-note').innerHTML=`<b>${f.name}</b> selected (${(f.size/1e6).toFixed(1)} MB). In production this POSTs to <span class="mono">/api/upload-dicom</span>, is anonymized, segmented (MONAI U-Net), meshed, and solved (FEniCSx). This static Pages build has no server, so results below use the bundled real cases.`;
-  document.getElementById('status-badge').textContent='upload → backend (offline in static demo)';
-};
+document.getElementById('file-in').onchange=e=>{const f=e.target.files[0];if(!f)return;
+  document.getElementById('upload-note').innerHTML=`<b>${f.name}</b> (${(f.size/1e6).toFixed(1)} MB) selected. In production this POSTs to <span class="mono">/api/upload-dicom</span> → anonymize → segment (MONAI) → mesh → FEniCSx FSI → optimize. This static build has no server, so the panel below keeps using the bundled real cases.`;};
 
-/* ============================================================ load cases ============================================================ */
+/* ============================================================ Load ============================================================ */
+const params=new URLSearchParams(location.search);
 fetch('assets/data/cases.json').then(r=>r.json()).then(d=>{
-  loadClipTemplate(d.clip_model.file);
+  loadClip(d.clip_model.file);
   const list=document.getElementById('caselist');
   d.cases.forEach((c,i)=>{
-    const btn=document.createElement('button');btn.className='casebtn'+(i===0?' active':'');
+    const btn=document.createElement('button');btn.className='casebtn';
     btn.innerHTML=`<div class="t">${c.label}</div><div class="d">${c.geometry.annulus_width_mm}×${c.geometry.annulus_depth_mm}mm · ${c.geometry.commissure_angle_deg}°</div>`;
     btn.onclick=()=>{document.querySelectorAll('.casebtn').forEach(x=>x.classList.remove('active'));btn.classList.add('active');curCase=c;loadValve(c);document.getElementById('scene-hint').textContent=c.id+' · real segmented surface';};
     list.appendChild(btn);
   });
-  curCase=d.cases[0]; loadValve(d.cases[0]);
-  document.getElementById('scene-hint').textContent=d.cases[0].id+' · real segmented surface';
+  // optional deep-link: ?case=train_015&clips=2&view=enface
+  if(params.get('clips')!==null){curClips=+params.get('clips');
+    document.querySelectorAll('#clipcount button').forEach(x=>x.classList.toggle('on',+x.dataset.n===curClips));}
+  if(params.get('view')&&views[params.get('view')]){curView=params.get('view');
+    document.querySelectorAll('.presets button').forEach(b=>b.classList.toggle('on',b.dataset.view===curView));}
+  let idx=0; const cid=params.get('case'); if(cid){const j=d.cases.findIndex(c=>c.id===cid); if(j>=0) idx=j;}
+  list.children[idx].classList.add('active');
+  curCase=d.cases[idx]; loadValve(d.cases[idx]);
+  document.getElementById('scene-hint').textContent=d.cases[idx].id+' · real segmented surface';
 });
 
-function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;if(canvas.width!==w||canvas.height!==h){renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();}}
-function animate(){
-  requestAnimationFrame(animate);resize();
-  const p=pgeo.attributes.position.array;
-  for(let i=0;i<N;i++){
-    p[i*3+1]-= flowMag*(0.4+pvel[i]);       // flow downward (LA->LV) in diastole visual
-    if(p[i*3+1]<-valveRadius){p[i*3+1]=valveRadius; p[i*3]=(Math.random()-.5)*valveRadius*1.5; p[i*3+2]=(Math.random()-.5)*valveRadius*1.5;}
+/* ============================================================ Animation ============================================================ */
+function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;if(w&&(canvas.width!==w||canvas.height!==h)){renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();}
+  const ww=wave.clientWidth;if(ww&&wave.width!==ww){wave.width=ww;wave.height=90;}}
+function drawWave(regFrac){
+  const w=wave.width,h=wave.height; wctx.clearRect(0,0,w,h);
+  // grid
+  wctx.strokeStyle='rgba(255,255,255,.05)';wctx.lineWidth=1;
+  for(let x=0;x<w;x+=w/6){wctx.beginPath();wctx.moveTo(x,0);wctx.lineTo(x,h);wctx.stroke();}
+  const map=v=>h-6-(v/130)*(h-12);
+  function plot(fn,color){wctx.strokeStyle=color;wctx.lineWidth=2;wctx.beginPath();
+    for(let i=0;i<=w;i++){const ph=(i/w);const y=map(fn(ph));i?wctx.lineTo(i,y):wctx.moveTo(i,y);}wctx.stroke();}
+  plot(ph=>lvPressure(ph),'#00e5ff');
+  plot(ph=>laPressure(ph,regFrac),'#ff6b6b');
+  // playhead
+  const px=phase*w; wctx.strokeStyle='rgba(255,255,255,.5)';wctx.beginPath();wctx.moveTo(px,0);wctx.lineTo(px,h);wctx.stroke();
+  wctx.fillStyle='#9ca3af';wctx.font='9px JetBrains Mono';wctx.fillText('LV',6,12);wctx.fillStyle='#ff6b6b';wctx.fillText('LA',26,12);
+}
+function animate(t){
+  requestAnimationFrame(animate); resize();
+  const dt=Math.min(0.05,(t-lastT)/1000||0); lastT=t;
+  if(playing) phase=(phase+dt/CYCLE)%1;
+  const inSystole=phase<SYS_FRAC;
+  // phase label
+  document.getElementById('phase-lbl').textContent=inSystole?'Systole':'Diastole';
+  document.getElementById('phase-sub').textContent=inSystole?'ventricular ejection · MV shut':'mitral filling · MV open';
+  document.getElementById('phase-dot').style.background=inSystole?'#ff6b6b':'#00e5ff';
+  document.getElementById('phase-dot').style.boxShadow=`0 0 10px ${inSystole?'#ff6b6b':'#00e5ff'}`;
+
+  // activations
+  const diast = inSystole?0: Math.sin(Math.PI*((phase-SYS_FRAC)/(1-SYS_FRAC)));   // 0..1 filling
+  const syst  = inSystole? Math.sin(Math.PI*(phase/SYS_FRAC)) : 0;                 // 0..1 ejection
+
+  // beating annulus: contract in systole (~4%)
+  if(valveMesh){ const sc=1-0.045*syst; valveMesh.scale.set(sc,sc,1); }
+  if(clipGroup) clipGroup.scale.set(1,1,1);
+
+  // advect forward flow (diastole, atrium -> ventricle, -Z)
+  if(fFwd&&curCase){
+    const p=fFwd.geometry.attributes.position.array; const spd=(0.25+2.6*diast)*R*0.02;
+    for(let i=0;i<NF;i++){ p[i*3+2]-=spd; if(p[i*3+2]<zVentric-R*0.35){const q=spawnFwd(i);p[i*3]=q.x;p[i*3+1]=q.y;p[i*3+2]=q.z;} }
+    fFwd.geometry.attributes.position.needsUpdate=true; fFwd.material.opacity=0.35+0.6*diast;
   }
-  pgeo.attributes.position.needsUpdate=true;
+  // advect regurgitant jet (systole, ventricle -> atrium, +Z), magnitude ∝ MR
+  if(fReg&&curCase){
+    const p=fReg.geometry.attributes.position.array; const rf=flowState.regFrac||0;
+    const spd=(3.5*syst)*R*0.02*(0.4+rf);
+    for(let i=0;i<NR;i++){
+      const active = i < NR*Math.max(0.03,rf);       // only a fraction stream when MR small
+      if(active&&syst>0.02){ p[i*3+2]+=spd; if(p[i*3+2]>zAtrial+R*0.4){const q=spawnReg();p[i*3]=q.x;p[i*3+1]=q.y;p[i*3+2]=q.z;} }
+    }
+    fReg.geometry.attributes.position.needsUpdate=true;
+  }
+
+  // telemetry + waveform
+  if(curSim){
+    const fwd=Math.round((80+ (6-curSim.mva_cm2)* -0)* diast + 20); // qualitative mL/s during filling
+    document.getElementById('tl-flow').textContent = Math.round((curSim.mva_cm2*40)*diast);
+    document.getElementById('tl-rf').textContent = (Math.min(1,curSim.regurg_mL/ (curSim.regurg_mL+70))*100).toFixed(0)+'%';
+    drawWave(flowState.regFrac||0);
+  }
   ctrl.update(); renderer.render(scene,cam);
 }
-animate();
+requestAnimationFrame(animate);
 </script>
 </body>
 </html>
