@@ -571,8 +571,8 @@
                 </div>
             </div>
             <div class="control-group">
-                <label>Mesh Opacity <span id="opacity-val" class="val-display">72%</span></label>
-                <input type="range" id="opacity-slider" min="10" max="100" value="72" class="slider">
+                <label>Mesh Opacity <span id="opacity-val" class="val-display">88%</span></label>
+                <input type="range" id="opacity-slider" min="10" max="100" value="88" class="slider">
             </div>
             <div class="control-group">
                 <label>Particle Density <span id="particles-val" class="val-display">700</span></label>
@@ -866,7 +866,7 @@
             mitraClip: false,
             clipXOffset: -15.0,
             colorMode: 'anatomy', // 'anatomy' | 'pressure'
-            meshOpacity: 0.72,
+            meshOpacity: 0.88,
             particleDensity: 700,
 
             // Physical Telemetry variables
@@ -1072,7 +1072,10 @@
             throw error;
         }
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
         renderer.shadowMap.enabled = true;
         container.appendChild(renderer.domElement);
 
@@ -1115,18 +1118,18 @@
         }
 
         // Lighting
-        const ambientLight = new THREE.AmbientLight(0x0e1322, 0.6);
+        const ambientLight = new THREE.AmbientLight(0xb4c7d4, 0.55);
         scene.add(ambientLight);
 
-        const keyLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        const keyLight = new THREE.DirectionalLight(0xffe8dd, 1.3);
         keyLight.position.set(100, 150, 200);
         scene.add(keyLight);
 
-        const fillLight = new THREE.DirectionalLight(0x00e5ff, 0.4);
+        const fillLight = new THREE.DirectionalLight(0x90dce8, 0.55);
         fillLight.position.set(-100, -150, -50);
         scene.add(fillLight);
 
-        const rimLight = new THREE.DirectionalLight(0xff3366, 0.3);
+        const rimLight = new THREE.DirectionalLight(0xffffff, 0.8);
         rimLight.position.set(0, 0, -200);
         scene.add(rimLight);
 
@@ -1175,8 +1178,8 @@
 
             const clipMat = new THREE.MeshStandardMaterial({
                 color: 0xffffff,
-                metalness: 0.1,
-                roughness: 0.3
+                metalness: 0.72,
+                roughness: 0.26
             });
 
             const barrelGeom = new THREE.CylinderGeometry(1.5, 1.5, 12, 12);
@@ -1198,8 +1201,8 @@
         function loadClipCAD() {
             const clipMat = new THREE.MeshStandardMaterial({
                 color: 0xffffff,
-                metalness: 0.1,
-                roughness: 0.3
+                metalness: 0.72,
+                roughness: 0.26
             });
 
             const parts = [
@@ -1530,10 +1533,12 @@
                     }
 
                     // Setup Material
-                    valveMaterial = new THREE.MeshStandardMaterial({
-                        color: 0xe2e8f0,
-                        roughness: 0.4,
-                        metalness: 0.1,
+                    valveMaterial = new THREE.MeshPhysicalMaterial({
+                        color: 0xffffff,
+                        roughness: 0.52,
+                        metalness: 0,
+                        clearcoat: 0.22,
+                        clearcoatRoughness: 0.6,
                         transparent: true,
                         opacity: state.isHeartModel ? Math.max(state.meshOpacity, 0.6) : state.meshOpacity,
                         side: THREE.DoubleSide,
@@ -2537,14 +2542,14 @@
                     // Dynamic colors based on color mode
                     if (state.colorMode === 'anatomy') {
                         // anatomy mapping
-                        if (gid === 1) { // anterior - teal
-                            colors[idx] = 0.2; colors[idx + 1] = 0.7; colors[idx + 2] = 0.8;
-                        } else if (gid === 2) { // posterior - slate blue
-                            colors[idx] = 0.3; colors[idx + 1] = 0.4; colors[idx + 2] = 0.7;
-                        } else if (gid === 3) { // chordae - white
-                            colors[idx] = 0.85; colors[idx + 1] = 0.85; colors[idx + 2] = 0.85;
+                        if (gid === 1) { // anterior leaflet: warm tissue
+                            colors[idx] = 0.84; colors[idx + 1] = 0.46; colors[idx + 2] = 0.47;
+                        } else if (gid === 2) { // posterior leaflet: deeper tissue
+                            colors[idx] = 0.72; colors[idx + 1] = 0.34; colors[idx + 2] = 0.39;
+                        } else if (gid === 3) { // chordae
+                            colors[idx] = 0.9; colors[idx + 1] = 0.82; colors[idx + 2] = 0.76;
                         } else {
-                            colors[idx] = 0.6; colors[idx + 1] = 0.6; colors[idx + 2] = 0.6;
+                            colors[idx] = 0.72; colors[idx + 1] = 0.57; colors[idx + 2] = 0.55;
                         }
                     } else {
                         // pressure mapping (orange high, blue low)
