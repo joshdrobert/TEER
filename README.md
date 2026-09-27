@@ -39,14 +39,15 @@ the full FEniCSx solve then refines. See references in
 
 ```bash
 python -m http.server 8000 --directory docs
-# open http://localhost:8000            (landing page)
-# open http://localhost:8000/demo.html  (interactive clip simulator)
+# open http://localhost:8000                 (landing page)
+# open http://localhost:8000/workspace.html  (original 3D valve workspace, refreshed UI)
 ```
 
-The simulator loads a **real** segmented valve, lets you place the **real**
-MitraClip along the coaptation line, and shows predicted residual regurgitation,
-valve area, and leaflet stress live. "Optimize placement" grid-searches strategies
-and ranks the top three.
+The hosted workspace loads the full-resolution segmented valve, six featured
+patient valve STLs, and the articulated clip parts. It animates the valve and
+shows illustrative flow and telemetry. The older reduced-order strategy
+explorer remains in repository history; `demo.html` now redirects to the
+original 3D workspace.
 
 ### 2. The backend API
 
