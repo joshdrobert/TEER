@@ -482,7 +482,17 @@
         @media(max-width:768px){#demo-header{padding:8px 14px;min-height:88px;align-items:flex-start;flex-wrap:wrap}#demo-header .notice{order:3;width:100%;font-size:9px;padding:4px 7px}#left-control-panel,#right-hud-panel{top:auto!important;max-height:72vh!important}#hud-top-center{top:106px!important}#stage-caption{left:12px;right:12px;bottom:86px;min-width:0}.mobile-nav-btn{background:#10283b}.loading-overlay.failed{top:88px;left:0;right:0;height:calc(100% - 170px)}}
         button:disabled,input:disabled,select:disabled{opacity:.48;cursor:not-allowed}
         @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
-    </style>
+
+/* Instrument workspace: dedicated canvas, compact controls, clear hierarchy. */
+:root{--accent-blue:#79d9d0;--accent-orange:#dfac7c;--accent-red:#f48b94;--panel-bg:#101b24;--border-color:#273640;--text-sub:#9aadb8}
+body{background:#09121a}#demo-header{min-height:68px;background:#101b24;padding:10px 20px;box-shadow:none}#demo-header .notice{font-size:10px;line-height:1.5;max-width:790px;border:0;background:none;padding:0;color:#aabcc6}#demo-header .notice strong{color:#79d9d0}
+.glass-panel{border-radius:0;background:#101b24;box-shadow:none;backdrop-filter:none;padding:20px!important;scrollbar-width:thin;scrollbar-color:#344954 transparent}#left-control-panel{left:0!important;top:68px!important;bottom:0;width:270px!important;max-height:none!important;border-width:0 1px 0 0;gap:18px}#right-hud-panel{right:0!important;top:68px!important;bottom:0;width:250px!important;max-height:none!important;overflow:auto;border-width:0 0 0 1px;gap:12px}
+h1{font-size:19px!important;line-height:1.3;letter-spacing:-.04em}.subtitle{font-size:9px!important;letter-spacing:.1em}.section-title{font-size:9px!important;letter-spacing:.13em;color:#8299a6}.control-group{gap:8px}label{font-size:11px!important}.dropdown{font-size:11px;padding:10px;background:#182731;border-color:#344954}.toggle-btn{border-radius:5px!important;background:#172630;box-shadow:none!important;font-size:11px;padding:10px 7px}.toggle-btn.active{background:#23423f;color:#a6ede5;border-color:#487a73}.telemetry-card{padding:11px 12px!important;border:1px solid #283945;background:#14222c;border-radius:6px!important}.telemetry-label{font-size:10px!important}.telemetry-value{font-size:18px!important;letter-spacing:-.04em;white-space:nowrap}.telemetry-card{display:block!important}.telemetry-label{margin-bottom:5px}#result-card{border-radius:6px;background:#192b32;border-color:#35535b;padding:13px}#result-note{font-size:10px;line-height:1.6}#chart-canvas{height:100px;min-height:100px}#canvas-container{top:68px;left:270px;width:calc(100% - 520px);height:calc(100% - 68px)}#hud-top-center{top:88px!important;left:calc(50% + 10px)}.phase-indicator{box-shadow:none!important;border-radius:4px!important;font-size:10px!important;padding:8px 15px!important}#stage-caption{left:290px;right:270px;bottom:72px;min-width:0;background:none;border:0;padding:0;pointer-events:none}#stage-caption .label{font-size:9px}#stage-caption .description{font-size:10px;color:#9cb1bd;line-height:1.5}
+#stage-toolbar{position:absolute;z-index:12;left:290px;bottom:20px;display:flex;gap:6px}#stage-toolbar button{font:500 11px 'DM Sans',sans-serif;border:1px solid #344954;background:#152731;color:#d0e0e5;padding:10px 14px;border-radius:5px;cursor:pointer}#stage-toolbar button:hover{background:#25413f;border-color:#79d9d0}#flow-legend{position:absolute;right:272px;top:90px;z-index:9;font:10px 'IBM Plex Mono',monospace;color:#9fb8c5;display:flex;gap:15px}.dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;background:#c12b39}.dot.reverse{background:#ff8290}#vr-btn{left:auto!important;right:272px!important;bottom:20px!important;transform:none!important;font-size:10px!important;width:auto!important;border-radius:5px!important}#vr-btn:disabled{display:none!important}.loading-overlay{background:#09121a}.loading-overlay.failed{left:270px;right:250px}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #79d9d0;outline-offset:3px}
+@media(max-width:1100px){#canvas-container{left:0;width:100%}#left-control-panel,#right-hud-panel{display:none!important;top:68px!important;bottom:72px;width:min(340px,90vw)!important;z-index:50;border:1px solid #344954}#left-control-panel.mobile-active,#right-hud-panel.mobile-active{display:flex!important}.mobile-close-btn{display:block!important}#mobile-nav{display:flex!important;bottom:12px!important;gap:8px;padding:0 15px;pointer-events:none}.mobile-nav-btn{pointer-events:auto;box-shadow:none;border-radius:5px;padding:11px;font-size:11px}#stage-caption{left:18px;right:18px;bottom:114px}#stage-toolbar{left:18px;bottom:65px}#flow-legend{right:18px;top:90px}#hud-top-center{left:18px;transform:none}#vr-btn{right:18px!important;bottom:65px!important}.loading-overlay.failed{left:0;right:0}#demo-header .notice{max-width:70%;font-size:9px}#demo-header .back{display:none}}
+@media(max-width:620px){#demo-header{height:92px;align-items:center;flex-wrap:nowrap;padding:10px 15px}#demo-header .notice{max-width:78%;order:initial;width:auto}#canvas-container{top:92px;height:calc(100% - 92px)}#hud-top-center,#flow-legend{top:106px!important}#flow-legend{flex-direction:column;gap:6px;font-size:9px}#left-control-panel,#right-hud-panel{top:92px!important}#stage-caption .description{max-width:300px}#stage-toolbar button{padding:9px 11px}}
+
+</style>
 </head>
 
 <body>
@@ -534,8 +544,8 @@
                 Interactive Pump Controls</div>
             <button id="push-blood-btn" class="push-btn">Push Blood (Hold)</button>
             <div style="margin-top: 12px;">
-                <label>Manual Flow Rate <span id="manual-flow-val" class="val-display">0 mL/s</span></label>
-                <input type="range" id="manual-flow-slider" min="0" max="350" value="0" class="slider">
+                <label>Manual Flow Rate <span id="manual-flow-val" class="val-display">180 mL/s</span></label>
+                <input type="range" id="manual-flow-slider" min="0" max="350" value="180" class="slider">
             </div>
         </div>
 
@@ -544,7 +554,7 @@
             <div class="section-title">Anatomy & Physiology</div>
             <div class="control-group">
                 <label>MitraClip Placement <span id="clip-status" class="val-display">Off</span></label>
-                <button id="mitraclip-btn" class="toggle-btn">Enable Clip Pinch</button>
+                <button id="mitraclip-btn" class="toggle-btn">Place virtual clip</button>
                 <div class="control-group" id="clip-position-group" style="display: none; margin-top: 8px;">
                     <label>Clip Position (X) <span id="clip-pos-val" class="val-display">0.0 mm</span></label>
                     <input type="range" id="clip-pos-slider" min="-30" max="30" step="0.5" value="0" class="slider">
@@ -564,19 +574,19 @@
         <div class="control-group">
             <div class="section-title">Visualization settings</div>
             <div class="control-group">
-                <label>Blood Particle Velocity Colors</label>
+                <label>Surface shading</label>
                 <div class="btn-grid">
-                    <button id="color-anatomy" class="toggle-btn active">Anatomy Solid</button>
+                    <button id="color-anatomy" class="toggle-btn active">Tissue</button>
                     <button id="color-pressure" class="toggle-btn">Pressure Map</button>
                 </div>
             </div>
             <div class="control-group">
-                <label>Mesh Opacity <span id="opacity-val" class="val-display">88%</span></label>
-                <input type="range" id="opacity-slider" min="10" max="100" value="88" class="slider">
+                <label>Mesh Opacity <span id="opacity-val" class="val-display">100%</span></label>
+                <input type="range" id="opacity-slider" min="10" max="100" value="100" class="slider">
             </div>
             <div class="control-group">
-                <label>Particle Density <span id="particles-val" class="val-display">700</span></label>
-                <input type="range" id="particles-slider" min="100" max="1500" step="50" value="700" class="slider">
+                <label>Particle Density <span id="particles-val" class="val-display">250</span></label>
+                <input type="range" id="particles-slider" min="100" max="600" step="50" value="250" class="slider">
             </div>
         </div>
     </div>
@@ -601,7 +611,7 @@
         </div>
         <div class="telemetry-card">
             <div class="telemetry-label">
-                Mitral Regurgitation Vol.<br>
+                Reverse leak rate<br>
                 <span style="font-size: 10px; color: var(--text-sub);">Peak Max: <span id="telemetry-leak-max">--</span> mL/s</span>
             </div>
             <div id="telemetry-leak" class="telemetry-value red">-- mL/s</div>
@@ -614,12 +624,12 @@
         <div class="btn-grid" style="grid-template-columns: 1fr 1fr; font-size:11px;">
             <button id="cam-atrial" class="toggle-btn" style="padding:6px; font-size:11px;">Atrial (Top)</button>
             <button id="cam-vent" class="toggle-btn" style="padding:6px; font-size:11px;">Vent (Bottom)</button>
-            <button id="cam-side" class="toggle-btn" style="padding:6px; font-size:11px;">Side Cutaway</button>
+            <button id="cam-side" class="toggle-btn" style="padding:6px; font-size:11px;">Side view</button>
             <button id="cam-iso" class="toggle-btn" style="padding:6px; font-size:11px;">Isometric</button>
         </div>
     </div>
 
-    <div id="canvas-container"></div>
+    <div id="canvas-container"></div><div id="flow-legend"><span><i class="dot"></i>Atrial → ventricular</span><span><i class="dot reverse"></i>Systolic reverse jet</span></div><div id="stage-toolbar"><button id="pause-cycle" type="button">Pause cycle</button><button id="reset-view" type="button">Fit anatomy</button><button id="toggle-flow" type="button" aria-pressed="true">Flow on</button><button id="flow-style" type="button">Droplets / tracers</button></div>
     <div id="stage-caption"><div class="label">PATIENT-DERIVED 3D ANATOMY</div><div class="description" id="stage-description">Drag to orbit · scroll to zoom · choose a camera preset</div></div>
 
     <!-- Mobile Navigation Overlay Buttons -->
@@ -859,15 +869,18 @@
         const state = {
             mode: 'auto', // 'auto' | 'manual'
             pushing: false,
-            manualFlowRate: 0,
+            manualFlowRate: 180,
+            paused: false,
+            showFlow: true,
+            bloodStyle: true,
             heartRate: 75,
             regurgitationGap: 3.0,
             effectiveGap: 3.0,
             mitraClip: false,
-            clipXOffset: -15.0,
+            clipXOffset: 0.0,
             colorMode: 'anatomy', // 'anatomy' | 'pressure'
-            meshOpacity: 0.88,
-            particleDensity: 700,
+            meshOpacity: 1,
+            particleDensity: 250,
 
             // Physical Telemetry variables
             laPressure: 0,
@@ -984,7 +997,7 @@
 
         elements.clipPosSlider.addEventListener('input', (e) => {
             const userVal = parseFloat(e.target.value);
-            state.clipXOffset = (state.isHeartModel || !state.isOriginalSTL) ? userVal : (userVal - 15.0);
+            state.clipXOffset = userVal;
             elements.clipPosVal.innerText = (userVal >= 0 ? '+' : '') + userVal.toFixed(1) + ' mm';
             updateScenario();
         });
@@ -1016,6 +1029,7 @@
             state.meshOpacity = parseInt(e.target.value) / 100.0;
             elements.opacityVal.innerText = e.target.value + '%';
             if (valveMaterial) {
+                valveMaterial.transparent = state.meshOpacity < 1; valveMaterial.needsUpdate = true;
                 if (state.isHeartModel) {
                     valveMaterial.opacity = Math.max(state.meshOpacity, 0.6); // Keep leaflets relatively opaque
                 } else {
@@ -1042,7 +1056,7 @@
             const baseline = state.regurgitationGap;
             const position = parseFloat(elements.clipPosSlider.value);
             const influence = state.mitraClip ? Math.max(0.18, 1 - Math.abs(position) / 40) : 0;
-            const current = Math.max(0.2, baseline * (1 - 0.68 * influence));
+            const current = Math.max(0, baseline * (1 - (state.mitraClip ? .85 * Math.exp(-Math.pow(state.clipXOffset / 12, 2)) : 0)));
             document.getElementById('baseline-index').textContent = baseline.toFixed(1);
             document.getElementById('current-index').textContent = current.toFixed(1);
             document.getElementById('result-note').textContent = state.mitraClip
@@ -1056,9 +1070,9 @@
         const scene = new THREE.Scene();
         const worldGroup = new THREE.Group();
         scene.add(worldGroup);
-        scene.fog = new THREE.FogExp2(0x080c14, 0.002);
+        scene.background = new THREE.Color(0x09121a);
 
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 1000);
         camera.position.set(120, -120, 180);
 
         let renderer;
@@ -1071,7 +1085,7 @@
             document.querySelectorAll('#left-control-panel button, #left-control-panel input, #left-control-panel select, #right-hud-panel button').forEach(control => control.disabled = true);
             throw error;
         }
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(container.clientWidth, container.clientHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
         renderer.outputEncoding = THREE.sRGBEncoding;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1088,7 +1102,7 @@
         let cylinderWireframe = null;
 
         function updateCylinderRepresentation() {
-            if (cylinderWireframe) scene.remove(cylinderWireframe);
+            if (cylinderWireframe) { worldGroup.remove(cylinderWireframe); cylinderWireframe.geometry.dispose(); cylinderWireframe.material.dispose(); }
 
             const cylGeom = new THREE.CylinderGeometry(state.R_cylinder, state.R_cylinder, state.zLen + 20, 24, 1, true);
 
@@ -1114,7 +1128,7 @@
                 opacity: 0.08
             });
             cylinderWireframe = new THREE.Mesh(cylGeom, cylMat);
-            worldGroup.add(cylinderWireframe);
+            // Keep the anatomy stage free of the old bounding cylinder.
         }
 
         // Lighting
@@ -1305,13 +1319,19 @@
         let valveMaterial = null;
         let heartWallMaterial = null;
 
+        let geometryRequest;
         function loadGeometry(url) {
+            if(geometryRequest) geometryRequest.abort();
+            geometryRequest=new AbortController();
+            const request=geometryRequest;
+            elements.loadingScreen.style.display="flex";
             elements.loadingScreen.style.opacity = '1';
             elements.loadingScreen.style.pointerEvents = 'auto';
             elements.loadingText.innerText = "Fetching geometry: " + url.split('/').pop() + "...";
 
-            fetch(url)
+            fetch(url,{signal:request.signal})
                 .then(response => {
+                    if (!response.ok) throw new Error('Geometry request failed: ' + response.status);
                     if (url.endsWith('.stl')) {
                         return response.arrayBuffer();
                     } else {
@@ -1319,12 +1339,16 @@
                     }
                 })
                 .then(data => {
+                    if(request!==geometryRequest)return;
                     // Remove previous mesh if exists
                     if (valveMesh) {
                         scene.remove(valveMesh);
                         if (typeof worldGroup !== 'undefined') worldGroup.remove(valveMesh);
                     }
 
+                    if (valveGeometry) valveGeometry.dispose();
+                    if (valveMaterial) valveMaterial.dispose();
+                    if (heartWallMaterial) { heartWallMaterial.dispose(); heartWallMaterial = null; }
                     let geomData = null;
                     if (url.endsWith('.stl')) {
                         // Auto-detect ASCII vs Binary STL by inspecting header
@@ -1354,6 +1378,16 @@
                         vertexGroups = parsed.groupIDs;
                     }
 
+                    if (url.endsWith('.stl')) {
+                        const source = geomData.attributes.position.array, unique = [], indices = [], lookup = new Map();
+                        for (let i=0;i<source.length;i+=3) {
+                            const key = [source[i],source[i+1],source[i+2]].map(v=>Math.round(v*1000)).join(',');
+                            if (!lookup.has(key)) { lookup.set(key,unique.length/3); unique.push(source[i],source[i+1],source[i+2]); }
+                            indices.push(lookup.get(key));
+                        }
+                        geomData.dispose(); geomData = new THREE.BufferGeometry();
+                        geomData.setAttribute('position',new THREE.Float32BufferAttribute(unique,3)); geomData.setIndex(indices);
+                    }
                     // Compute centroid & dimensions
                     geomData.computeBoundingBox();
                     let bbox = geomData.boundingBox;
@@ -1405,7 +1439,7 @@
                         state.zLen = zLen;
                         state.R_cylinder = r_cyl;
                         state.zOrifice = state.zMin + 0.2 * state.zLen;
-                        state.clipXOffset = isOriginalSTL ? -15.0 : 0.0;
+                        state.clipXOffset = 0.0;
                     }
                     state.isHeartModel = isHeartModel;
 
@@ -1539,7 +1573,7 @@
                         metalness: 0,
                         clearcoat: 0.22,
                         clearcoatRoughness: 0.6,
-                        transparent: true,
+                        transparent: state.meshOpacity < 1,
                         opacity: state.isHeartModel ? Math.max(state.meshOpacity, 0.6) : state.meshOpacity,
                         side: THREE.DoubleSide,
                         vertexColors: true
@@ -1576,222 +1610,109 @@
 
                     // Rebuild visuals & camera control targets
                     updateCylinderRepresentation();
-                    controls.target.set(cx, cy, state.zMin + state.zLen / 2);
-                    camera.position.set(cx + state.R_cylinder * 2, cy - state.R_cylinder * 2, state.zMax + 50);
-                    controls.update();
-            updateVR();
-            updateVR();
+                    fitAnatomy();
+                    updateScenario();
 
                     // Rebuild particle bounding box limits
                     rebuildParticles();
 
                     // Hide loading overlay
                     elements.loadingScreen.style.opacity = '0';
+                    elements.loadingScreen.style.display = 'none';
                     elements.loadingScreen.style.pointerEvents = 'none';
                     document.getElementById('stage-description').textContent = elements.geometrySelect.selectedOptions[0].textContent + ' · drag to orbit · scroll to zoom';
                     document.body.classList.add('geometry-ready');
                 })
                 .catch(error => {
+                    if(error.name==="AbortError")return;
                     console.error("Failed to load geometry mesh:", error);
-                    elements.loadingText.innerText = "Error loading mesh. Check console.";
+                    elements.loadingText.innerText = 'Could not load this anatomy. Reload to retry, or choose another case.';
+                    elements.loadingScreen.style.pointerEvents = 'none';
                 });
         }
 
-        // Camera preset controls
-        elements.camAtrial.addEventListener('click', () => {
-            camera.position.set(state.cx, state.cy, state.zMax + state.R_cylinder * 2);
-            controls.target.set(state.cx, state.cy, state.zMax);
-            controls.update();
-        });
-        elements.camVent.addEventListener('click', () => {
-            camera.position.set(state.cx, state.cy, state.zMin - state.R_cylinder * 2);
-            controls.target.set(state.cx, state.cy, state.zMin);
-            controls.update();
-        });
-        elements.camSide.addEventListener('click', () => {
-            camera.position.set(state.cx + state.R_cylinder * 2.5, state.cy, state.zMin + state.zLen / 2);
-            controls.target.set(state.cx, state.cy, state.zMin + state.zLen / 2);
-            controls.update();
-        });
-        elements.camIso.addEventListener('click', () => {
-            camera.position.set(state.cx + state.R_cylinder * 2, state.cy - state.R_cylinder * 2, state.zMax + 50);
-            controls.target.set(state.cx, state.cy, state.zMin + state.zLen / 2);
-            controls.update();
-        });
-
-        // --- 6. Particle Physics Blood Simulator (Streamline Trails) ---
-        const TRAIL_LENGTH = 10;
-        let liquidMesh = null;
-        let bloodParticles = [];
-
-        class BloodParticle {
-            constructor() {
-                this.trail = [];
-                this.speedColor = new THREE.Color(0.7, 0.05, 0.05);
-                this.radius = 2.0; // Collision radius
-                this.reset();
-            }
-
-            reset() {
-                let radiusMult;
-                if (state.isHeartModel) {
-                    radiusMult = 0.04; // Extremely narrow flow so it doesn't spill over
-                } else {
-                    radiusMult = state.isOriginalSTL ? 0.4 : 0.3;
-                }
-                const radius = state.R_cylinder * radiusMult * Math.sqrt(Math.random());
-                const angle = Math.random() * Math.PI * 2;
-
-                if (state.isHeartModel) {
-                    const pu = radius * Math.cos(angle);
-                    const pv = radius * Math.sin(angle);
-                    const pn = -18.0 - Math.random() * 10.0; // Spawn much higher up in the atrium
-
-                    this.x = 22.29 + pu * 0.9896 + pv * (-0.0667) + pn * (-0.1273);
-                    this.y = 29.65 + pu * (-0.1113) + pv * (-0.9160) + pn * (-0.3854);
-                    this.z = (-23.19) + pu * (-0.0909) + pv * 0.3955 + pn * (-0.9139);
-                } else {
-                    this.x = state.cx + radius * Math.cos(angle);
-                    this.y = state.cy + radius * Math.sin(angle);
-                    // Spawn just inside the top rim of the annulus to prevent floating outside
-                    this.z = state.zMax + 2.0 + Math.random() * 10.0;
-                }
-
-                // Initial Velocity
-                this.vx = (Math.random() - 0.5) * 5.0;
-                this.vy = (Math.random() - 0.5) * 5.0;
-                this.vz = -10.0 - Math.random() * 10.0; // Base downward velocity
-
-                this.age = 0;
-                this.maxAge = 180 + Math.random() * 120; // Lasts ~3-5 seconds at 60fps
-                this.speedColor = new THREE.Color(0.7, 0.05, 0.05);
-            }
-
-            update(fOpen, vPeak, tCycle, pLa, pLv) {
-                if (state.mode === 'manual' && fOpen < 0.05 && vPeak < 0.05) {
-                    this.hidden = true;
-                    this.x = 99999; this.y = 99999; this.z = 99999;
-                    return; // Freeze all physics while hidden
-                } else if (this.hidden) {
-                    this.hidden = false;
-                    this.reset();
-                }
-
-                this.age++;
-                if (this.age > this.maxAge || this.z < state.zMin - 30.0) {
-                    this.reset();
-                }
-
-                // --- 1. Newtonian Forces ---
-                const dt = 0.016; // Assumed 60fps delta
-
-                // Gravity
-                this.vz -= 980.0 * dt;
-
-                // Pressure Differential (LA -> LV)
-                // Adds a massive downward acceleration when valve opens
-                const pressureDiff = pLa - pLv;
-                if (pressureDiff > 0 && this.z > state.zOrifice - 10) {
-                    this.vz -= pressureDiff * 150.0 * dt;
-                }
-
-                // Desired movement step
-                const dx = this.vx * dt;
-                const dy = this.vy * dt;
-                const dz = this.vz * dt;
-                const stepLength = Math.sqrt(dx*dx + dy*dy + dz*dz);
-
-                // --- 2. Mesh Collision (BVH Raycast Sweep) ---
-                let collided = false;
-                if (valveMesh && valveGeometry && valveGeometry.boundsTree && stepLength > 0.001) {
-                    const startPos = new THREE.Vector3(this.x, this.y, this.z);
-                    const dir = new THREE.Vector3(dx, dy, dz).normalize();
-
-                    const raycaster = new THREE.Raycaster(startPos, dir, 0, stepLength + this.radius);
-                    raycaster.firstHitOnly = true; // three-mesh-bvh optimization
-
-                    const intersects = raycaster.intersectObject(valveMesh);
-
-                    if (intersects.length > 0) {
-                        collided = true;
-                        const hit = intersects[0];
-
-                        // Move particle to hit point slightly offset by radius to prevent sinking
-                        this.x = hit.point.x + hit.face.normal.x * this.radius;
-                        this.y = hit.point.y + hit.face.normal.y * this.radius;
-                        this.z = hit.point.z + hit.face.normal.z * this.radius;
-
-                        // Reflect velocity (bounce) and add friction (slide)
-                        const normal = hit.face.normal;
-                        const dot = this.vx * normal.x + this.vy * normal.y + this.vz * normal.z;
-                        if (dot < 0) {
-                            const restitution = 0.3; // Viscous bounce
-                            const friction = 0.85;   // Slides slightly
-
-                            this.vx = (this.vx - (1 + restitution) * dot * normal.x) * friction;
-                            this.vy = (this.vy - (1 + restitution) * dot * normal.y) * friction;
-                            this.vz = (this.vz - (1 + restitution) * dot * normal.z) * friction;
-                        }
-                    }
-                }
-
-                // If no collision, apply full movement step
-                if (!collided) {
-                    this.x += dx;
-                    this.y += dy;
-                    this.z += dz;
-                }
-
-                // Cap max velocity to avoid tunneling
-                const speedSq = this.vx*this.vx + this.vy*this.vy + this.vz*this.vz;
-                const maxSpeed = 3000.0;
-                if (speedSq > maxSpeed*maxSpeed) {
-                    const scale = maxSpeed / Math.sqrt(speedSq);
-                    this.vx *= scale; this.vy *= scale; this.vz *= scale;
-                }
-
-                // Update liquid color based on velocity
-                const speed = Math.sqrt(speedSq);
-                const maxExpected = 1500.0;
-                let intensity = Math.min(speed / maxExpected, 1.0);
-
-                if (state.colorMode === 'anatomy') {
-                    // Dark red -> bright red on high speed
-                    this.speedColor.setRGB(0.5 + 0.5 * intensity, 0.05 + 0.1 * intensity, 0.05);
-                } else {
-                    // Blue (slow) -> Red (fast)
-                    this.speedColor.setHSL((1.0 - intensity) * 0.6, 1.0, 0.5);
-                }
-            }
+        function fitAnatomy(direction = new THREE.Vector3(.75,-1,1.6)) {
+            if (!valveGeometry) return;
+            valveGeometry.computeBoundingSphere();
+            const sphere = valveGeometry.boundingSphere;
+            const center = sphere.center.clone();
+            const fov = camera.fov * Math.PI / 180;
+            const distance = sphere.radius / Math.sin(Math.min(fov, 2*Math.atan(Math.tan(fov/2)*camera.aspect))/2) * 1.28;
+            controls.target.copy(center);
+            camera.position.copy(center).add(direction.normalize().multiplyScalar(distance));
+            camera.near = Math.max(.1, sphere.radius/100); camera.far = distance + sphere.radius*20;
+            camera.updateProjectionMatrix(); controls.update();
         }
+        elements.camAtrial.addEventListener('click',()=>fitAnatomy(new THREE.Vector3(0,.001,1)));
+        elements.camVent.addEventListener('click',()=>fitAnatomy(new THREE.Vector3(0,.001,-1)));
+        elements.camSide.addEventListener('click',()=>fitAnatomy(new THREE.Vector3(1,0,.12)));
+        elements.camIso.addEventListener('click',()=>fitAnatomy());
+        document.getElementById('reset-view').onclick = ()=>fitAnatomy();
+        document.getElementById('pause-cycle').onclick = e=>{state.paused=!state.paused;e.target.textContent=state.paused?'Resume cycle':'Pause cycle';};
+        document.getElementById('flow-style').onclick = e=>{state.bloodStyle=!state.bloodStyle;e.target.textContent=state.bloodStyle?'Droplets / tracers':'Tracers / droplets';};
+        document.getElementById('toggle-flow').onclick = e=>{state.showFlow=!state.showFlow;e.target.textContent=state.showFlow?'Flow on':'Flow off';e.target.setAttribute('aria-pressed',state.showFlow);};
+        window.addEventListener('pointerup',()=>state.pushing=false);
+        window.addEventListener('blur',()=>state.pushing=false);
 
+        // Illustrative pathlines: atrial filling converges at the moving orifice;
+        // systolic reverse flow is gated by the residual gap and clip proximity.
+        // This is a visualization field, not a fluid dynamics solver.
+        let liquidMesh = null, flowTrails = null, dropletMesh = null, bloodParticles = [];
+        const flowDummy = new THREE.Object3D(), flowPoint = new THREE.Vector3();
         function rebuildParticles() {
-            if (liquidMesh) worldGroup.remove(liquidMesh);
-
-            // Capped to 200 for BVH performance, and 40 for the Heart Model to prevent overflow
-            const maxParticles = state.isHeartModel ? 40 : 200;
-            state.particleDensity = Math.min(parseInt(elements.particlesVal.innerText), maxParticles);
-
-            bloodParticles = [];
-            for (let i = 0; i < state.particleDensity; i++) {
-                bloodParticles.push(new BloodParticle());
+            for (const object of [liquidMesh,flowTrails,dropletMesh]) if(object){worldGroup.remove(object);object.geometry.dispose();object.material.dispose();}
+            const count = parseInt(elements.particlesSlider.value);
+            state.particleDensity=count;
+            bloodParticles=Array.from({length:count},(_,i)=>({t:(i*.61803398875)%1,a:i*2.399963,r:Math.sqrt(((i*73)%count+.5)/count)}));
+            liquidMesh=new THREE.InstancedMesh(new THREE.SphereGeometry(.42,6,4),new THREE.MeshBasicMaterial({transparent:true,opacity:.9}),count);
+            liquidMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); liquidMesh.frustumCulled=false;worldGroup.add(liquidMesh);
+            const geometry=new THREE.BufferGeometry();
+            geometry.setAttribute('position',new THREE.BufferAttribute(new Float32Array(count*6),3).setUsage(THREE.DynamicDrawUsage));
+            geometry.setAttribute('color',new THREE.BufferAttribute(new Float32Array(count*6),3).setUsage(THREE.DynamicDrawUsage));
+            flowTrails=new THREE.LineSegments(geometry,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.85,depthWrite:false}));flowTrails.frustumCulled=false;worldGroup.add(flowTrails);
+            // Original glossy metaball droplets, carried by the valve flow field.
+            dropletMesh=new THREE.MarchingCubes(40,new THREE.MeshPhysicalMaterial({color:0x760816,metalness:.08,roughness:.1,clearcoat:.65,clearcoatRoughness:.18,transmission:.2,ior:1.33,transparent:true,opacity:.95,side:THREE.DoubleSide}),false,false,100000);
+            dropletMesh.frustumCulled=false;worldGroup.add(dropletMesh);
+        }
+        function flowPosition(p,t,reverse) {
+            const throat=state.isHeartModel?0:state.zOrifice;
+            const extent=state.isHeartModel?28:Math.max(state.zLen,24);
+            const along=reverse?(-.6+t*1.5)*extent:(1.1-t*2)*extent;
+            const spread=Math.min(1,Math.abs(along)/extent);
+            const opening=reverse?Math.max(.2,state.effectiveGap*.24):Math.max(.8,state.R_cylinder*.18*state.fOpen);
+            let u=Math.cos(p.a)*p.r*(opening+spread*state.R_cylinder*(reverse?.08:.2));
+            let v=Math.sin(p.a)*p.r*(opening+spread*state.R_cylinder*(reverse?.08:.14));
+            if(state.mitraClip&&!reverse){u+=(u<0?-1:1)*2.5*Math.exp(-Math.pow(along/12,2));}
+            if(reverse)u+=state.clipXOffset*.1;
+            if(state.isHeartModel){const n=-along;return flowPoint.set(22.29+u*.9896-v*.0667-n*.1273,29.65-u*.1113-v*.9160-n*.3854,-23.19-u*.0909+v*.3955-n*.9139);}
+            const a=state.angle||0;
+            return flowPoint.set(state.cx+u*Math.cos(a)-v*Math.sin(a),state.cy+u*Math.sin(a)+v*Math.cos(a),throat+along);
+        }
+        function updateFlow(delta,qFlow) {
+            const reverse=state.cardiacPhase==='systole';
+            const strength=reverse?Math.min(1,state.effectiveGap/6):Math.min(1,Math.max(0,qFlow)/180);
+            const active=state.showFlow && strength>.015 && !(state.mode==='manual'&&!state.pushing);
+            liquidMesh.visible=active&&!state.bloodStyle;flowTrails.visible=active&&!state.bloodStyle;dropletMesh.visible=active&&state.bloodStyle;if(!active)return;
+            const liquidSize=Math.max(state.zLen*3,state.R_cylinder*3,100);
+            const origin=new THREE.Vector3(state.cx,state.cy,state.zOrifice);
+            if(state.bloodStyle){dropletMesh.reset();dropletMesh.position.copy(origin);dropletMesh.scale.setScalar(liquidSize/2);}
+            const color=new THREE.Color(state.bloodStyle?(reverse?0xe1404c:0xc12b39):(reverse?0xff6e80:0x65d6dc)),pos=flowTrails.geometry.attributes.position.array,col=flowTrails.geometry.attributes.color.array;
+            const count=Math.round(bloodParticles.length*(state.bloodStyle?.55:1)*(reverse?strength*.5:Math.max(.2,strength)));
+            liquidMesh.count=count;flowTrails.geometry.setDrawRange(0,count*2);
+            for(let i=0;i<count;i++){
+                const p=bloodParticles[i];p.t=(p.t+delta*(reverse?1.3:.55+strength*.65))%1;
+                const head=flowPosition(p,p.t,reverse);
+                if(state.bloodStyle){
+                    const x=(head.x-origin.x)/liquidSize+.5,y=(head.y-origin.y)/liquidSize+.5,z=(head.z-origin.z)/liquidSize+.5;
+                    if(x>.02&&x<.98&&y>.02&&y<.98&&z>.02&&z<.98)dropletMesh.addBall(x,y,z,.008,12);
+                }
+                flowDummy.position.copy(head);flowDummy.scale.set(state.bloodStyle?.45:.72,state.bloodStyle?.45:.72,state.bloodStyle?.9:1.55);flowDummy.updateMatrix();liquidMesh.setMatrixAt(i,flowDummy.matrix);liquidMesh.setColorAt(i,color);
+                pos.set([head.x,head.y,head.z],i*6);
+                const tail=flowPosition(p,Math.max(0,p.t-.055),reverse);pos.set([tail.x,tail.y,tail.z],i*6+3);
+                col.set([color.r,color.g,color.b,color.r*.18,color.g*.18,color.b*.18],i*6);
             }
-
-            // Create Physical Liquid Material
-            const liquidMat = new THREE.MeshPhysicalMaterial({
-                color: 0x660000,
-                metalness: 0.1,
-                roughness: 0.05,
-                transmission: 0.7,
-                ior: 1.33,
-                transparent: true,
-                opacity: 0.95,
-                side: THREE.DoubleSide
-            });
-
-            // Initialize Marching Cubes
-            liquidMesh = new THREE.MarchingCubes(36, liquidMat, false, false, 100000);
-            worldGroup.add(liquidMesh);
+            liquidMesh.instanceMatrix.needsUpdate=true;liquidMesh.instanceColor.needsUpdate=true;
+            flowTrails.geometry.attributes.position.needsUpdate=true;flowTrails.geometry.attributes.color.needsUpdate=true;
         }
 
         // --- 7. Live canvas Real-time Pressures Chart Plotter ---
@@ -1887,6 +1808,7 @@
                     };
                 } else {
                     vrButton.textContent = 'VR NOT SUPPORTED';
+                    vrButton.disabled = true;
                     vrButton.style.opacity = '0.5';
                 }
             });
@@ -1975,26 +1897,10 @@
             elements.geometrySelect.dispatchEvent(new Event('change'));
         });
 
-        const btnClipOpen = createButton('Clip Open (+)', () => {
-            let target = parseFloat(elements.clipSlider.value) + 15.0;
-            target = Math.max(0, Math.min(120, target));
-            elements.clipSlider.value = target;
-            state.clipAngle = target;
-            elements.clipSlider.dispatchEvent(new Event('input'));
-        });
-
-        const btnClipClose = createButton('Clip Close (-)', () => {
-            let target = parseFloat(elements.clipSlider.value) - 15.0;
-            target = Math.max(0, Math.min(120, target));
-            elements.clipSlider.value = target;
-            state.clipAngle = target;
-            elements.clipSlider.dispatchEvent(new Event('input'));
-        });
-
-        const btnToggleFlow = createButton('Toggle Blood Flow', () => {
-            elements.flowCheckbox.checked = !elements.flowCheckbox.checked;
-            elements.flowCheckbox.dispatchEvent(new Event('change'));
-        });
+        function moveClip(amount){const slider=elements.clipPosSlider;slider.value=Math.max(-30,Math.min(30,parseFloat(slider.value)+amount));slider.dispatchEvent(new Event('input'));}
+        const btnClipOpen = createButton('Move clip left',()=>moveClip(-.5));
+        const btnClipClose = createButton('Move clip right',()=>moveClip(.5));
+        const btnToggleFlow = createButton('Toggle blood flow',()=>document.getElementById('toggle-flow').click());
 
         const objsToTest = [btnNext, btnPrev, btnClipOpen, btnClipClose, btnToggleFlow];
 
@@ -2114,11 +2020,7 @@
                     if (source.gamepad && source.gamepad.axes.length >= 4) {
                         const yAxis = source.gamepad.axes[3];
                         if (Math.abs(yAxis) > 0.2) {
-                            let target = parseFloat(elements.clipSlider.value) + yAxis * 2.0;
-                            target = Math.max(0, Math.min(120, target));
-                            elements.clipSlider.value = target;
-                            state.clipAngle = target;
-                            elements.clipSlider.dispatchEvent(new Event('input'));
+                            moveClip(yAxis*.5);
                         }
                     }
                 }
@@ -2135,7 +2037,7 @@
         // // requestAnimationFrame(animate);
 
             if (!lastTime) lastTime = timestamp;
-            const delta = (timestamp - lastTime) / 1000.0;
+            const delta = state.paused ? 0 : Math.min((timestamp - lastTime) / 1000.0, .05);
             lastTime = timestamp;
 
             controls.update();
@@ -2192,7 +2094,7 @@
                         pLa = baseLa + vWave;
 
                         const deltaP = pLa - pLv;
-                        qFlow = deltaP / 3.0; // leakage flow through the gap
+                        qFlow = Math.min(0, deltaP / 3.0) * (effectiveGap / 10.0); // illustrative residual leak
                         fOpen = 0.0;
 
                         const maxPeakLeak = 80.0 * Math.min(1.0, Math.abs(qFlow) / 38.0);
@@ -2221,7 +2123,7 @@
                 }
 
                 // Smooth fOpen state to prevent instant jumpy motion of leaflets
-                state.fOpen += (fOpen - state.fOpen) * 0.15;
+                state.fOpen += (fOpen - state.fOpen) * (1 - Math.exp(-delta * 10));
 
                 // Sync UI telemetry badges
                 elements.phaseIndicator.innerText = state.cardiacPhase;
@@ -2231,7 +2133,7 @@
                 elements.telemetryLv.innerText = pLv.toFixed(1) + " mmHg";
                 elements.telemetryFlow.innerText = (state.cardiacPhase === 'diastole' ? qFlow.toFixed(0) : "0") + " mL/s";
 
-                const currentLeak = (state.cardiacPhase === 'systole') ? Math.abs(qFlow * (effectiveGap / 10.0)) : 0;
+                const currentLeak = (state.cardiacPhase === 'systole') ? Math.abs(qFlow) : 0;
                 elements.telemetryLeak.innerText = currentLeak.toFixed(0) + " mL/s";
 
                 // Peak Max for the current configuration
@@ -2246,7 +2148,7 @@
 
                 if (elements.telemetryLeakMax) elements.telemetryLeakMax.innerText = (state.peakLeak || 0).toFixed(0);
 
-                updateLiveChart(pLa, pLv);
+                if (!state.paused) updateLiveChart(pLa, pLv);
 
                 // Update 3D MitraClip position, visibility and closure animation
                 if (clipMesh) {
@@ -2543,9 +2445,9 @@
                     if (state.colorMode === 'anatomy') {
                         // anatomy mapping
                         if (gid === 1) { // anterior leaflet: warm tissue
-                            colors[idx] = 0.84; colors[idx + 1] = 0.46; colors[idx + 2] = 0.47;
+                            colors[idx] = 0.62; colors[idx + 1] = 0.29; colors[idx + 2] = 0.3;
                         } else if (gid === 2) { // posterior leaflet: deeper tissue
-                            colors[idx] = 0.72; colors[idx + 1] = 0.34; colors[idx + 2] = 0.39;
+                            colors[idx] = 0.52; colors[idx + 1] = 0.22; colors[idx + 2] = 0.26;
                         } else if (gid === 3) { // chordae
                             colors[idx] = 0.9; colors[idx + 1] = 0.82; colors[idx + 2] = 0.76;
                         } else {
@@ -2569,42 +2471,7 @@
                 valveGeometry.attributes.color.needsUpdate = true;
                 valveGeometry.computeVertexNormals();
 
-                // 3. Blood Flow Liquid Physics Rendering
-                if (liquidMesh && bloodParticles.length > 0) {
-                    liquidMesh.reset();
-
-                    const liquidSize = 140.0; // mm
-                    const minX = state.cx - liquidSize / 2;
-                    const minY = state.cy - liquidSize / 2;
-                    const minZ = state.zOrifice - liquidSize / 2;
-
-                    let pLaTemp = (typeof pLa !== 'undefined') ? pLa : 10;
-                    let pLvTemp = (typeof pLv !== 'undefined') ? pLv : 10;
-                    let vPeakTemp = (typeof vPeak !== 'undefined') ? vPeak : 0;
-                    let fOpenTemp = (typeof state.fOpen !== 'undefined') ? state.fOpen : 1.0;
-
-                    for (let i = 0; i < state.particleDensity; i++) {
-                        const p = bloodParticles[i];
-                        p.update(fOpenTemp, vPeakTemp, state.tCycle, pLaTemp, pLvTemp);
-
-                        if (p.age <= p.maxAge) {
-                            // Map coordinates to [0, 1] grid expected by Marching Cubes
-                            const mx = (p.x - minX) / liquidSize;
-                            const my = (p.y - minY) / liquidSize;
-                            const mz = (p.z - minZ) / liquidSize;
-
-                            if (mx > 0.05 && mx < 0.95 && my > 0.05 && my < 0.95 && mz > 0.05 && mz < 0.95) {
-                                // Add blob: (x, y, z, strength, subtract)
-                                liquidMesh.addBall(mx, my, mz, 0.08, 12);
-                            }
-                        }
-                    }
-
-                    // MarchingCubes default geometry spans from [-1, -1, -1] to [1, 1, 1].
-                    // Scale it by half the desired size to map [-1, 1] to [-size/2, size/2].
-                    liquidMesh.position.set(state.cx, state.cy, state.zOrifice);
-                    liquidMesh.scale.set(liquidSize / 2, liquidSize / 2, liquidSize / 2);
-                }
+                if (liquidMesh) updateFlow(delta,qFlow);
             }
 
             renderer.render(scene, camera);
@@ -2616,9 +2483,10 @@
 
         // Resize handler
         window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.aspect = container.clientWidth / container.clientHeight;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            fitAnatomy();
         });
 
         // Initialize default geometry mesh
@@ -2629,6 +2497,8 @@
             loadGeometry("./segmented_valve_mesh_smoothed.stl");
         }
 
+        document.querySelectorAll('label').forEach(label=>{const input=label.parentElement.querySelector('input');if(input)label.htmlFor=input.id;});
+        document.getElementById('geometry-select').setAttribute('aria-label','Patient anatomy');
         // Kickoff animation loop
         // requestAnimationFrame(animate);
 
