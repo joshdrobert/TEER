@@ -26,20 +26,19 @@ def optimize(geom: ValveGeometry, top_k: int = 3) -> list[dict]:
     scored = []
     for clip in _grid():
         result = simulate(geom, clip)
-        scored.append((objective(result), clip, result))
-    scored.sort(key=lambda t: t[0])
+        is_rec = result.within_physiologic_range and result.regurgitation_ml <= 1.0
+        scored.append((not is_rec, objective(result), clip, result, is_rec))
+    scored.sort(key=lambda x: (x[0], x[1]))
 
     ranked = []
-    for rank, (score, clip, result) in enumerate(scored[:top_k], start=1):
+    for rank, (_, score, clip, result, is_rec) in enumerate(scored[:top_k], start=1):
         ranked.append(
             {
                 "rank": rank,
                 "objective": round(score, 3),
                 "placement": asdict(clip),
                 "predicted": result.to_dict(),
-                "recommendation": "Recommended"
-                if result.within_physiologic_range and result.regurgitation_ml <= 1.0
-                else "Review",
+                "recommendation": "Recommended" if is_rec else "Review",
             }
         )
     return ranked
