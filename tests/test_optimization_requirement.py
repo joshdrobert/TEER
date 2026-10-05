@@ -178,3 +178,31 @@ def test_optimize_top_k_zero():
                 mock_objective.return_value = 10.0
                 ranked = optimize(geom, top_k=0)
                 assert ranked == []
+
+
+def _adversarial_ranking(monkeypatch, top_k):
+    """Shuffled objectives and descending positions expose unstable tie keys."""
+    from backend import optimization
+    clips = [ClipPlacement(pos, 4.0, 0.0, 1) for pos in (0.7, 0.6, 0.4, 0.3, 0.2, 0.1)]
+    recommended = (True, True, False, True, False, False)
+    results = [SimulationResult(0.5 if rec else 2.0, 3.0, 100.0, 1.0, True) for rec in recommended]
+    scores = dict(zip(map(id, results), (15.0, 10.0, 3.0, 10.0, 3.0, 1.0)))
+    monkeypatch.setattr(optimization, "_grid", lambda: iter(clips))
+    monkeypatch.setattr(optimization, "simulate", lambda geom, clip: results[clips.index(clip)])
+    monkeypatch.setattr(optimization, "objective", lambda result: scores[id(result)])
+    return optimization.optimize(MagicMock(spec=ValveGeometry), top_k=top_k)
+
+
+def test_shuffled_objectives_and_stable_ties_in_both_categories(monkeypatch):
+    ranked = _adversarial_ranking(monkeypatch, top_k=6)
+    assert [r["placement"]["position"] for r in ranked] == [0.6, 0.3, 0.7, 0.1, 0.4, 0.2]
+    assert [r["objective"] for r in ranked] == [10.0, 10.0, 15.0, 1.0, 3.0, 3.0]
+    assert [r["recommendation"] for r in ranked] == ["Recommended"] * 3 + ["Review"] * 3
+
+
+def test_sorting_precedes_top_k_truncation(monkeypatch):
+    ranked = _adversarial_ranking(monkeypatch, top_k=1)
+    assert len(ranked) == 1
+    # Best Recommended candidate is outside the original one-item prefix.
+    assert ranked[0]["placement"]["position"] == 0.6
+    assert ranked[0]["objective"] == 10.0
