@@ -1,5 +1,5 @@
-import pytest
 from unittest.mock import patch, MagicMock
+from dataclasses import asdict
 from backend.optimization import optimize
 from backend.hemodynamics import ClipPlacement, ValveGeometry, SimulationResult
 
@@ -37,12 +37,12 @@ def test_optimize_prioritizes_recommended():
     res5.to_dict.return_value = {"regurgitation_ml": 0.5}
 
     with patch('backend.optimization._grid') as mock_grid:
-        # 5 clips
-        clips = [ClipPlacement(i, 4.0, 0.0, 1) for i in range(5)]
+        # 5 clips, positions in [0, 1]
+        clips = [ClipPlacement(i/4, 4.0, 0.0, 1) for i in range(5)]
         mock_grid.return_value = clips
         
         with patch('backend.optimization.simulate') as mock_simulate:
-            # Return them in objective order: 2.0, 5.0, 10.0, 10.0, 15.0
+            # Return them in order: res4, res2, res1, res5, res3
             mock_simulate.side_effect = [res4, res2, res1, res5, res3]
             
             with patch('backend.optimization.objective') as mock_objective:
@@ -51,26 +51,36 @@ def test_optimize_prioritizes_recommended():
                 # Test top_k = 5
                 ranked = optimize(geom, top_k=5)
                 
-                # EXPECTED (with new logic):
+                # Expected order:
                 # Recommended (sorted by obj):
-                # 1. Res 1 (10.0)
-                # 2. Res 5 (10.0)
-                # 3. Res 3 (15.0)
+                # 1. Res 1 (10.0) - clips[2]
+                # 2. Res 5 (10.0) - clips[3]
+                # 3. Res 3 (15.0) - clips[4]
                 # Review (sorted by obj):
-                # 4. Res 4 (2.0)
-                # 5. Res 2 (5.0)
-                
+                # 4. Res 4 (2.0)  - clips[0]
+                # 5. Res 2 (5.0)  - clips[1]
+
                 assert len(ranked) == 5
+                # Res 1
                 assert ranked[0]["recommendation"] == "Recommended"
                 assert ranked[0]["objective"] == 10.0
+                assert ranked[0]["placement"] == asdict(clips[2])
+                # Res 5
                 assert ranked[1]["recommendation"] == "Recommended"
                 assert ranked[1]["objective"] == 10.0
+                assert ranked[1]["placement"] == asdict(clips[3])
+                # Res 3
                 assert ranked[2]["recommendation"] == "Recommended"
                 assert ranked[2]["objective"] == 15.0
+                assert ranked[2]["placement"] == asdict(clips[4])
+                # Res 4
                 assert ranked[3]["recommendation"] == "Review"
                 assert ranked[3]["objective"] == 2.0
+                assert ranked[3]["placement"] == asdict(clips[0])
+                # Res 2
                 assert ranked[4]["recommendation"] == "Review"
                 assert ranked[4]["objective"] == 5.0
+                assert ranked[4]["placement"] == asdict(clips[1])
 
 def test_optimize_top_k_behavior():
     geom = MagicMock(spec=ValveGeometry)
@@ -101,3 +111,70 @@ def test_optimize_top_k_behavior():
                 assert ranked[0]["recommendation"] == "Recommended"
                 assert ranked[0]["objective"] == 10.0
 
+def test_optimize_threshold_edge_case():
+    geom = MagicMock(spec=ValveGeometry)
+    
+    # Res 1: Recommended (threshold 1.0)
+    res1 = MagicMock(spec=SimulationResult)
+    res1.within_physiologic_range = True
+    res1.regurgitation_ml = 1.0
+    res1.to_dict.return_value = {"regurgitation_ml": 1.0}
+    
+    # Res 2: Review (just above 1.0)
+    res2 = MagicMock(spec=SimulationResult)
+    res2.within_physiologic_range = True
+    res2.regurgitation_ml = 1.001
+    res2.to_dict.return_value = {"regurgitation_ml": 1.001}
+
+    with patch('backend.optimization._grid') as mock_grid:
+        mock_grid.return_value = [ClipPlacement(0.5, 4.0, 0.0, 1), ClipPlacement(0.6, 4.0, 0.0, 1)]
+        with patch('backend.optimization.simulate') as mock_simulate:
+            mock_simulate.side_effect = [res1, res2]
+            with patch('backend.optimization.objective') as mock_objective:
+                mock_objective.side_effect = [10.0, 5.0]
+                
+                ranked = optimize(geom, top_k=2)
+                assert ranked[0]["recommendation"] == "Recommended"
+                assert ranked[1]["recommendation"] == "Review"
+
+def test_optimize_all_review():
+    geom = MagicMock(spec=ValveGeometry)
+    
+    # All are Review
+    res1 = MagicMock(spec=SimulationResult)
+    res1.within_physiologic_range = False
+    res1.regurgitation_ml = 0.5
+    res1.to_dict.return_value = {"regurgitation_ml": 0.5}
+    
+    res2 = MagicMock(spec=SimulationResult)
+    res2.within_physiologic_range = True
+    res2.regurgitation_ml = 2.0
+    res2.to_dict.return_value = {"regurgitation_ml": 2.0}
+
+    with patch('backend.optimization._grid') as mock_grid:
+        mock_grid.return_value = [ClipPlacement(0.5, 4.0, 0.0, 1), ClipPlacement(0.6, 4.0, 0.0, 1)]
+        with patch('backend.optimization.simulate') as mock_simulate:
+            mock_simulate.side_effect = [res1, res2]
+            with patch('backend.optimization.objective') as mock_objective:
+                mock_objective.side_effect = [10.0, 5.0]
+                
+                # Both are Review. Sorted by objective: res2 (5.0), then res1 (10.0)
+                ranked = optimize(geom, top_k=2)
+                assert ranked[0]["recommendation"] == "Review"
+                assert ranked[0]["objective"] == 5.0
+                assert ranked[1]["recommendation"] == "Review"
+                assert ranked[1]["objective"] == 10.0
+
+def test_optimize_top_k_zero():
+    geom = MagicMock(spec=ValveGeometry)
+    with patch('backend.optimization._grid') as mock_grid:
+        mock_grid.return_value = [ClipPlacement(0.5, 4.0, 0.0, 1)]
+        with patch('backend.optimization.simulate') as mock_simulate:
+            res = MagicMock(spec=SimulationResult)
+            res.within_physiologic_range = True
+            res.regurgitation_ml = 0.5
+            mock_simulate.return_value = res
+            with patch('backend.optimization.objective') as mock_objective:
+                mock_objective.return_value = 10.0
+                ranked = optimize(geom, top_k=0)
+                assert ranked == []
