@@ -29,15 +29,16 @@ def validate_mesh(file_path):
     try:
         m = mesh.Mesh.from_file(file_path)
         metrics["parse_success"] = True
-        all_coords = m.v0.flatten()
+        all_coords = np.concatenate([m.v0.flatten(), m.v1.flatten(), m.v2.flatten()])
         if np.all(np.isfinite(all_coords)):
             metrics["finite_coords"] = True
-        min_coords = np.min(m.v0, axis=0)
-        max_coords = np.max(m.v0, axis=0)
+        all_vertices = np.vstack([m.v0, m.v1, m.v2])
+        min_coords = np.min(all_vertices, axis=0)
+        max_coords = np.max(all_vertices, axis=0)
         metrics["bbox_min"] = min_coords.tolist()
         metrics["bbox_max"] = max_coords.tolist()
         metrics["coord_range"] = float(np.max(max_coords - min_coords))
-        metrics["centroid"] = np.mean(m.v0, axis=0).tolist()
+        metrics["centroid"] = np.mean(all_vertices, axis=0).tolist()
         metrics["surface_area"] = float(m.areas.sum())
 
         t_mesh = trimesh.load(file_path)
