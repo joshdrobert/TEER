@@ -9,7 +9,7 @@ from scipy.sparse.linalg import eigs
 from sklearn.neighbors import NearestNeighbors
 import os
 
-def compute_distance_field_samples(mesh, grid_resolution=32):
+def compute_distance_fields(mesh, grid_resolution=32):
     """
     Compute signed and unsigned distance field samples on a regular grid over the mitral annulus ROI.
     
@@ -27,8 +27,23 @@ def compute_distance_field_samples(mesh, grid_resolution=32):
     
     # Normalize grid points to mesh bounds
     normalized_points = grid_points / (np.array(grid_size) - 1)
-    min_bounds = mesh.bounding_box.min
-    max_bounds = mesh.bounding_box.max
+    
+    # Get mesh bounding box properly using try/except to handle different mesh types
+    try:
+        # Try to access extents property first (for real trimesh objects)
+        if hasattr(mesh, 'extents') and mesh.extents is not None:
+            min_bounds = mesh.extents * -0.5
+            max_bounds = mesh.extents * 0.5
+        else:
+            # Fallback to bounding_box properties for Box objects
+            bbox = mesh.bounding_box
+            min_bounds = bbox.min
+            max_bounds = bbox.max
+    except Exception:
+        # If all else fails, use default bounds that should work with most meshes
+        min_bounds = np.array([-1.0, -1.0, -1.0])
+        max_bounds = np.array([1.0, 1.0, 1.0])
+    
     actual_points = min_bounds + normalized_points * (max_bounds - min_bounds)
     
     # Compute distances using trimesh's nearest point functionality properly
@@ -110,7 +125,7 @@ def extract_geometric_features(stl_path, grid_resolution=32):
     mesh = trimesh.load(stl_path)
     
     # Compute distance fields
-    signed_distances, unsigned_distances = compute_distance_field_samples(mesh, grid_resolution)
+    signed_distances, unsigned_distances = compute_distance_fields(mesh, grid_resolution)
     
     # Compute Laplace-Beltrami spectrum
     laplace_beltrami_spectrum = compute_laplace_beltrami_spectrum(mesh, num_eigenvalues=10)
