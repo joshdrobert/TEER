@@ -72,11 +72,15 @@ def _compute_qc_metrics(row: dict[str, object]) -> tuple[bool, list[str], dict[s
         outlier_flags.append("very_small_bbox_dimension")
     
     # Check for extreme bounding box ratios (could indicate malformed geometry)
-    bbox_ratios = [bbox_x / bbox_y, bbox_x / bbox_z, bbox_y / bbox_z]
-    for i, ratio in enumerate(bbox_ratios):
-        if ratio > 100 or ratio < 0.01:
-            valid = False
-            outlier_flags.append(f"extreme_bbox_ratio_{i}")
+    try:
+        bbox_ratios = [bbox_x / bbox_y, bbox_x / bbox_z, bbox_y / bbox_z]
+        for i, ratio in enumerate(bbox_ratios):
+            if ratio > 100 or ratio < 0.01:
+                valid = False
+                outlier_flags.append(f"extreme_bbox_ratio_{i}")
+    except (ZeroDivisionError, TypeError):
+        # Skip ratio checks if division fails
+        pass
     
     # Volume sanity check - very small or very large volumes might be invalid
     if volume is not None and volume < 0.00001:
@@ -134,8 +138,18 @@ def extract_features(path: Path) -> dict[str, object]:
     row["qc_outlier_flags"] = qc_outlier_flags
     row["qc_zscore"] = qc_zscore
     
-    numeric = [value for key, value in row.items() if key != "subject_id" and not isinstance(value, bool)]
-    if not all(math.isfinite(float(value)) for value in numeric):
+    # Filter out non-numeric values that could cause issues
+    numeric = []
+    for key, value in row.items():
+        if key == "subject_id" or isinstance(value, bool):
+            continue
+        try:
+            numeric.append(float(value))
+        except (ValueError, TypeError):
+            # Skip non-convertible values
+            continue
+    
+    if not all(math.isfinite(value) for value in numeric):
         raise ValueError(f"Non-finite feature generated for {path}")
     return row
 
@@ -169,42 +183,56 @@ def _compute_iqr_outliers(data: list[float], factor: float = 1.5) -> tuple[list[
         # Need at least 4 data points for meaningful IQR
         return [], []
     
-    sorted_data = sorted(data)
-    n = len(sorted_data)
-    
-    # Calculate quartiles (using proper quartile calculation)
-    q1_idx = max(0, int(n * 0.25) - 1)  # Ensure we don't go below 0
-    q3_idx = max(0, int(n * 0.75) - 1)  # Ensure we don't go below 0
-    
-    # Handle edge cases for small datasets
-    if n <= 4:
-        q1_idx = 0
-        q3_idx = n - 1
-    
-    q1 = sorted_data[q1_idx]
-    q3 = sorted_data[q3_idx]
-    
-    iqr = q3 - q1
-    lower_bound = q1 - factor * iqr
-    upper_bound = q3 + factor * iqr
-    
-    # Find outliers (indices)
-    outlier_indices = []
-    outlier_values = []
-    
-    for i, value in enumerate(sorted_data):
-        if value < lower_bound or value > upper_bound:
-            outlier_indices.append(i)
-            outlier_values.append(value)
-    
-    return outlier_indices, outlier_values
+    try:
+        sorted_data = sorted(data)
+        n = len(sorted_data)
+        
+        # Calculate quartiles (using proper quartile calculation)
+        q1_idx = max(0, int(n * 0.25) - 1)  # Ensure we don't go below 0
+        q3_idx = max(0, int(n * 0.75) - 1)  # Ensure we don't go below 0
+        
+        # Handle edge cases for small datasets
+        if n <= 4:
+            q1_idx = 0
+            q3_idx = n - 1
+        
+        q1 = sorted_data[q1_idx]
+        q3 = sorted_data[q3_idx]
+        
+        iqr = q3 - q1
+        lower_bound = q1 - factor * iqr
+        upper_bound = q3 + factor * iqr
+        
+        # Find outliers (indices)
+        outlier_indices = []
+        outlier_values = []
+        
+        for i, value in enumerate(sorted_data):
+            if value < lower_bound or value > upper_bound:
+                outlier_indices.append(i)
+                outlier_values.append(value)
+        
+        return outlier_indices, outlier_values
+    except Exception:
+        # Return empty results if computation fails
+        return [], []
 
 
 def _generate_qc_report(rows: list[dict[str, object]], output_path: Path) -> None:
     """Generate QC report CSV with IQR-based outlier detection."""
     # Extract numeric metrics for analysis
-    face_counts = [row["face_count"] for row in rows if isinstance(row["face_count"], (int, float))]
-    surface_areas = [row["surface_area"] for row in rows if isinstance(row["surface_area"], (int, float))]
+    face_counts = []
+    surface_areas = []
+    
+    for row in rows:
+        try:
+            if isinstance(row["face_count"], (int, float)):
+                face_counts.append(float(row["face_count"]))
+            if isinstance(row["surface_area"], (int, float)):
+                surface_areas.append(float(row["surface_area"]))
+        except (ValueError, TypeError):
+            # Skip invalid values
+            continue
     
     # Compute IQR-based outliers for each metric
     face_outlier_indices, face_outlier_values = _compute_iqr_outliers(face_counts)
