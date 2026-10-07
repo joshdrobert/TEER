@@ -23,14 +23,18 @@ def test_compute_distance_fields():
     
     # Mock the nearest.on_surface method
     mock_mesh.nearest = Mock()
+    # For a 4x4x4 grid, we need 64 distance values
     mock_mesh.nearest.on_surface.return_value = (
-        np.array([[0.5, 0.5, 0.5]]),  # closest points
-        np.array([0.1]),              # distances  
-        np.array([0])                 # triangle ids
+        np.random.rand(64, 3),  # closest points  
+        np.random.rand(64),     # distances
+        np.array([0]*64)        # triangle ids
     )
     
+    # Mock the signed_distance method as well
+    mock_mesh.nearest.signed_distance.return_value = np.random.rand(64)
+    
     # Test with small grid resolution
-    signed_dists, unsigned_dists = gf.compute_distance_fields(mock_mesh, grid_resolution=4)
+    signed_dists, unsigned_dists = gf.compute_distance_field_samples(mock_mesh, grid_resolution=4)
     
     assert isinstance(signed_dists, np.ndarray)
     assert isinstance(unsigned_dists, np.ndarray)
@@ -57,7 +61,7 @@ def test_extract_geometric_features():
         mock_load.return_value = mock_mesh
         
         # Mock the distance field computation
-        with patch('teer_cdss.geometric_features.compute_distance_fields') as mock_dist_fields:
+        with patch('teer_cdss.geometric_features.compute_distance_field_samples') as mock_dist_fields:
             mock_dist_fields.return_value = (
                 np.random.rand(8, 8, 8), 
                 np.random.rand(8, 8, 8)
