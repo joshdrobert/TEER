@@ -29,6 +29,15 @@ def validate_mesh(file_path):
     try:
         m = mesh.Mesh.from_file(file_path)
         metrics["parse_success"] = True
+
+        # Zero-face STL: return truthful invalid result without fabricating bounds
+        if m.v0.size == 0:
+            metrics["faces"] = 0
+            metrics["vertices"] = 0
+            metrics["status"] = "GEOMETRY_INVALID"
+            metrics["error"] = "Zero-face STL: no geometry to validate"
+            return metrics
+
         all_coords = m.v0.flatten()
         if np.all(np.isfinite(all_coords)):
             metrics["finite_coords"] = True

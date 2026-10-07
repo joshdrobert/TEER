@@ -115,10 +115,42 @@ def test_adversarial_stl_with_all_nan():
         assert result["finite_coords"] == False
         os.unlink(f.name)
 
+def test_zero_face_stl_returns_invalid():
+    """Deterministic regression test: zero-face STL must return GEOMETRY_INVALID
+    without fabricated bounds, centroid, or other metrics."""
+    
+    # Create an empty mesh with zero faces
+    empty_mesh = mesh.Mesh(np.zeros(0, dtype=mesh.Mesh.dtype))
+    
+    with tempfile.NamedTemporaryFile(suffix='.stl', delete=False) as f:
+        empty_mesh.save(f.name)
+        result = validate_mesh(f.name)
+        
+        # Must parse successfully (file is valid STL format)
+        assert result["parse_success"] is True
+        
+        # Must report zero faces and vertices
+        assert result["faces"] == 0
+        assert result["vertices"] == 0
+        
+        # Must NOT fabricate bounds or centroid - these must be None
+        assert result["bbox_min"] is None
+        assert result["bbox_max"] is None
+        assert result["centroid"] is None
+        
+        # Must report GEOMETRY_INVALID, not PARSE_FAILED or QUALITY_WARNING
+        assert result["status"] == "GEOMETRY_INVALID"
+        
+        # Must have a descriptive error message
+        assert "zero-face" in result.get("error", "").lower()
+        
+        os.unlink(f.name)
+
 if __name__ == "__main__":
     test_finite_coordinates_check()
     test_nonfinite_coordinates_fail()
     test_bounding_box_includes_all_vertices()
     test_adversarial_stl_with_nan()
     test_adversarial_stl_with_all_nan()
+    test_zero_face_stl_returns_invalid()
     print("All tests passed!")
