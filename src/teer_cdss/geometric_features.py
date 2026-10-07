@@ -9,7 +9,7 @@ from scipy.sparse.linalg import eigs
 from sklearn.neighbors import NearestNeighbors
 import os
 
-def compute_distance_fields(mesh, grid_resolution=32):
+def compute_distance_field_samples(mesh, grid_resolution=32):
     """
     Compute signed and unsigned distance field samples on a regular grid over the mitral annulus ROI.
     
@@ -46,20 +46,25 @@ def compute_distance_fields(mesh, grid_resolution=32):
     
     actual_points = min_bounds + normalized_points * (max_bounds - min_bounds)
     
-    # Compute distances using trimesh's nearest point functionality properly
-    # mesh.nearest.on_surface returns (closest_xyz, unsigned_distance, triangle_id)
-    closest_points, unsigned_distances, triangle_ids = mesh.nearest.on_surface(actual_points)
-    
-    # Compute signed distances using proper trimesh API
-    # For signed distance, we need to use trimesh's signed distance function directly
+    # Compute signed and unsigned distances properly
     signed_distances = []
+    unsigned_distances = []
     
-    for i, point in enumerate(actual_points):
-        # Use trimesh's built-in signed distance function for better accuracy
-        signed_distance = mesh.nearest.signed_distance(point)
-        signed_distances.append(signed_distance)
+    for point in actual_points:
+        # Get both signed and unsigned distances using proper trimesh API
+        # For signed distance, use the signed_distance method directly
+        signed_dist = mesh.nearest.signed_distance(point)
+        signed_distances.append(signed_dist)
+        
+        # For unsigned distance, we can use on_surface which returns (closest_xyz, distance, triangle_id)
+        closest_xyz, dist, triangle_id = mesh.nearest.on_surface(point)
+        unsigned_distances.append(dist)
     
-    return np.array(signed_distances).reshape(grid_size), np.array(unsigned_distances).reshape(grid_size)
+    # Reshape to grid format
+    signed_distances = np.array(signed_distances).reshape(grid_size)
+    unsigned_distances = np.array(unsigned_distances).reshape(grid_size)
+    
+    return signed_distances, unsigned_distances
 
 def compute_laplace_beltrami_spectrum(mesh, num_eigenvalues=10):
     """
