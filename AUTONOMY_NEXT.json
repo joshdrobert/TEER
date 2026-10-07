@@ -1,0 +1,28 @@
+{
+  "tasks": [
+    {
+      "key": "feat-qc-layer",
+      "goal": "Add deterministic QC pipeline to extract_features.py: compute per-geometry validity checks (face count, volume, surface area sanity), flag outliers by IQR on each metric, write QC report CSV. Preserve existing feature columns and add qc_valid (bool), qc_outlier_flags (list[str]), qc_zscore dict.",
+      "files": ["scripts/extract_features.py"],
+      "tests": ["tests/test_extract_features_qc.py"],
+      "cwd": ".",
+      "role": "coder"
+    },
+    {
+      "key": "feat-geom-repr",
+      "goal": "Implement geometric representation module: compute signed/unsigned distance field samples on a regular grid over the mitral annulus ROI, plus Laplace-Beltrami spectrum features (first 10 eigenvalues) from STL mesh. Output as numpy arrays with consistent shape.",
+      "files": ["src/teer_cdss/geometric_features.py"],
+      "tests": ["tests/test_geometric_features.py"],
+      "cwd": ".",
+      "role": "coder"
+    },
+    {
+      "key": "doc-roadmap",
+      "goal": "Write a rigorous technical roadmap in PLAN.md: map each project objective to concrete tasks with file paths, estimate complexity, identify dependencies, and define success criteria for each milestone. Update PROGRESS.md with current milestone completion status.",
+      "files": ["PLAN.md", "PROGRESS.md"],
+      "tests": ["tests/test_plan_roadmap.py"],
+      "cwd": ".",
+      "role": "research"
+    }
+  ]
+}
