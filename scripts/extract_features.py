@@ -6,6 +6,7 @@ import argparse
 import csv
 import math
 import re
+import statistics
 from pathlib import Path
 
 import numpy as np
@@ -26,6 +27,68 @@ def subject_id(path: Path) -> str:
     if match is None:
         raise ValueError(f"Unexpected valve filename: {path.name}")
     return f"train_{match.group(1)}"
+
+
+def _compute_qc_metrics(row: dict[str, object]) -> tuple[bool, list[str], dict[str, float]]:
+    """Compute validity checks and outlier flags for a geometry row."""
+    # Extract numeric metrics
+    face_count = row["face_count"]
+    surface_area = row["surface_area"]
+    volume = row.get("volume", 0.0)  # Volume might not be in the basic features
+    
+    # Initialize metrics that can be computed from basic features
+    bbox_x = row["bbox_x"]
+    bbox_y = row["bbox_y"] 
+    bbox_z = row["bbox_z"]
+    
+    # Basic validity checks
+    valid = True
+    outlier_flags = []
+    zscores = {}
+    
+    # Face count sanity check - typical valve meshes should have reasonable face counts
+    # This is a rough estimate - actual thresholds would depend on data
+    if face_count < 10:
+        valid = False
+        outlier_flags.append("low_face_count")
+    elif face_count > 100000:
+        valid = False
+        outlier_flags.append("high_face_count")
+    
+    # Surface area sanity check - very small or very large surface areas might be invalid
+    if surface_area < 0.0001:
+        valid = False
+        outlier_flags.append("very_small_surface_area")
+    elif surface_area > 1000:
+        valid = False
+        outlier_flags.append("very_large_surface_area")
+    
+    # Bounding box sanity checks
+    if bbox_x < 0.001 or bbox_y < 0.001 or bbox_z < 0.001:
+        valid = False
+        outlier_flags.append("very_small_bbox_dimension")
+    
+    # Check for extreme bounding box ratios (could indicate malformed geometry)
+    bbox_ratios = [bbox_x / bbox_y, bbox_x / bbox_z, bbox_y / bbox_z]
+    for i, ratio in enumerate(bbox_ratios):
+        if ratio > 100 or ratio < 0.01:
+            valid = False
+            outlier_flags.append(f"extreme_bbox_ratio_{i}")
+    
+    # Compute z-scores for metrics if we have historical data (simulated here)
+    # In a real scenario, this would be based on the distribution of features in the dataset
+    
+    # For now, we'll just compute z-scores for face count and surface area
+    # These are placeholders - in practice these would come from reference distributions
+    if "face_count_reference" in row:
+        face_zscore = (face_count - row["face_count_reference"]) / (row["face_count_reference"] * 0.1) if row["face_count_reference"] > 0 else 0
+        zscores["face_count_zscore"] = float(face_zscore)
+    
+    if "surface_area_reference" in row:
+        surface_zscore = (surface_area - row["surface_area_reference"]) / (row["surface_area_reference"] * 0.1) if row["surface_area_reference"] > 0 else 0
+        zscores["surface_area_zscore"] = float(surface_zscore)
+    
+    return valid, outlier_flags, zscores
 
 
 def extract_features(path: Path) -> dict[str, object]:
@@ -58,6 +121,21 @@ def extract_features(path: Path) -> dict[str, object]:
         "is_watertight": bool(loaded.is_watertight),
         "max_extent": float(extents.max()),
     }
+    
+    # Add volume if available
+    try:
+        volume = loaded.volume
+        row["volume"] = float(volume)
+    except Exception:
+        # If volume computation fails, we'll skip it
+        pass
+    
+    # Add QC fields
+    qc_valid, qc_outlier_flags, qc_zscore = _compute_qc_metrics(row)
+    row["qc_valid"] = qc_valid
+    row["qc_outlier_flags"] = qc_outlier_flags
+    row["qc_zscore"] = qc_zscore
+    
     numeric = [value for key, value in row.items() if key != "subject_id" and not isinstance(value, bool)]
     if not all(math.isfinite(float(value)) for value in numeric):
         raise ValueError(f"Non-finite feature generated for {path}")
@@ -80,11 +158,114 @@ def extract_table(valve_dir: Path, output_csv: Path, expected_subjects: int = 10
     output_csv.parent.mkdir(parents=True, exist_ok=True)
     temporary = output_csv.with_suffix(output_csv.suffix + ".tmp")
     with temporary.open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=FEATURE_COLUMNS)
+        writer = csv.DictWriter(handle, fieldnames=FEATURE_COLUMNS + ["qc_valid", "qc_outlier_flags", "qc_zscore"])
         writer.writeheader()
         writer.writerows(rows)
     temporary.replace(output_csv)
     return rows
+
+
+def _compute_iqr_outliers(data: list[float], factor: float = 1.5) -> tuple[list[int], list[float]]:
+    """Compute IQR-based outliers for a list of numeric values."""
+    if len(data) < 4:
+        # Need at least 4 data points for meaningful IQR
+        return [], []
+    
+    sorted_data = sorted(data)
+    n = len(sorted_data)
+    
+    # Calculate quartiles
+    q1_idx = n // 4
+    q3_idx = 3 * n // 4
+    
+    q1 = sorted_data[q1_idx]
+    q3 = sorted_data[q3_idx]
+    
+    iqr = q3 - q1
+    lower_bound = q1 - factor * iqr
+    upper_bound = q3 + factor * iqr
+    
+    # Find outliers (indices)
+    outlier_indices = []
+    outlier_values = []
+    
+    for i, value in enumerate(sorted_data):
+        if value < lower_bound or value > upper_bound:
+            outlier_indices.append(i)
+            outlier_values.append(value)
+    
+    return outlier_indices, outlier_values
+
+
+def _generate_qc_report(rows: list[dict[str, object]], output_path: Path) -> None:
+    """Generate QC report CSV with IQR-based outlier detection."""
+    # Extract numeric metrics for analysis
+    face_counts = [row["face_count"] for row in rows if isinstance(row["face_count"], (int, float))]
+    surface_areas = [row["surface_area"] for row in rows if isinstance(row["surface_area"], (int, float))]
+    
+    # Compute IQR-based outliers for each metric
+    face_outlier_indices, face_outlier_values = _compute_iqr_outliers(face_counts)
+    surf_outlier_indices, surf_outlier_values = _compute_iqr_outliers(surface_areas)
+    
+    # Create report data
+    report_rows = []
+    for i, row in enumerate(rows):
+        report_row = {
+            "subject_id": row["subject_id"],
+            "face_count": row["face_count"],
+            "surface_area": row["surface_area"],
+            "is_valid": row["qc_valid"],
+            "outlier_flags": ",".join(row["qc_outlier_flags"]) if row["qc_outlier_flags"] else ""
+        }
+        
+        # Mark if this subject is an outlier for any metric
+        is_face_outlier = i in face_outlier_indices
+        is_surf_outlier = i in surf_outlier_indices
+        
+        if is_face_outlier or is_surf_outlier:
+            report_row["is_outlier"] = "true"
+        else:
+            report_row["is_outlier"] = "false"
+            
+        report_rows.append(report_row)
+    
+    # Write QC report
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = output_path.with_suffix(output_path.suffix + ".tmp")
+    with temporary.open("w", newline="") as handle:
+        fieldnames = ["subject_id", "face_count", "surface_area", "is_valid", "outlier_flags", "is_outlier"]
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(report_rows)
+    temporary.replace(output_path)
+
+
+def run(paths: list[Path], output_dir: Path) -> None:
+    """Run the full feature extraction and QC pipeline."""
+    # Extract features for all paths
+    rows = []
+    for path in paths:
+        try:
+            row = extract_features(path)
+            rows.append(row)
+        except Exception as e:
+            print(f"Error processing {path}: {e}")
+    
+    # Generate output CSV with features (including QC fields)
+    output_csv = output_dir / "subject_geometry_features.csv"
+    feature_columns_with_qc = FEATURE_COLUMNS + ["qc_valid", "qc_outlier_flags", "qc_zscore"]
+    
+    output_csv.parent.mkdir(parents=True, exist_ok=True)
+    temporary = output_csv.with_suffix(output_csv.suffix + ".tmp")
+    with temporary.open("w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=feature_columns_with_qc)
+        writer.writeheader()
+        writer.writerows(rows)
+    temporary.replace(output_csv)
+    
+    # Generate QC report
+    qc_report_path = output_dir / "qc_report.csv"
+    _generate_qc_report(rows, qc_report_path)
 
 
 def main() -> int:
