@@ -14,3 +14,5 @@
 - Verified 2026-10-07 task 22 (doc-roadmap): Write a rigorous technical roadmap in PLAN.md: map each project objective to concrete tasks with file paths, estimate complexity, identify dependencies, and define success criteria for each milestone. Update PROGRESS.md with current milestone completion status.; checks acceptance=2 passed
 
 - Verified 2026-10-07 task 22 (doc-roadmap): Write a rigorous technical roadmap in PLAN.md: map each project objective to concrete tasks with file paths, estimate complexity, identify dependencies, and define success criteria for each milestone. Update PROGRESS.md with current milestone completion status.; checks acceptance=2 passed
+
+- Verified 2026-10-07 task 20 (feat-qc-layer): Add deterministic QC pipeline to extract_features.py: compute per-geometry validity checks (face count, volume, surface area sanity), flag outliers by IQR on each metric, write QC report CSV. Preserve existing feature columns and add qc_valid (bool), qc_outlier_flags (list[str]), qc_zscore dict.; checks acceptance=3 passed
