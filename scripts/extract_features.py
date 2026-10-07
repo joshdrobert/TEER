@@ -18,7 +18,7 @@ FEATURE_COLUMNS = [
     "subject_id", "vertex_count", "face_count", "surface_area",
     "bbox_x", "bbox_y", "bbox_z", "centroid_x", "centroid_y", "centroid_z",
     "axis_1_len", "axis_2_len", "axis_3_len", "component_count",
-    "is_watertight", "max_extent",
+    "is_watertight", "max_extent", "volume",
 ]
 
 
