@@ -38,7 +38,7 @@ def validate_mesh(file_path):
             metrics["error"] = "Zero-face STL: no geometry to validate"
             return metrics
 
-        all_coords = m.v0.flatten()
+        all_coords = np.concatenate([m.v0.flatten(), m.v1.flatten(), m.v2.flatten()])
         if np.all(np.isfinite(all_coords)):
             metrics["finite_coords"] = True
         min_coords = np.min(m.v0, axis=0)
