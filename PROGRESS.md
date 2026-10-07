@@ -20,3 +20,5 @@
 - Verified 2026-10-07 task 21 (feat-geom-repr): Implement geometric representation module: compute signed/unsigned distance field samples on a regular grid over the mitral annulus ROI, plus Laplace-Beltrami spectrum features (first 10 eigenvalues) from STL mesh. Output as numpy arrays with consistent shape.; checks acceptance=5 passed, signed-distance-semantics=1 passed
 
 - Verified 2026-10-07 task 21 (feat-geom-repr): Implement geometric representation module: compute signed/unsigned distance field samples on a regular grid over the mitral annulus ROI, plus Laplace-Beltrami spectrum features (first 10 eigenvalues) from STL mesh. Output as numpy arrays with consistent shape.; checks acceptance=5 passed, signed-distance-semantics=1 passed
+
+- Verified 2026-10-07 task 21 (feat-geom-repr): Implement geometric representation module: compute signed/unsigned distance field samples on a regular grid over the mitral annulus ROI, plus Laplace-Beltrami spectrum features (first 10 eigenvalues) from STL mesh. Output as numpy arrays with consistent shape.; checks acceptance=5 passed, signed-distance-semantics=1 passed
