@@ -1,0 +1,8 @@
+Validating 105 valve surfaces...
+
+=== GEOMETRY VALIDATION SUMMARY ===
+Meshes Parsed: 105/105
+Finite Coordinates: 105/105
+Quality Warnings: 0/105
+Watertight: 0/105
+Results saved to: /Users/joshdrobert/AI-Server/worktrees/TEER/geometry-audit/artifacts/geometry_validation.csv
