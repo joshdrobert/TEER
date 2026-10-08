@@ -28,3 +28,5 @@
 - Verified 2026-10-08 task 70 (teer-anatomy-contract): Write research/anatomy_contract.yaml documenting units/frame/mesh provenance and exactly which anatomy/landmarks are observable.; checks acceptance=4 passed
 
 - Verified 2026-10-08 task 70 (teer-anatomy-contract): Write research/anatomy_contract.yaml documenting units/frame/mesh provenance and exactly which anatomy/landmarks are observable.; checks acceptance=4 passed
+
+- Verified 2026-10-08 task 70 (teer-anatomy-contract): Write research/anatomy_contract.yaml documenting units/frame/mesh provenance and exactly which anatomy/landmarks are observable.; checks acceptance=4 passed
