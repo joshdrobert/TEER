@@ -64,3 +64,5 @@
 - Verified 2026-10-08 task 186 (teer-geometric-representation): Develop geometric representation module in src/teer_cdss/geometric_features.py computing signed/unsigned distance field samples and Laplace-Beltrami spectrum features from STL mesh.; checks acceptance=4 passed
 
 - Verified 2026-10-08 task 186 (teer-geometric-representation): Develop geometric representation module in src/teer_cdss/geometric_features.py computing signed/unsigned distance field samples and Laplace-Beltrami spectrum features from STL mesh.; checks acceptance=4 passed
+
+- Verified 2026-10-08 task 186 (teer-geometric-representation): Develop geometric representation module in src/teer_cdss/geometric_features.py computing signed/unsigned distance field samples and Laplace-Beltrami spectrum features from STL mesh.; checks acceptance=4 passed
