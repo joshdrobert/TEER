@@ -221,15 +221,12 @@ class UnitValidator:
         # Volume is length cubed (L^3)
         expected_volume = Unit(length=3.0)
         
-        # Check if all three units are length units
-        if (unit1.length == 1.0 and unit2.length == 1.0 and unit3.length == 1.0):
-            return True
-            
-        # If they're already volume units, that's also fine
-        if (unit1.length == 3.0 and unit2.length == 3.0 and unit3.length == 3.0):
-            return True
-            
-        return False
+        dimensions = ('mass', 'length', 'time', 'current', 'temperature', 'amount', 'luminous_intensity')
+        return all(
+            sum(getattr(unit, dimension) for unit in (unit1, unit2, unit3))
+            == getattr(expected_volume, dimension)
+            for dimension in dimensions
+        )
     
     def _are_units_dimensionally_consistent(self, expected: Unit, actual: Unit) -> bool:
         """
@@ -315,7 +312,11 @@ class UnitValidator:
                 output_units = op_data['output_units']
                 
                 # Validate that units are consistent within the operation
-                if not self._are_units_dimensionally_consistent(input_units, output_units):
+                expected_output = input_units
+                if op_name == 'compute_volume':
+                    dimensions = ('mass', 'length', 'time', 'current', 'temperature', 'amount', 'luminous_intensity')
+                    expected_output = Unit(**{dimension: 3 * getattr(input_units, dimension) for dimension in dimensions})
+                if not self._are_units_dimensionally_consistent(expected_output, output_units):
                     raise UnitConsistencyError(
                         f"Operation '{op_name}' has inconsistent input/output units"
                     )
