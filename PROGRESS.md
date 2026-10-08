@@ -67,6 +67,6 @@
 
 - Verified 2026-10-08 task 186 (teer-geometric-representation): Develop geometric representation module in src/teer_cdss/geometric_features.py computing signed/unsigned distance field samples and Laplace-Beltrami spectrum features from STL mesh.; checks acceptance=4 passed
 
-- Verified 2026-10-08 task 201 (local-repair-185-1): Decompose the recorded failure into a small local repair plan for task 185. Preserve its objective and acceptance checks; write AUTONOMY_NEXT.json.; checks plan-contract=1 passed
+- Verified 2026-10-08 task 187 (teer-clip-placement-decision): Create clip placement decision support module in src/teer_cdss/clip_placement.py connecting geometric features to TEER procedure recommendations.; checks acceptance=7 passed
 
-- Verified 2026-10-08 task 185 (teer-feature-qc-pipeline): Implement QC pipeline in scripts/extract_features.py to compute per-geometry validity checks (face count, volume, surface area), flag outliers by IQR, and write QC report CSV.; checks acceptance=3 passed
+- Verified 2026-10-08 task 187 (teer-clip-placement-decision): Create clip placement decision support module in src/teer_cdss/clip_placement.py connecting geometric features to TEER procedure recommendations.; checks acceptance=7 passed
