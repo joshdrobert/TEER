@@ -2,26 +2,26 @@
   "tasks": [
 
     {
-      "key": "teer-anatomy-contract",
-      "goal": "Write research/anatomy_contract.yaml from source metadata documenting units/frame/mesh provenance and exactly which anatomy/landmarks are observable.",
-      "files": ["research/anatomy_contract.yaml", "valves_metadata.json"],
-      "tests": ["tests/test_anatomy_contract.py"],
+      "key": "teer-phenotype",
+      "goal": "Define morphological phenotypes and placement parameters from geometry with uncertainty bounds, implement classifier without label leakage.",
+      "files": ["src/teer_cdss/phenotype_classifier.py", "research/phenotype_definitions.json"],
+      "tests": ["tests/test_phenotype_classification.py"],
       "cwd": ".",
       "role": "research"
     },
     {
-      "key": "teer-transform-repeatability",
-      "goal": "Add bounded alignment/feature invariance assessment on a handful of existing licensed meshes and record research/geometry_repeatability.json.",
-      "files": ["src/teer_cdss/mesh.py", "research/geometry_repeatability.json"],
-      "tests": ["tests/test_transform_repeatability.py"],
+      "key": "teer-physics-rom-validation",
+      "goal": "Implement reduced-order model validation checks including conservation/convergence comparisons against measured or independent reference data.",
+      "files": ["src/teer_cdss/rom_validator.py", "research/physics_validation_metrics.json"],
+      "tests": ["tests/test_rom_validation.py"],
       "cwd": ".",
       "role": "research"
     },
     {
-      "key": "teer-validation-matrix",
-      "goal": "Write research/placement_validation_protocol documenting multiobjective optimization and sensitivity analysis specifications.",
-      "files": ["research/placement_validation_protocol.py"],
-      "tests": ["tests/test_placement_validation.py"],
+      "key": "teer-unit-consistency",
+      "goal": "Add explicit unit consistency verification across coordinate frames, mesh transformations, and feature computations beyond provenance documentation.",
+      "files": ["src/teer_cdss/unit_validator.py", "tests/test_unit_consistency.py"],
+      "tests": ["tests/test_unit_consistency.py"],
       "cwd": ".",
       "role": "research"
     }
