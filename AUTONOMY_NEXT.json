@@ -2,28 +2,28 @@
   "tasks": [
 
     {
-      "key": "teer-phenotype",
-      "goal": "Define morphological phenotypes and placement parameters from geometry with uncertainty bounds, implement classifier without label leakage.",
-      "files": ["src/teer_cdss/phenotype_classifier.py", "research/phenotype_definitions.json"],
-      "tests": ["tests/test_phenotype_classification.py"],
+      "key": "teer-anatomy-contract",
+      "goal": "Write research/anatomy_contract.yaml documenting units/frame/mesh provenance and exactly which anatomy/landmarks are observable from source metadata.",
+      "files": ["valves_metadata.json", "scripts/validate_geometries.py", "scripts/extract_features.py"],
+      "tests": ["research/test_anatomy_contract_verification.py"],
       "cwd": ".",
       "role": "research"
     },
     {
-      "key": "teer-physics-rom-validation",
-      "goal": "Implement reduced-order model validation checks including conservation/convergence comparisons against measured or independent reference data.",
-      "files": ["src/teer_cdss/rom_validator.py", "research/physics_validation_metrics.json"],
-      "tests": ["tests/test_rom_validation.py"],
+      "key": "teer-transform-repeatability",
+      "goal": "Add bounded alignment/feature invariance assessment on licensed meshes and record research/geometry_repeatability.json documenting area/volume invariant tolerance.",
+      "files": ["src/teer_cdss/mesh.py", "scripts/extract_features.py"],
+      "tests": ["research/test_geometry_repeatability.py"],
       "cwd": ".",
       "role": "research"
     },
     {
-      "key": "teer-unit-consistency-repair-150",
-      "goal": "Fix unit_validator to properly detect L vs L^3 inconsistency in compute_volume operation: modify _are_units_dimensionally_consistent to handle dimensional scaling (power relationships) rather than equality checks; add regression test for volume operations.",
-      "files": ["src/teer_cdss/unit_validator.py", "tests/test_unit_consistency.py"],
-      "tests": ["tests/test_unit_consistency.py"],
+      "key": "teer-validation-matrix",
+      "goal": "Write research/placement_validation_protocol documenting multiobjective optimization and sensitivity analysis specifications for clip-placement decision support.",
+      "files": ["research/placement_validation_protocol.md"],
+      "tests": ["research/test_placement_validation_specification.py"],
       "cwd": ".",
-      "role": "coder"
+      "role": "research"
     }
   ]
 }
