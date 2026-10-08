@@ -60,3 +60,7 @@
 - Verified 2026-10-08 task 179 (teer-homogeneous-transform-validation-20261008): Reject nonfinite, singular and non-affine homogeneous mesh transforms before validating unit consistency. Current4x4 determinant failure is ignored with pass. Preserve legitimate translation, rotation and explicitly compatible scale transforms; do not claim clinical validation.; checks preserved-contract-and-new-boundary=22 passed
 
 - Verified 2026-10-08 task 181 (plan-after-179): Decompose next unfinished PLAN milestone into at most three bounded tasks with relevant files and executable acceptance tests. Write AUTONOMY_NEXT.json; preserve verified work.; checks plan-contract=1 passed
+
+- Verified 2026-10-08 task 186 (teer-geometric-representation): Develop geometric representation module in src/teer_cdss/geometric_features.py computing signed/unsigned distance field samples and Laplace-Beltrami spectrum features from STL mesh.; checks acceptance=4 passed
+
+- Verified 2026-10-08 task 186 (teer-geometric-representation): Develop geometric representation module in src/teer_cdss/geometric_features.py computing signed/unsigned distance field samples and Laplace-Beltrami spectrum features from STL mesh.; checks acceptance=4 passed

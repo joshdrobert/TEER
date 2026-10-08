@@ -149,15 +149,19 @@ def validate_geometric_features(features_dict):
     Returns:
     bool indicating if all arrays have consistent shape
     """
-    # Check that all arrays are numpy arrays
-    arrays = [features_dict[key] for key in features_dict.keys() if key != 'laplace_beltrami_spectrum']
+    # Check that required keys are present
+    required_keys = ['signed_distances', 'unsigned_distances', 'laplace_beltrami_spectrum']
+    for key in required_keys:
+        if key not in features_dict:
+            return False
     
-    # All distance arrays should be 3D with same shape
-    if not all(isinstance(arr, np.ndarray) and arr.ndim == 3 for arr in arrays):
+    # Check that distance arrays are numpy arrays and 3D
+    distance_arrays = [features_dict['signed_distances'], features_dict['unsigned_distances']]
+    if not all(isinstance(arr, np.ndarray) and arr.ndim == 3 for arr in distance_arrays):
         return False
         
     # Check that distance arrays have same shape
-    shapes = [arr.shape for arr in arrays]
+    shapes = [arr.shape for arr in distance_arrays]
     if len(set(shapes)) > 1:
         return False
         
