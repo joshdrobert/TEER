@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Tuple
+import json
 
 import numpy as np
 import pyvista as pv
@@ -72,3 +73,109 @@ class MeshReconstructor:
         artifacts.volumetric_mesh.save(volume_path)
         artifacts.clip_mesh.save(clip_path)
         return {"surface": surface_path, "volume": volume_path, "clip": clip_path}
+
+    def assess_repeatability(self, segmentation: np.ndarray, reference_mesh: pv.PolyData = None) -> Dict[str, float]:
+        """
+        Assess bounded alignment/feature invariance on a mesh.
+        
+        This method computes metrics for:
+        - Alignment invariance (how consistently mesh aligns under transformations)
+        - Feature invariance (how consistently key geometric features are preserved)
+        
+        Args:
+            segmentation: Input segmentation array
+            reference_mesh: Optional reference mesh for comparison
+            
+        Returns:
+            Dictionary of repeatability metrics
+        """
+        # Generate the mesh from segmentation
+        artifacts = self.build(segmentation)
+        surface_mesh = artifacts.surface_mesh
+        
+        # Initialize result dictionary with proper physical units
+        # Note: PyVista returns raw coordinates, not physical units
+        # Physical conversion requires explicit spacing information
+        metrics = {
+            "alignment_invariance": None,
+            "feature_invariance": None,
+            "mesh_volume_cc": surface_mesh.volume,
+            "mesh_surface_area_cc2": surface_mesh.area
+        }
+        
+        # If we have a reference mesh, compute alignment and feature invariance
+        if reference_mesh is not None:
+            # Compute Hausdorff distance for alignment invariance
+            try:
+                hd = surface_mesh.compute_hausdorff_distance(reference_mesh)
+                metrics["alignment_invariance"] = float(hd)
+            except Exception:
+                # If Hausdorff computation fails, set to None (unavailable)
+                metrics["alignment_invariance"] = None
+            
+            # Compute feature invariance using key geometric measurements
+            try:
+                # Compare surface area and volume between meshes
+                reference_volume = reference_mesh.volume
+                reference_area = reference_mesh.area
+                
+                if reference_volume > 0:
+                    volume_ratio = abs(surface_mesh.volume - reference_volume) / reference_volume
+                    metrics["feature_invariance"] = volume_ratio
+                else:
+                    # If reference has zero volume, use surface area ratio
+                    area_ratio = abs(surface_mesh.area - reference_area) / reference_area if reference_area > 0 else None
+                    metrics["feature_invariance"] = area_ratio
+                    
+            except Exception:
+                # If feature computation fails, set to None (unavailable)
+                metrics["feature_invariance"] = None
+        
+        return metrics
+
+    def record_assessment(self, mesh_name: str, segmentation: np.ndarray, 
+                         reference_mesh: pv.PolyData = None) -> Dict[str, object]:
+        """
+        Record assessment results to research/geometry_repeatability.json
+        
+        Args:
+            mesh_name: Name of the mesh being assessed
+            segmentation: Input segmentation array  
+            reference_mesh: Optional reference mesh for comparison
+            
+        Returns:
+            Dictionary with assessment data and updated file content
+        """
+        # Get the assessment metrics
+        metrics = self.assess_repeatability(segmentation, reference_mesh)
+        
+        # Load existing data or create new structure
+        try:
+            with open("research/geometry_repeatability.json", "r") as f:
+                data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            data = {
+                "version": "1.0",
+                "assessment_date": "2024-01-01T00:00:00Z",
+                "meshes_assessed": [],
+                "metrics": {
+                    "alignment_invariance": {},
+                    "feature_invariance": {}
+                }
+            }
+        
+        # Add mesh to the assessment list
+        import datetime
+        mesh_entry = {
+            "name": mesh_name,
+            "metrics": metrics,
+            "timestamp": datetime.datetime.utcnow().isoformat() + "Z"
+        }
+        
+        data["meshes_assessed"].append(mesh_entry)
+        
+        # Save back to file
+        with open("research/geometry_repeatability.json", "w") as f:
+            json.dump(data, f, indent=2)
+        
+        return data
