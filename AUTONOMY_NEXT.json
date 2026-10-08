@@ -18,12 +18,12 @@
       "role": "research"
     },
     {
-      "key": "teer-unit-consistency",
-      "goal": "Add explicit unit consistency verification across coordinate frames, mesh transformations, and feature computations beyond provenance documentation.",
+      "key": "teer-unit-consistency-repair-150",
+      "goal": "Fix unit_validator to properly detect L vs L^3 inconsistency in compute_volume operation.",
       "files": ["src/teer_cdss/unit_validator.py", "tests/test_unit_consistency.py"],
       "tests": ["tests/test_unit_consistency.py"],
       "cwd": ".",
-      "role": "research"
+      "role": "coder"
     }
   ]
 }
