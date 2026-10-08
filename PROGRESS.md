@@ -50,3 +50,5 @@
 - Verified 2026-10-08 task 149 (teer-physics-rom-validation): Implement reduced-order model validation checks including conservation/convergence comparisons against measured or independent reference data.; checks acceptance=7 passed
 
 - Verified 2026-10-08 task 154 (local-repair-150-1): Decompose the recorded failure into a small local repair plan for task 150. Preserve its objective and acceptance checks; write AUTONOMY_NEXT.json.; checks plan-contract=1 passed
+
+- Verified 2026-10-08 task 160 (local-repair-150-2): Decompose the recorded failure into a small local repair plan for task 150. Preserve its objective and acceptance checks; write AUTONOMY_NEXT.json.; checks plan-contract=1 passed

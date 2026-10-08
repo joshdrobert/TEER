@@ -19,7 +19,7 @@
     },
     {
       "key": "teer-unit-consistency-repair-150",
-      "goal": "Fix unit_validator to properly detect L vs L^3 inconsistency in compute_volume operation.",
+      "goal": "Fix unit_validator to properly detect L vs L^3 inconsistency in compute_volume operation: modify _are_units_dimensionally_consistent to handle dimensional scaling (power relationships) rather than equality checks; add regression test for volume operations.",
       "files": ["src/teer_cdss/unit_validator.py", "tests/test_unit_consistency.py"],
       "tests": ["tests/test_unit_consistency.py"],
       "cwd": ".",
