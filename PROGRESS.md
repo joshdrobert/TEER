@@ -70,3 +70,5 @@
 - Verified 2026-10-08 task 187 (teer-clip-placement-decision): Create clip placement decision support module in src/teer_cdss/clip_placement.py connecting geometric features to TEER procedure recommendations.; checks acceptance=7 passed
 
 - Verified 2026-10-08 task 187 (teer-clip-placement-decision): Create clip placement decision support module in src/teer_cdss/clip_placement.py connecting geometric features to TEER procedure recommendations.; checks acceptance=7 passed
+
+- Verified 2026-10-08 task 187 (teer-clip-placement-decision): Create clip placement decision support module in src/teer_cdss/clip_placement.py connecting geometric features to TEER procedure recommendations.; checks acceptance=7 passed
