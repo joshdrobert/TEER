@@ -99,8 +99,8 @@ class MeshReconstructor:
         metrics = {
             "alignment_invariance": None,
             "feature_invariance": None,
-            "mesh_volume_cc": surface_mesh.volume,
-            "mesh_surface_area_cc2": surface_mesh.area
+            "mesh_volume_raw": surface_mesh.volume,
+            "mesh_surface_area_raw": surface_mesh.area
         }
         
         # If we have a reference mesh, compute alignment and feature invariance
@@ -108,7 +108,11 @@ class MeshReconstructor:
             # Compute Hausdorff distance for alignment invariance
             try:
                 hd = surface_mesh.compute_hausdorff_distance(reference_mesh)
-                metrics["alignment_invariance"] = float(hd)
+                # Check for finite values to avoid infinity
+                if np.isfinite(hd):
+                    metrics["alignment_invariance"] = float(hd)
+                else:
+                    metrics["alignment_invariance"] = None
             except Exception:
                 # If Hausdorff computation fails, set to None (unavailable)
                 metrics["alignment_invariance"] = None
@@ -121,11 +125,22 @@ class MeshReconstructor:
                 
                 if reference_volume > 0:
                     volume_ratio = abs(surface_mesh.volume - reference_volume) / reference_volume
-                    metrics["feature_invariance"] = volume_ratio
+                    # Check for finite values to avoid infinity
+                    if np.isfinite(volume_ratio):
+                        metrics["feature_invariance"] = volume_ratio
+                    else:
+                        metrics["feature_invariance"] = None
                 else:
                     # If reference has zero volume, use surface area ratio
-                    area_ratio = abs(surface_mesh.area - reference_area) / reference_area if reference_area > 0 else None
-                    metrics["feature_invariance"] = area_ratio
+                    if reference_area > 0:
+                        area_ratio = abs(surface_mesh.area - reference_area) / reference_area
+                        # Check for finite values to avoid infinity
+                        if np.isfinite(area_ratio):
+                            metrics["feature_invariance"] = area_ratio
+                        else:
+                            metrics["feature_invariance"] = None
+                    else:
+                        metrics["feature_invariance"] = None
                     
             except Exception:
                 # If feature computation fails, set to None (unavailable)
@@ -154,9 +169,10 @@ class MeshReconstructor:
             with open("research/geometry_repeatability.json", "r") as f:
                 data = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
+            import datetime
             data = {
                 "version": "1.0",
-                "assessment_date": "2024-01-01T00:00:00Z",
+                "assessment_date": datetime.datetime.utcnow().isoformat() + "Z",
                 "meshes_assessed": [],
                 "metrics": {
                     "alignment_invariance": {},

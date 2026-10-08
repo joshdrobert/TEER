@@ -1,0 +1,9 @@
+{
+    "version": "1.0",
+    "assessment_date": "2024-01-01T00:00:00Z",
+    "meshes_assessed": [],
+    "metrics": {
+        "alignment_invariance": {},
+        "feature_invariance": {}
+    }
+}
