@@ -42,3 +42,7 @@
 - Verified 2026-10-08 task 143 (plan-after-116-unused-milestones): Decompose next unfinished PLAN milestone into at most three bounded tasks with relevant files and executable acceptance tests. Write AUTONOMY_NEXT.json; preserve verified work.; checks plan-contract=1 passed
 
 - Verified 2026-10-08 task 148 (teer-phenotype): Define morphological phenotypes and placement parameters from geometry with uncertainty bounds, implement classifier without label leakage.; checks acceptance=7 passed
+
+- Verified 2026-10-08 task 149 (teer-physics-rom-validation): Implement reduced-order model validation checks including conservation/convergence comparisons against measured or independent reference data.; checks acceptance=7 passed
+
+- Verified 2026-10-08 task 149 (teer-physics-rom-validation): Implement reduced-order model validation checks including conservation/convergence comparisons against measured or independent reference data.; checks acceptance=7 passed

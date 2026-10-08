@@ -1,0 +1,20 @@
+{
+  "conservation": {
+    "mass_conservation_tolerance": 1e-6,
+    "energy_conservation_tolerance": 1e-4,
+    "momentum_conservation_tolerance": 1e-5
+  },
+  "convergence": {
+    "expected_convergence_rate": 2.0,
+    "acceptable_error_threshold": 1e-3
+  },
+  "reference_data": {
+    "measurement_uncertainty": 0.01,
+    "validation_tolerance": 0.05
+  },
+  "model_parameters": {
+    "time_step": 0.01,
+    "spatial_resolution": 100,
+    "number_of_modes": 50
+  }
+}
