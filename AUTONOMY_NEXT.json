@@ -1,13 +1,6 @@
 {
   "tasks": [
-    {
-      "key": "teer-anatomy-contract",
-      "goal": "Write research/anatomy_contract.yaml documenting units/frame/mesh provenance and exactly which anatomy/landmarks are observable.",
-      "files": ["research/anatomy_contract.yaml", "valves_metadata.json"],
-      "tests": ["tests/test_anatomy_contract.py"],
-      "cwd": ".",
-      "role": "research"
-    },
+
     {
       "key": "teer-transform-repeatability",
       "goal": "Add bounded alignment/feature invariance assessment on a handful of existing licensed meshes and record research/geometry_repeatability.json.",
