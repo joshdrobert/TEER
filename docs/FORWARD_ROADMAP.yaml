@@ -1,0 +1,176 @@
+schema_version: 1
+project: TEER
+updated_at: '2026-10-07T22:12:47.666786+00:00'
+objective: Develop scientifically validated patient-specific MitraClip/TEER placement decision support
+  from source-supported anatomy.
+current_verified_state:
+  evidence: Read-only snapshot of AI-Server state/production.sqlite; accepted checks are historical evidence,
+    not checks newly executed for this roadmap.
+  source_checkout_head: 7c383d6da73ff59f620d2b9674f35449c4f2943b
+  accepted_production_head: c71e94acd508edf6dcb43e46515197e62ff5ddc0
+  production_state_at_snapshot: RUNNABLE
+  accepted_tasks:
+  - task_id: 9
+    goal: Repair validate_mesh finite-coordinate and bounding-box checks to inspect all triangle vertices,
+      not only v0; add adversarial synthetic STL tests.
+    commit: 8b63a8c1dafa836be7a55b8abcff0b626125b07b
+    checks:
+    - name: geometry-qc
+      exit_code: 0
+      passed: 5
+    - name: independent-oracle
+      exit_code: 0
+      passed: 1
+  - task_id: 10
+    goal: Return truthful invalid/failed result for zero-face STL without fabricated bounds; add deterministic
+      regression test.
+    commit: a2f7dabbbcf514666121a9a2e70b9e80857f2bf4
+    checks:
+    - name: geometry-empty
+      exit_code: 0
+      passed: 6
+  - task_id: 13
+    goal: Decompose next unfinished PLAN milestone into at most three bounded tasks with relevant files
+      and executable acceptance tests. Write AUTONOMY_NEXT.json; preserve verified work.
+    commit: 7d3426382a49fd5ca48d6d868ba2be93bafc74f9
+    checks:
+    - name: plan-contract
+      exit_code: 0
+      passed: 1
+  - task_id: 20
+    goal: 'Add deterministic QC pipeline to extract_features.py: compute per-geometry validity checks
+      (face count, volume, surface area sanity), flag outliers by IQR on each metric, write QC report
+      CSV. Preserve existing feature columns and add qc_valid (bool), qc_outlier_flags (list[str]), qc_zscore
+      dict.'
+    commit: c71e94acd508edf6dcb43e46515197e62ff5ddc0
+    checks:
+    - name: acceptance
+      exit_code: 0
+      passed: 3
+  - task_id: 22
+    goal: 'Write a rigorous technical roadmap in PLAN.md: map each project objective to concrete tasks
+      with file paths, estimate complexity, identify dependencies, and define success criteria for each
+      milestone. Update PROGRESS.md with current milestone completion status.'
+    commit: d5877965a60408503877ee2fedaabcbc06f60e9c
+    checks:
+    - name: acceptance
+      exit_code: 0
+      passed: 2
+  scientific_limits:
+  - Finite/empty mesh validation and deterministic geometric QC are already accepted; preserve them.
+  - Bundled real anatomy does not make illustrative hemodynamic predictions observed patient outcomes.
+  - No anatomical landmarks, leaflet distinctions or procedural endpoints may be invented from unannotated
+    surface geometry.
+source_documents:
+- README.md
+- valves_metadata.json
+- PLAN.md
+- PROGRESS.md
+- scripts/extract_features.py
+- backend/hemodynamics.py
+execution_policy:
+  priority: Continue accepted project state; this forward scientific roadmap takes precedence over stale
+    completed PLAN checkboxes.
+  task_bound: At most three bounded tasks per handoff; reconcile queued/running work with accepted evidence
+    before adding duplicate tasks.
+  fair_queue: One of six top-level workstreams; retain existing inference resource governor.
+  acceptance: A roadmap/document completion never establishes scientific success; data/code/evidence checks
+    are required.
+  missing_data: Decline infeasible science, or record legitimate access dependency; continue independent
+    engineering work.
+  submission_stop: READY_FOR_HUMAN; human approval required for journal submission or fees.
+milestones:
+- id: teer-anatomy
+  status: PLANNED
+  title: Validate anatomical features and standardization
+  acceptance:
+  - Source coordinate frame, scale, surface identity and landmark support are explicit.
+  - Rigid transforms preserve geometric invariants; feature repeatability and expert/source comparison
+    are quantified.
+- id: teer-phenotype
+  status: PLANNED
+  title: Define morphological phenotypes and placement parameters
+  acceptance:
+  - Phenotypes reflect measured geometry with uncertainty and no label/outcome leakage.
+  - Clip degrees of freedom, contacts and feasible bounds reference supported anatomy.
+- id: teer-physics
+  status: PLANNED
+  title: Validate reduced-order/FE simulation as useful
+  acceptance:
+  - Conservation/convergence and relevant measured/independent reference comparisons are prespecified.
+  - Unvalidated FSI adapter and ROM predictions remain explicitly computational/illustrative.
+- id: teer-objective
+  status: PLANNED
+  title: Prespecify multiobjective optimization and sensitivity
+  acceptance:
+  - Residual MR, gradient/stenosis and stress objectives use defensible units and documented tradeoffs.
+  - Sensitivity covers landmark/geometry/model uncertainty and failure cases.
+- id: teer-clinical
+  status: PLANNED
+  title: Compare observed endpoints and publish interpretable support
+  acceptance:
+  - Authorized linked procedural outcomes enable independent predicted-versus-observed validation.
+  - Absent endpoints limit output to geometry/methods feasibility; uncertainty and human-ready package
+    remain explicit.
+next_bounded_tasks:
+- id: teer-anatomy-contract
+  state: PLANNED
+  goal: Write research/anatomy_contract.yaml from source metadata documenting units/frame/mesh provenance
+    and exactly which anatomy/landmarks are observable.
+  relevant_files:
+  - valves_metadata.json
+  - scripts/validate_geometries.py
+  - scripts/extract_features.py
+  acceptance:
+  - All vertices/empty-mesh and accepted QC protections remain complete.
+  - Closed-volume assumptions and annulus/leaflet identification unsupported by source are flagged.
+- id: teer-transform-repeatability
+  state: PLANNED
+  goal: Add bounded alignment/feature invariance assessment on a handful of existing licensed meshes and
+    record research/geometry_repeatability.json.
+  relevant_files:
+  - src/teer_cdss/mesh.py
+  - scripts/extract_features.py
+  acceptance:
+  - Area/volume invariants under rigid transforms obey declared tolerance.
+  - Source-supported features alone proceed; outlier flags remain warnings requiring adjudication.
+- id: teer-validation-matrix
+  state: PLANNED
+  goal: Write research/placement_validation_protocol.md and observed-endpoint availability matrix before
+    optimization claims.
+  relevant_files:
+  - backend/optimization.py
+  - backend/hemodynamics.py
+  - backend/fsi_adapter.py
+  acceptance:
+  - Reference MR/gradient/outcome/placement labels are verified available or marked missing.
+  - Prespecify tradeoffs, uncertainty and held-out validation; no fabricated clinical landmarks or performance.
+acceptance_tests:
+- python -m pytest -q tests/test_geometry_validation.py
+- python -m pytest -q tests/test_hemodynamics.py tests/test_optimization.py tests/test_mesh.py (configured
+  environment)
+scientific_validation_criteria:
+- Independent anatomical reference/annotation required for named landmarks.
+- Numerical verification is separate from predictive validation; prespecified reference comparison and
+  error tolerances.
+- Observed endpoints and placement linkage need authorized data; no clinical recommendation claim without
+  validation.
+data_dependencies:
+- MVSeg2023 geometry source/rights and coordinate/annotation metadata must be confirmed from manifest.
+- Patient-linked procedural clip placement, residual MR, gradients, complications and follow-up are not
+  assumed present.
+vision_opportunities:
+  jobs:
+  - Licensed 3-D segmentation training
+  - FE/FSI convergence, reduced-order comparison and sensitivity sweeps
+  gate: Actual data rights, inputs, resource benefit and scientific protocol must be approved by existing
+    policy; use existing VISION bridge, scheduler ID, source revision, hashes and locally consumed results.
+    Store large inputs on permitted scratch; expired Duo is a legitimate access dependency.
+publication_endpoint:
+  deliverable: Geometry/placement methods study at available evidence level; clinically interpretable
+    decision-support paper after observed-outcome validation.
+  venue: Select only after actual results and current official fit/fees/AI policy review; no forced flagship
+    framing.
+  quality_gate: Up-to-date novelty/overlap screening, Trace eight-pass audit, independent methods review
+    and human-ready package.
+  clinical_status: Research only until valid independent clinical evidence exists.
