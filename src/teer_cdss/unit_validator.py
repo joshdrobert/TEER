@@ -145,11 +145,25 @@ class UnitValidator:
                     f"Transformation matrix must be 4x4, got shape {transformation_matrix.shape}"
                 )
                 
-            # Check that the transformation preserves geometric properties
-            # and maintains consistent units
-            if not np.allclose(np.linalg.det(transformation_matrix), 1.0, atol=1e-6):
-                # Note: This is a simplified check - in practice, we'd need more robust validation
-                pass
+            # Check for non-finite values in the transformation matrix
+            if not np.all(np.isfinite(transformation_matrix)):
+                raise UnitConsistencyError("Transformation matrix contains non-finite values")
+            
+            # Check that the bottom row is [0, 0, 0, 1] for affine transformation
+            expected_bottom_row = np.array([0.0, 0.0, 0.0, 1.0])
+            if not np.allclose(transformation_matrix[3], expected_bottom_row):
+                raise UnitConsistencyError(
+                    "Transformation matrix must have [0, 0, 0, 1] as bottom row for affine transformation"
+                )
+                
+            # Check that the matrix is not singular (determinant != 0)
+            try:
+                det = np.linalg.det(transformation_matrix)
+                if np.isclose(det, 0.0):
+                    raise UnitConsistencyError("Transformation matrix is singular (determinant = 0)")
+            except np.linalg.LinAlgError:
+                # If determinant calculation fails, the matrix is likely singular
+                raise UnitConsistencyError("Transformation matrix is singular")
                 
             return True
             
