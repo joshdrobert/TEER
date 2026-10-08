@@ -1,0 +1,73 @@
+# Anatomy Contract for Valve Structure Analysis
+# Documenting units, frame, mesh provenance, and observable landmarks
+
+# Coordinate System Definition
+coordinate_system:
+  type: "right-handed"
+  units: "millimeters (mm)"
+  origin: "center of valve structure"
+  x_axis: "horizontal axis pointing from left to right"
+  y_axis: "vertical axis pointing from bottom to top"
+  z_axis: "depth axis pointing from front to back"
+
+# Frame Provenance
+frame:
+  reference: "image coordinate system"
+  orientation: "aligned with image dimensions"
+  scale_factor: 1.0  # 1 pixel = 1 mm in this context
+
+# Mesh Provenance
+mesh:
+  type: "triangular mesh"
+  resolution: "high-resolution"
+  source: "medical imaging data"
+  preprocessing: "noise reduction, smoothing"
+  topology: "manifold, watertight"
+  vertex_count: "variable"
+  face_count: "variable"
+
+# Observable Anatomy/Structures
+observable_anatomy:
+  - name: "valve_comm"
+    type: "commisure"
+    description: "Commissure point where valve leaflets meet"
+    coordinates:
+      x: "center_x coordinate"
+      y: "center_y coordinate"
+      z: "depth coordinate"
+    reference_frame: "image coordinate system"
+    measurement_unit: "millimeters"
+    
+  - name: "valve_open"
+    type: "opening point"  
+    description: "Point representing maximum valve opening direction"
+    coordinates:
+      x: "unit vector component"
+      y: "unit vector component"
+    reference_frame: "image coordinate system"
+    measurement_unit: "normalized"
+
+# Structural Landmarks
+landmarks:
+  - name: "center_x"
+    description: "X-coordinate of valve center point"
+    unit: "millimeters"
+    
+  - name: "center_y" 
+    description: "Y-coordinate of valve center point"
+    unit: "millimeters"
+    
+  - name: "angle_rad"
+    description: "Orientation angle in radians"
+    unit: "radians"
+    
+  - name: "angle_deg"
+    description: "Orientation angle in degrees"
+    unit: "degrees"
+
+# Data Source Information
+data_source:
+  metadata_file: "valves_metadata.json"
+  data_type: "valve structural analysis"
+  sample_count: 3
+  sample_ids: ["train_001", "train_002", "train_003"]
