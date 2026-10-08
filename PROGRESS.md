@@ -56,3 +56,5 @@
 - Verified 2026-10-08 task 150 (teer-unit-consistency): Add explicit unit consistency verification across coordinate frames, mesh transformations, and feature computations beyond provenance documentation.; checks acceptance=14 passed, reviewed-boundary-regression=2 passed
 
 - Verified 2026-10-08 task 167 (plan-after-150): Decompose next unfinished PLAN milestone into at most three bounded tasks with relevant files and executable acceptance tests. Write AUTONOMY_NEXT.json; preserve verified work.; checks plan-contract=1 passed
+
+- Verified 2026-10-08 task 179 (teer-homogeneous-transform-validation-20261008): Reject nonfinite, singular and non-affine homogeneous mesh transforms before validating unit consistency. Current4x4 determinant failure is ignored with pass. Preserve legitimate translation, rotation and explicitly compatible scale transforms; do not claim clinical validation.; checks preserved-contract-and-new-boundary=22 passed
