@@ -1,26 +1,26 @@
 {
   "tasks": [
     {
-      "key": "feat-qc-layer",
-      "goal": "Add deterministic QC pipeline to extract_features.py: compute per-geometry validity checks (face count, volume, surface area sanity), flag outliers by IQR on each metric, write QC report CSV. Preserve existing feature columns and add qc_valid (bool), qc_outlier_flags (list[str]), qc_zscore dict.",
-      "files": ["scripts/extract_features.py"],
-      "tests": ["tests/test_extract_features_qc.py"],
+      "key": "teer-anatomy-contract",
+      "goal": "Write research/anatomy_contract.yaml documenting units/frame/mesh provenance and exactly which anatomy/landmarks are observable.",
+      "files": ["research/anatomy_contract.yaml", "valves_metadata.json"],
+      "tests": ["tests/test_anatomy_contract.py"],
       "cwd": ".",
-      "role": "coder"
+      "role": "research"
     },
     {
-      "key": "feat-geom-repr",
-      "goal": "Implement geometric representation module: compute signed/unsigned distance field samples on a regular grid over the mitral annulus ROI, plus Laplace-Beltrami spectrum features (first 10 eigenvalues) from STL mesh. Output as numpy arrays with consistent shape.",
-      "files": ["src/teer_cdss/geometric_features.py"],
-      "tests": ["tests/test_geometric_features.py"],
+      "key": "teer-transform-repeatability",
+      "goal": "Add bounded alignment/feature invariance assessment on a handful of existing licensed meshes and record research/geometry_repeatability.json.",
+      "files": ["src/teer_cdss/mesh.py", "research/geometry_repeatability.json"],
+      "tests": ["tests/test_transform_repeatability.py"],
       "cwd": ".",
-      "role": "coder"
+      "role": "research"
     },
     {
-      "key": "doc-roadmap",
-      "goal": "Write a rigorous technical roadmap in PLAN.md: map each project objective to concrete tasks with file paths, estimate complexity, identify dependencies, and define success criteria for each milestone. Update PROGRESS.md with current milestone completion status.",
-      "files": ["PLAN.md", "PROGRESS.md"],
-      "tests": ["tests/test_plan_roadmap.py"],
+      "key": "teer-validation-matrix",
+      "goal": "Write research/placement_validation_protocol documenting multiobjective optimization and sensitivity analysis specifications.",
+      "files": ["research/placement_validation_protocol.py"],
+      "tests": ["tests/test_placement_validation.py"],
       "cwd": ".",
       "role": "research"
     }
