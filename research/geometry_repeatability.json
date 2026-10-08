@@ -1,9 +1,21 @@
 {
-    "version": "1.0",
-    "assessment_date": "2024-06-15T10:00:00Z",
-    "meshes_assessed": [],
-    "metrics": {
-        "alignment_invariance": {},
-        "feature_invariance": {}
+  "version": "1.0",
+  "assessment_date": "2024-06-15T10:00:00Z",
+  "meshes_assessed": [
+    {
+      "name": "test_mesh_001",
+      "metrics": {
+        "alignment_invariance": null,
+        "feature_invariance": null,
+        "mesh_volume_raw": 0.0,
+        "mesh_surface_area_raw": 0.0,
+        "error": "Failed to build patient-specific meshes."
+      },
+      "timestamp": "2026-10-08T03:28:44.026769Z"
     }
+  ],
+  "metrics": {
+    "alignment_invariance": {},
+    "feature_invariance": {}
+  }
 }
