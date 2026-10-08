@@ -52,3 +52,5 @@
 - Verified 2026-10-08 task 154 (local-repair-150-1): Decompose the recorded failure into a small local repair plan for task 150. Preserve its objective and acceptance checks; write AUTONOMY_NEXT.json.; checks plan-contract=1 passed
 
 - Verified 2026-10-08 task 160 (local-repair-150-2): Decompose the recorded failure into a small local repair plan for task 150. Preserve its objective and acceptance checks; write AUTONOMY_NEXT.json.; checks plan-contract=1 passed
+
+- Verified 2026-10-08 task 150 (teer-unit-consistency): Add explicit unit consistency verification across coordinate frames, mesh transformations, and feature computations beyond provenance documentation.; checks acceptance=14 passed, reviewed-boundary-regression=2 passed
