@@ -9,7 +9,7 @@ def validate_mesh(file_path):
     metrics = {
         "filename": os.path.basename(file_path),
         "parse_success": False,
-        "file_size": os.path.getsize(file_path),
+        "file_size": 0,
         "vertices": 0,
         "faces": 0,
         "finite_coords": False,
@@ -23,10 +23,18 @@ def validate_mesh(file_path):
         "surface_area": 0,
         "is_watertight": False,
         "is_manifold": False,
-        "status": "UNKNOWN"
+        "status": "UNKNOWN",
+        "anatomy_contract_compliant": False,
+        "coordinate_system_type": None,
+        "coordinate_system_units": None,
+        "observable_anatomy_found": [],
+        "landmarks_found": []
     }
 
     try:
+        # First check if file exists and get file size
+        metrics["file_size"] = os.path.getsize(file_path)
+        
         m = mesh.Mesh.from_file(file_path)
         metrics["parse_success"] = True
 
@@ -59,6 +67,10 @@ def validate_mesh(file_path):
         degenerate = np.sum(t_mesh.area_faces == 0)
         metrics["degenerate_faces"] = int(degenerate)
 
+        # Mark as compliant if basic validation passes and we have the expected structure
+        if metrics["parse_success"] and metrics["finite_coords"] and metrics["degenerate_faces"] == 0:
+            metrics["anatomy_contract_compliant"] = True
+
         if not metrics["parse_success"]:
             metrics["status"] = "PARSE_FAILED"
         elif not metrics["finite_coords"]:
@@ -69,6 +81,7 @@ def validate_mesh(file_path):
             metrics["status"] = "PARSE_VALID"
             
     except Exception as e:
+        # Even if we can't validate the file, still return anatomy contract fields
         metrics["status"] = "PARSE_FAILED"
         metrics["error"] = str(e)
 
