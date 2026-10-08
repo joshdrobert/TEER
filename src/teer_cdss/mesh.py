@@ -42,13 +42,26 @@ class MeshReconstructor:
 
     def _surface_from_label(self, segmentation: np.ndarray) -> pv.PolyData:
         grid = pv.ImageData(dimensions=np.array(segmentation.shape) + 1)
+        # Convert cell data to point data for contouring
         grid.cell_data["label"] = segmentation.flatten(order="F")
-        surface = grid.contour([self.config.marching_cubes_isovalue], scalars="label")
+        # Use point data for contouring by converting cell data to point data first
+        # This is a simpler approach - just use the point data directly
+        point_grid = pv.ImageData(dimensions=np.array(segmentation.shape) + 1)
+        point_grid.point_data["label"] = segmentation.flatten(order="F")
+        surface = point_grid.contour([self.config.marching_cubes_isovalue], scalars="label")
         surface = surface.smooth(n_iter=self.config.surface_smoothing_iterations)
         if self.config.surface_decimation > 0.0:
             surface = surface.decimate(self.config.surface_decimation)
+        # Check for empty surfaces and handle gracefully
         if surface.n_points == 0:
-            raise MeshGenerationError("Surface extraction produced an empty mesh.")
+            # Create a minimal surface to avoid crashes, but mark it as invalid
+            # For an empty segmentation, we should return a minimal surface or raise error
+            if np.any(segmentation > 0):
+                # There are some non-zero values, so we should have a valid surface
+                raise MeshGenerationError("Surface extraction produced an empty mesh.")
+            else:
+                # All zero segmentation - return a minimal point cloud or raise error
+                raise MeshGenerationError("Empty segmentation provided for surface generation.")
         return surface.clean()
 
     def _build_clip_geometry(self) -> pv.PolyData:
