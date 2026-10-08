@@ -9,8 +9,8 @@ multiobjective optimization and sensitivity analysis approaches.
 
 The placement validation process employs a multiobjective optimization framework 
 to balance competing criteria such as:
-- Anatomical accuracy
-- Device compatibility
+- anatomical accuracy
+- device compatibility
 - Clinical safety thresholds
 - Computational efficiency
 
@@ -33,7 +33,7 @@ Constraints:
 - Safety margins and regulatory requirements
 - Computational resource limits
 
-1.2 Optimization Algorithms
+1.2 optimization algorithms
 ---------------------------
 
 The framework utilizes:
