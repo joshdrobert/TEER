@@ -80,3 +80,5 @@
 - Verified 2026-10-08 task 206 (anatomy-contract-integration): Integrate anatomy contract validation into scripts/validate_geometries.py by adding metadata field verification.; checks acceptance=2 passed
 
 - Verified 2026-10-08 task 206 (anatomy-contract-integration): Integrate anatomy contract validation into scripts/validate_geometries.py by adding metadata field verification.; checks acceptance=2 passed
+
+- Verified 2026-10-08 task 207 (anatomy-contract-extraction): Add anatomy contract landmark extraction to scripts/extract_features.py for v_comm, v_open, center_x, center_y fields.; checks acceptance=2 passed
