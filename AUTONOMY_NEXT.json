@@ -1,18 +1,26 @@
 {
   "tasks": [
     {
-      "key": "teer-feature-qc-pipeline",
-      "goal": "Implement QC pipeline in scripts/extract_features.py to compute per-geometry validity checks (face count, volume, surface area), flag outliers by IQR, and write QC report CSV.",
-      "files": ["scripts/extract_features.py"],
-      "tests": ["tests/test_feature_qc_pipeline.py"],
+      "key": "anatomy-contract-validation",
+      "goal": "Validate anatomy contract against valves_metadata.json geometry metadata fields and coordinate system definitions.",
+      "files": ["research/anatomy_contract.yaml", "valves_metadata.json"],
+      "tests": ["test/test_anatomy_contract_validation.py"],
       "cwd": ".",
       "role": "coder"
     },
     {
-      "key": "teer-geometric-representation",
-      "goal": "Develop geometric representation module in src/teer_cdss/geometric_features.py computing signed/unsigned distance field samples and Laplace-Beltrami spectrum features from STL mesh.",
-      "files": ["src/teer_cdss/geometric_features.py"],
-      "tests": ["tests/test_geometric_representation.py"],
+      "key": "anatomy-contract-integration",
+      "goal": "Integrate anatomy contract validation into scripts/validate_geometries.py by adding metadata field verification.",
+      "files": ["scripts/validate_geometries.py"],
+      "tests": ["test/test_validate_geometries_anatomy_contract.py"],
+      "cwd": ".",
+      "role": "coder"
+    },
+    {
+      "key": "anatomy-contract-extraction",
+      "goal": "Add anatomy contract landmark extraction to scripts/extract_features.py for v_comm, v_open, center_x, center_y fields.",
+      "files": ["scripts/extract_features.py"],
+      "tests": ["test/test_extract_features_anatomy_landmarks.py"],
       "cwd": ".",
       "role": "coder"
     }
