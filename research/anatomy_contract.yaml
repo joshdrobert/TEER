@@ -69,5 +69,5 @@ landmarks:
 data_source:
   metadata_file: "valves_metadata.json"
   data_type: "valve structural analysis"
-  sample_count: 3
-  sample_ids: ["train_001", "train_002", "train_003"]
+  sample_count: 12
+  sample_ids: ["train_001", "train_002", "train_003", "train_004", "train_005", "train_006", "train_007", "train_008", "train_009", "train_010", "train_011", "train_012"]

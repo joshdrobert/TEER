@@ -74,3 +74,7 @@
 - Verified 2026-10-08 task 187 (teer-clip-placement-decision): Create clip placement decision support module in src/teer_cdss/clip_placement.py connecting geometric features to TEER procedure recommendations.; checks acceptance=7 passed
 
 - Verified 2026-10-08 task 204 (plan-after-187): Decompose next unfinished PLAN milestone into at most three bounded tasks with relevant files and executable acceptance tests. Write AUTONOMY_NEXT.json; preserve verified work.; checks plan-contract=1 passed
+
+- Verified 2026-10-08 task 205 (anatomy-contract-validation): Validate anatomy contract against valves_metadata.json geometry metadata fields and coordinate system definitions.; checks acceptance=5 passed
+
+- Verified 2026-10-08 task 205 (anatomy-contract-validation): Validate anatomy contract against valves_metadata.json geometry metadata fields and coordinate system definitions.; checks acceptance=5 passed
