@@ -41,6 +41,10 @@ class MeshReconstructor:
             raise MeshGenerationError("Failed to build patient-specific meshes.") from exc
 
     def _surface_from_label(self, segmentation: np.ndarray) -> pv.PolyData:
+        # Check for all-zero segmentation early to avoid mesh generation errors
+        if not np.any(segmentation > 0):
+            raise MeshGenerationError("Empty segmentation provided for surface generation.")
+            
         grid = pv.ImageData(dimensions=np.array(segmentation.shape) + 1)
         # Convert cell data to point data for contouring
         grid.cell_data["label"] = segmentation.flatten(order="F")
@@ -55,13 +59,7 @@ class MeshReconstructor:
         # Check for empty surfaces and handle gracefully
         if surface.n_points == 0:
             # Create a minimal surface to avoid crashes, but mark it as invalid
-            # For an empty segmentation, we should return a minimal surface or raise error
-            if np.any(segmentation > 0):
-                # There are some non-zero values, so we should have a valid surface
-                raise MeshGenerationError("Surface extraction produced an empty mesh.")
-            else:
-                # All zero segmentation - return a minimal point cloud or raise error
-                raise MeshGenerationError("Empty segmentation provided for surface generation.")
+            raise MeshGenerationError("Surface extraction produced an empty mesh.")
         return surface.clean()
 
     def _build_clip_geometry(self) -> pv.PolyData:
@@ -103,7 +101,18 @@ class MeshReconstructor:
             Dictionary of repeatability metrics
         """
         # Generate the mesh from segmentation
-        artifacts = self.build(segmentation)
+        try:
+            artifacts = self.build(segmentation)
+        except MeshGenerationError as e:
+            # If mesh generation fails, return error metrics
+            return {
+                "alignment_invariance": None,
+                "feature_invariance": None,
+                "mesh_volume_raw": 0.0,
+                "mesh_surface_area_raw": 0.0,
+                "error": str(e)
+            }
+            
         surface_mesh = artifacts.surface_mesh
         
         # Initialize result dictionary with proper physical units
@@ -113,7 +122,8 @@ class MeshReconstructor:
             "alignment_invariance": None,
             "feature_invariance": None,
             "mesh_volume_raw": surface_mesh.volume,
-            "mesh_surface_area_raw": surface_mesh.area
+            "mesh_surface_area_raw": surface_mesh.area,
+            "error": None
         }
         
         # If we have a reference mesh, compute alignment and feature invariance
