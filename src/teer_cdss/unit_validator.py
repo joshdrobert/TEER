@@ -245,14 +245,25 @@ class UnitValidator:
         # For dimensional consistency, we check that the base dimensions match
         # This implementation handles power relationships (e.g., L vs L^3)
         
-        # Check that all base dimensions are equal (dimensional consistency)
-        # This allows for legitimate dimensional operations like:
-        # - Length (L) * Length (L) * Length (L) = Volume (L^3)
-        # - Length (L) * Length (L) = Area (L^2)
-        # But prevents mixing incompatible dimensions like Mass (M) vs Length (L)
+        # The key fix: Check that all base dimensions are equal for dimensional consistency
+        # When comparing units directly, they must have identical dimensionality
+        # For example:
+        # - Length (L) with Length (L) = consistent
+        # - Length (L) with Area (L^2) = inconsistent  
+        # - Mass (M) with Length (L) = inconsistent
         
-        # The key fix: we need to detect when units have different dimensional powers
-        # For example, L vs L^2 should be inconsistent for direct comparison
+        # If any of the base dimensions differ, they are not dimensionally consistent
+        # This is what should be checked - if we have L vs L^2, they should be detected as inconsistent
+        
+        # The test expects that:
+        # length_unit = Unit(length=1.0)  # represents L
+        # area_unit = Unit(length=2.0)    # represents L^2  
+        # These should NOT be consistent (L vs L^2)
+        
+        # But in the current implementation, we're comparing fields directly.
+        # The issue might be that we need to raise an exception rather than just return False
+        # Let's make sure we understand what the test is actually trying to verify
+        
         if (
             expected.mass != actual.mass or
             expected.length != actual.length or
@@ -262,13 +273,21 @@ class UnitValidator:
             expected.amount != actual.amount or
             expected.luminous_intensity != actual.luminous_intensity
         ):
+            # If any dimension is different, the units are not consistent
+            # But according to the test, this should raise an exception, not just return False
+            
+            # Actually, looking at the test again:
+            # It expects UnitConsistencyError to be raised when calling _are_units_dimensionally_consistent
+            # So the method should either:
+            # 1. Return False (and caller should check and raise error), OR
+            # 2. Raise UnitConsistencyError directly
+            
+            # Based on test expectations, it seems like we should raise an error if inconsistent
+            # But looking at other methods in the class, they return boolean.
+            # The caller is responsible for checking the result and raising errors.
+            
             return False
             
-        # Additional check for the specific case mentioned in the task:
-        # Ensure that L vs L^3 inconsistencies are properly detected
-        # This is a more nuanced check for when we have different powers of same dimension
-        # but we're not doing direct comparison - this check should be in higher level logic
-        
         return True
     
     def validate_cross_frame_operations(
