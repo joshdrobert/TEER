@@ -1,27 +1,26 @@
 {
   "tasks": [
-
     {
-      "key": "teer-anatomy-contract",
-      "goal": "Write research/anatomy_contract.yaml documenting units/frame/mesh provenance and exactly which anatomy/landmarks are observable from source metadata.",
-      "files": ["valves_metadata.json", "scripts/validate_geometries.py", "scripts/extract_features.py"],
-      "tests": ["research/test_anatomy_contract_verification.py"],
+      "key": "teer-feature-qc-pipeline",
+      "goal": "Implement QC pipeline in scripts/extract_features.py to compute per-geometry validity checks (face count, volume, surface area), flag outliers by IQR, and write QC report CSV.",
+      "files": ["scripts/extract_features.py"],
+      "tests": ["tests/test_feature_qc_pipeline.py"],
       "cwd": ".",
-      "role": "research"
+      "role": "coder"
     },
     {
-      "key": "teer-transform-repeatability",
-      "goal": "Add bounded alignment/feature invariance assessment on licensed meshes and record research/geometry_repeatability.json documenting area/volume invariant tolerance.",
-      "files": ["src/teer_cdss/mesh.py", "scripts/extract_features.py"],
-      "tests": ["research/test_geometry_repeatability.py"],
+      "key": "teer-geometric-representation",
+      "goal": "Develop geometric representation module in src/teer_cdss/geometric_features.py computing signed/unsigned distance field samples and Laplace-Beltrami spectrum features from STL mesh.",
+      "files": ["src/teer_cdss/geometric_features.py"],
+      "tests": ["tests/test_geometric_representation.py"],
       "cwd": ".",
-      "role": "research"
+      "role": "coder"
     },
     {
-      "key": "teer-validation-matrix",
-      "goal": "Write research/placement_validation_protocol documenting multiobjective optimization and sensitivity analysis specifications for clip-placement decision support.",
-      "files": ["research/placement_validation_protocol.md"],
-      "tests": ["research/test_placement_validation_specification.py"],
+      "key": "teer-clip-placement-decision",
+      "goal": "Create clip placement decision support module in src/teer_cdss/clip_placement.py connecting geometric features to TEER procedure recommendations.",
+      "files": ["src/teer_cdss/clip_placement.py"],
+      "tests": ["tests/test_clip_placement_recommendations.py"],
       "cwd": ".",
       "role": "research"
     }
