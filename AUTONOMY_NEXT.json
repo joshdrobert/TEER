@@ -15,14 +15,6 @@
       "tests": ["tests/test_geometric_representation.py"],
       "cwd": ".",
       "role": "coder"
-    },
-    {
-      "key": "teer-clip-placement-decision",
-      "goal": "Create clip placement decision support module in src/teer_cdss/clip_placement.py connecting geometric features to TEER procedure recommendations.",
-      "files": ["src/teer_cdss/clip_placement.py"],
-      "tests": ["tests/test_clip_placement_recommendations.py"],
-      "cwd": ".",
-      "role": "research"
     }
   ]
 }

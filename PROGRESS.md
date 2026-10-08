@@ -66,3 +66,5 @@
 - Verified 2026-10-08 task 186 (teer-geometric-representation): Develop geometric representation module in src/teer_cdss/geometric_features.py computing signed/unsigned distance field samples and Laplace-Beltrami spectrum features from STL mesh.; checks acceptance=4 passed
 
 - Verified 2026-10-08 task 186 (teer-geometric-representation): Develop geometric representation module in src/teer_cdss/geometric_features.py computing signed/unsigned distance field samples and Laplace-Beltrami spectrum features from STL mesh.; checks acceptance=4 passed
+
+- Verified 2026-10-08 task 201 (local-repair-185-1): Decompose the recorded failure into a small local repair plan for task 185. Preserve its objective and acceptance checks; write AUTONOMY_NEXT.json.; checks plan-contract=1 passed
