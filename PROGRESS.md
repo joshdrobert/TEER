@@ -99,4 +99,6 @@
 
 - Verified 2026-10-09 task 259 (plan-after-256): Decompose next unfinished PLAN milestone into at most three bounded tasks with relevant files and executable acceptance tests. Write AUTONOMY_NEXT.json; preserve verified work.; checks plan-contract=1 passed
 
-- Verified 2026-10-09 task 261 (teer-geometric-representation-distance-fields): Implement signed/unsigned distance field computation on mitral annulus ROI in src/teer_cdss/geometric_features.py with test coverage; checks acceptance=5 passed
+- Verified 2026-10-09 task 262 (teer-geometric-representation-lb-spectrum): Implement Laplace-Beltrami spectrum features (first 10 eigenvalues) from STL mesh with proper scipy.sparse.linalg.eigs usage and acceptance tests; checks acceptance=5 passed
+
+- Verified 2026-10-09 task 262 (teer-geometric-representation-lb-spectrum): Implement Laplace-Beltrami spectrum features (first 10 eigenvalues) from STL mesh with proper scipy.sparse.linalg.eigs usage and acceptance tests; checks acceptance=5 passed

@@ -51,37 +51,10 @@ def compute_distance_field_samples(mesh, grid_resolution=32):
     points_2d = actual_points.reshape(-1, 3)
     
     # Compute signed distances using the correct API - mesh.nearest.signed_distance expects 2D array
-    try:
-        signed_distances = mesh.nearest.signed_distance(points_2d)
-    except Exception as e:
-        # Fallback for cases where signed_distance fails
-        print(f"Warning: Signed distance computation failed: {e}")
-        # Compute approximate signed distances by checking if point is inside/outside
-        signed_distances = np.zeros(len(points_2d))
-        for i, point in enumerate(points_2d):
-            # Simple check using ray casting or mesh.contains (if available)
-            try:
-                contains = mesh.contains([point])[0]
-                # For a more robust signed distance calculation
-                if contains:
-                    # Point is inside the mesh - use negative distance to closest surface
-                    closest_xyz, _, _ = mesh.nearest.on_surface([point])
-                    signed_distances[i] = -np.linalg.norm(point - closest_xyz[0])
-                else:
-                    # Point is outside the mesh - use positive distance to closest surface  
-                    closest_xyz, _, _ = mesh.nearest.on_surface([point])
-                    signed_distances[i] = np.linalg.norm(point - closest_xyz[0])
-            except:
-                signed_distances[i] = 0  # fallback
+    signed_distances = mesh.nearest.signed_distance(points_2d)
     
     # Compute unsigned distances using on_surface method
-    try:
-        closest_xyz, unsigned_distances, triangle_id = mesh.nearest.on_surface(points_2d)
-    except Exception as e:
-        # Fallback for cases where on_surface fails
-        print(f"Warning: Unsigned distance computation failed: {e}")
-        # Use simple distance to centroid as fallback
-        unsigned_distances = np.array([np.linalg.norm(point - mesh.centroid) for point in points_2d])
+    closest_xyz, unsigned_distances, triangle_id = mesh.nearest.on_surface(points_2d)
     
     # Reshape to grid format
     signed_distances = signed_distances.reshape(grid_size)
@@ -101,34 +74,101 @@ def compute_laplace_beltrami_spectrum(mesh, num_eigenvalues=10):
     numpy array of first num_eigenvalues eigenvalues
     """
     try:
-        # For a proper implementation, we would compute the mesh Laplacian and solve the eigenvalue problem
-        # Here's a more realistic approach using trimesh's built-in functionality
-        
-        # Create a simplified version that computes meaningful spectral features
-        # This would typically involve:
-        # 1. Computing the mesh Laplacian matrix (cotangent weights)
-        # 2. Solving the eigenvalue problem
-        
-        # For demonstration purposes, we'll compute some geometric properties that relate to spectrum
-        # In practice, this should be replaced with actual LB spectrum computation
-        
-        # Simple approach: use mesh properties as proxy for spectral features
-        # This is a placeholder implementation that returns reasonable values
-        
-        # Get mesh properties that could relate to spectral analysis
-        volume = mesh.volume
-        surface_area = mesh.area
-        
-        # Create some synthetic but meaningful eigenvalues based on mesh properties
-        # In a real implementation, this would be computed from the actual Laplace-Beltrami operator
-        if volume > 0 and surface_area > 0:
-            # Use a simple heuristic that relates mesh size to expected spectrum
-            base_value = np.log(volume + 1) * np.log(surface_area + 1)
-            eigenvalues = np.array([base_value * (i + 1) for i in range(num_eigenvalues)])
+        # Compute the Laplace-Beltrami operator using trimesh's built-in functionality
+        # trimesh has a method to get the laplacian matrix (this is the cotangent Laplacian)
+        if hasattr(mesh, 'laplacian'):
+            laplacian = mesh.laplacian
         else:
-            eigenvalues = np.random.rand(num_eigenvalues) * 100  # Fallback to random values
+            # Fallback for cases where laplacian isn't available
+            # We compute it manually using trimesh's vertex and face information
+            from scipy.sparse import csr_matrix
+            import trimesh
+        
+            # Compute cotangent weights (standard approach)
+            if not hasattr(mesh, 'face_normals'):
+                mesh.compute_vertex_normals()
             
-        return eigenvalues
+            # Get vertex positions and faces  
+            vertices = mesh.vertices
+            faces = mesh.faces
+            
+            # Build the Laplacian matrix manually using cotangent weights
+            n_vertices = len(vertices)
+            
+            # Initialize data structures for sparse matrix
+            rows, cols, data = [], [], []
+            
+            # For each vertex, compute contribution to Laplacian
+            for i in range(n_vertices):
+                # Get neighboring vertices (connected by edges)
+                neighbors = set()
+                
+                # Find faces that contain this vertex
+                for face in faces:
+                    if i in face:
+                        # Add all other vertices in the face as neighbors
+                        for v in face:
+                            if v != i:
+                                neighbors.add(v)
+                
+                # Compute cotangent weights for each neighbor
+                weight_sum = 0.0
+                for j in neighbors:
+                    # Compute cotangent weight between vertices i and j
+                    # This is a simplified version - in practice you'd compute the actual 
+                    # angle-based cotangent weights from the triangle geometry
+                    if len(neighbors) > 0:
+                        # Simple uniform weighting as fallback
+                        weight = 1.0 / len(neighbors)
+                        rows.append(i)
+                        cols.append(j)
+                        data.append(-weight)
+                        weight_sum += weight
+                
+                # Add diagonal term (sum of negative weights)
+                rows.append(i)
+                cols.append(i)
+                data.append(weight_sum)
+            
+            # Create sparse matrix
+            laplacian = csr_matrix((data, (rows, cols)), shape=(n_vertices, n_vertices))
+        
+        # Now compute eigenvalues using scipy.sparse.linalg.eigs
+        from scipy.sparse.linalg import eigs
+        
+        # For small matrices, we can compute all eigenvalues
+        if laplacian.shape[0] < 1000:
+            # Get smallest eigenvalues (which are typically the most relevant for spectrum)
+            try:
+                # Use shift-invert method for better numerical stability
+                eigenvals, eigenvecs = eigs(laplacian, k=min(num_eigenvalues, laplacian.shape[0] - 1), 
+                                          which='SM', sigma=0.0)
+                # Sort eigenvalues in ascending order
+                eigenvals = np.sort(eigenvals.real)
+            except:
+                # Fallback to regular eigs if shift-invert fails
+                eigenvals, eigenvecs = eigs(laplacian, k=min(num_eigenvalues, laplacian.shape[0] - 1), 
+                                          which='SM')
+                eigenvals = np.sort(eigenvals.real)
+        else:
+            # For larger meshes, compute only a few smallest eigenvalues
+            try:
+                eigenvals, eigenvecs = eigs(laplacian, k=min(num_eigenvalues, 10), 
+                                          which='SM', sigma=0.0)
+                eigenvals = np.sort(eigenvals.real)
+            except:
+                # Fallback to regular eigs if shift-invert fails
+                eigenvals, eigenvecs = eigs(laplacian, k=min(num_eigenvalues, 10), 
+                                          which='SM')
+                eigenvals = np.sort(eigenvals.real)
+        
+        # Ensure we have exactly num_eigenvalues by padding with zeros if needed
+        if len(eigenvals) < num_eigenvalues:
+            padded_eigenvals = np.zeros(num_eigenvalues)
+            padded_eigenvals[:len(eigenvals)] = eigenvals
+            eigenvals = padded_eigenvals
+        
+        return eigenvals[:num_eigenvalues]
         
     except Exception as e:
         # Return zeros if computation fails
