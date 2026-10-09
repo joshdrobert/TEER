@@ -88,3 +88,7 @@
 - Verified 2026-10-09 task 229 (plan-after-228): Decompose next unfinished PLAN milestone into at most three bounded tasks with relevant files and executable acceptance tests. Write AUTONOMY_NEXT.json; preserve verified work.; checks plan-contract=1 passed
 
 - Verified 2026-10-09 task 232 (teer-feature-repeatability-assessment): Add feature repeatability assessment for geometric features on existing licensed meshes, recording results in research format.; checks acceptance=3 passed
+
+- Verified 2026-10-09 task 233 (teer-geometry-repeatability-report): Generate geometry_repeatability.json with area/volume invariant results and feature repeatability metrics, preserving outlier warnings.; checks acceptance=3 passed
+
+- Verified 2026-10-09 task 233 (teer-geometry-repeatability-report): Generate geometry_repeatability.json with area/volume invariant results and feature repeatability metrics, preserving outlier warnings.; checks acceptance=3 passed
