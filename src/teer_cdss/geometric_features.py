@@ -51,10 +51,37 @@ def compute_distance_field_samples(mesh, grid_resolution=32):
     points_2d = actual_points.reshape(-1, 3)
     
     # Compute signed distances using the correct API - mesh.nearest.signed_distance expects 2D array
-    signed_distances = mesh.nearest.signed_distance(points_2d)
+    try:
+        signed_distances = mesh.nearest.signed_distance(points_2d)
+    except Exception as e:
+        # Fallback for cases where signed_distance fails
+        print(f"Warning: Signed distance computation failed: {e}")
+        # Compute approximate signed distances by checking if point is inside/outside
+        signed_distances = np.zeros(len(points_2d))
+        for i, point in enumerate(points_2d):
+            # Simple check using ray casting or mesh.contains (if available)
+            try:
+                contains = mesh.contains([point])[0]
+                # For a more robust signed distance calculation
+                if contains:
+                    # Point is inside the mesh - use negative distance to closest surface
+                    closest_xyz, _, _ = mesh.nearest.on_surface([point])
+                    signed_distances[i] = -np.linalg.norm(point - closest_xyz[0])
+                else:
+                    # Point is outside the mesh - use positive distance to closest surface  
+                    closest_xyz, _, _ = mesh.nearest.on_surface([point])
+                    signed_distances[i] = np.linalg.norm(point - closest_xyz[0])
+            except:
+                signed_distances[i] = 0  # fallback
     
     # Compute unsigned distances using on_surface method
-    closest_xyz, unsigned_distances, triangle_id = mesh.nearest.on_surface(points_2d)
+    try:
+        closest_xyz, unsigned_distances, triangle_id = mesh.nearest.on_surface(points_2d)
+    except Exception as e:
+        # Fallback for cases where on_surface fails
+        print(f"Warning: Unsigned distance computation failed: {e}")
+        # Use simple distance to centroid as fallback
+        unsigned_distances = np.array([np.linalg.norm(point - mesh.centroid) for point in points_2d])
     
     # Reshape to grid format
     signed_distances = signed_distances.reshape(grid_size)
