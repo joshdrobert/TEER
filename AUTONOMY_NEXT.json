@@ -1,27 +1,19 @@
 {
   "tasks": [
     {
-      "key": "teer-transform-invariant-checks",
-      "goal": "Implement area/volume invariant checks under rigid transforms in src/teer_cdss/mesh.py with tolerance-based validation.",
+      "key": "test-transform-invariants-create",
+      "goal": "Create test file scripts/test_transform_invariants.py with area/volume invariant checks under rigid transforms.",
+      "files": ["scripts/test_transform_invariants.py"],
+      "tests": ["scripts/test_transform_invariants.py"],
+      "cwd": ".",
+      "role": "coder"
+    },
+    {
+      "key": "mesh-rigid-transform-validation",
+      "goal": "Add rigid transform validation method to src/teer_cdss/mesh.py with tolerance-based area/volume checks.",
       "files": ["src/teer_cdss/mesh.py"],
       "tests": ["scripts/test_transform_invariants.py"],
       "cwd": "src/teer_cdss",
-      "role": "coder"
-    },
-    {
-      "key": "teer-feature-repeatability-assessment",
-      "goal": "Add feature repeatability assessment for geometric features on existing licensed meshes, recording results in research format.",
-      "files": ["src/teer_cdss/mesh.py", "scripts/extract_features.py"],
-      "tests": ["scripts/test_feature_repeatability.py"],
-      "cwd": ".",
-      "role": "coder"
-    },
-    {
-      "key": "teer-geometry-repeatability-report",
-      "goal": "Generate geometry_repeatability.json with area/volume invariant results and feature repeatability metrics, preserving outlier warnings.",
-      "files": ["research/geometry_repeatability.json"],
-      "tests": ["scripts/test_repeatability_output.py"],
-      "cwd": ".",
       "role": "coder"
     }
   ]
