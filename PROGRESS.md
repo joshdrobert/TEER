@@ -86,3 +86,5 @@
 - Verified 2026-10-09 task 228 (teer-geometric-feature-finiteness-20261009): Reject empty and nonfinite geometric feature arrays in validate_geometric_features, preserving valid matching three-dimensional arrays and spectrum shape.; checks preserved-contract-and-boundary=11 passed
 
 - Verified 2026-10-09 task 229 (plan-after-228): Decompose next unfinished PLAN milestone into at most three bounded tasks with relevant files and executable acceptance tests. Write AUTONOMY_NEXT.json; preserve verified work.; checks plan-contract=1 passed
+
+- Verified 2026-10-09 task 232 (teer-feature-repeatability-assessment): Add feature repeatability assessment for geometric features on existing licensed meshes, recording results in research format.; checks acceptance=3 passed
