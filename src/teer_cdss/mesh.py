@@ -45,14 +45,26 @@ class MeshReconstructor:
         if not np.any(segmentation > 0):
             raise MeshGenerationError("Empty segmentation provided for surface generation.")
             
-        grid = pv.ImageData(dimensions=np.array(segmentation.shape) + 1)
-        # Convert cell data to point data for contouring
-        grid.cell_data["label"] = segmentation.flatten(order="F")
-        # Use point data for contouring by converting cell data to point data first
-        # This is a simpler approach - just use the point data directly
-        point_grid = pv.ImageData(dimensions=np.array(segmentation.shape) + 1)
-        point_grid.point_data["label"] = segmentation.flatten(order="F")
-        surface = point_grid.contour([self.config.marching_cubes_isovalue], scalars="label")
+        # Create ImageData with correct dimensions matching the segmentation
+        # For a segmentation of shape (nx, ny, nz), we need dimensions (nx+1, ny+1, nz+1) 
+        # to represent the vertices of cells. However, since this is cell-centered data,
+        # we should create the grid with dimensions matching the segmentation shape
+        # and then assign the labels appropriately for contouring.
+        seg_shape = np.array(segmentation.shape)
+        
+        # Create ImageData with dimensions matching the segmentation (not +1)
+        grid = pv.ImageData(dimensions=seg_shape)
+        
+        # Flatten segmentation data in Fortran order (column-major) to match PyVista's expected layout
+        flat_seg = segmentation.flatten(order="F")
+        
+        # Assign flattened segmentation data as point data for contouring
+        # The key insight: we want the cell data to be assigned to points so that 
+        # marching cubes can correctly extract the surface from the label values
+        grid.point_data["label"] = flat_seg
+        
+        # Create contour from point data using marching cubes
+        surface = grid.contour([self.config.marching_cubes_isovalue], scalars="label")
         surface = surface.smooth(n_iter=self.config.surface_smoothing_iterations)
         if self.config.surface_decimation > 0.0:
             surface = surface.decimate(self.config.surface_decimation)
