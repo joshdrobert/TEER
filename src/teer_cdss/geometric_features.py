@@ -169,5 +169,19 @@ def validate_geometric_features(features_dict):
     spectrum = features_dict['laplace_beltrami_spectrum']
     if not (isinstance(spectrum, np.ndarray) and spectrum.ndim == 1 and len(spectrum) == 10):
         return False
+    
+    # Reject empty arrays (zero size)
+    for arr in distance_arrays:
+        if arr.size == 0:
+            return False
+    if spectrum.size == 0:
+        return False
         
+    # Reject arrays with nonfinite values (NaN, Inf, -Inf)
+    for arr in distance_arrays:
+        if not np.isfinite(arr).all():
+            return False
+    if not np.isfinite(spectrum).all():
+        return False
+    
     return True
