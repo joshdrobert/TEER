@@ -1,20 +1,41 @@
 {
   "tasks": [
     {
-      "key": "test-transform-invariants-create",
-      "goal": "Create test file scripts/test_transform_invariants.py with area/volume invariant checks under rigid transforms.",
-      "files": ["scripts/test_transform_invariants.py"],
-      "tests": ["scripts/test_transform_invariants.py"],
+      "key": "teer-geometric-representation-distance-fields",
+      "goal": "Implement signed/unsigned distance field computation on mitral annulus ROI in src/teer_cdss/geometric_features.py with test coverage",
+      "files": [
+        "src/teer_cdss/geometric_features.py"
+      ],
+      "tests": [
+        "tests/test_geometric_features.py"
+      ],
       "cwd": ".",
       "role": "coder"
     },
     {
-      "key": "mesh-rigid-transform-validation",
-      "goal": "Add rigid transform validation method to src/teer_cdss/mesh.py with tolerance-based area/volume checks.",
-      "files": ["src/teer_cdss/mesh.py"],
-      "tests": ["scripts/test_transform_invariants.py"],
-      "cwd": "src/teer_cdss",
+      "key": "teer-geometric-representation-lb-spectrum",
+      "goal": "Implement Laplace-Beltrami spectrum features (first 10 eigenvalues) from STL mesh with proper scipy.sparse.linalg.eigs usage and acceptance tests",
+      "files": [
+        "src/teer_cdss/geometric_features.py"
+      ],
+      "tests": [
+        "tests/test_geometric_features.py"
+      ],
+      "cwd": ".",
       "role": "coder"
+    },
+    {
+      "key": "teer-geometric-representation-validation",
+      "goal": "Complete validate_geometric_features function with shape consistency checks and add behavioral regression tests to test suite",
+      "files": [
+        "src/teer_cdss/geometric_features.py",
+        "tests/test_geometric_features.py"
+      ],
+      "tests": [
+        "tests/test_geometric_features.py"
+      ],
+      "cwd": ".",
+      "role": "research"
     }
   ]
 }
