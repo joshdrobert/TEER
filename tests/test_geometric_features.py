@@ -100,6 +100,93 @@ def test_validate_geometric_features():
     is_valid = gf.validate_geometric_features(features)
     assert is_valid == False
 
+def test_validate_geometric_features_shape_consistency():
+    """Test shape consistency checks in validation."""
+    # Test with correct matching shapes
+    features = {
+        'signed_distances': np.random.rand(8, 8, 8),
+        'unsigned_distances': np.random.rand(8, 8, 8),
+        'laplace_beltrami_spectrum': np.random.rand(10)
+    }
+    assert gf.validate_geometric_features(features) == True
+    
+    # Test with mismatched distance field shapes
+    features['unsigned_distances'] = np.random.rand(4, 4, 4)
+    assert gf.validate_geometric_features(features) == False
+
+def test_validate_geometric_features_array_types():
+    """Test that validation rejects non-numpy arrays and wrong dimensions."""
+    # Test with non-numpy arrays
+    features = {
+        'signed_distances': [[1, 2], [3, 4]],
+        'unsigned_distances': np.random.rand(4, 4, 4),
+        'laplace_beltrami_spectrum': np.random.rand(10)
+    }
+    assert gf.validate_geometric_features(features) == False
+    
+    # Test with wrong dimension arrays
+    features = {
+        'signed_distances': np.random.rand(4, 4),
+        'unsigned_distances': np.random.rand(4, 4),
+        'laplace_beltrami_spectrum': np.random.rand(10)
+    }
+    assert gf.validate_geometric_features(features) == False
+
+def test_validate_geometric_features_spectrum_shape():
+    """Test that validation checks spectrum array shape."""
+    # Test with correct spectrum shape
+    features = {
+        'signed_distances': np.random.rand(4, 4, 4),
+        'unsigned_distances': np.random.rand(4, 4, 4),
+        'laplace_beltrami_spectrum': np.random.rand(10)
+    }
+    assert gf.validate_geometric_features(features) == True
+    
+    # Test with wrong spectrum length
+    features['laplace_beltrami_spectrum'] = np.random.rand(5)
+    assert gf.validate_geometric_features(features) == False
+
+def test_validate_geometric_features_empty_arrays():
+    """Test that validation rejects empty arrays."""
+    features = {
+        'signed_distances': np.array([]),
+        'unsigned_distances': np.random.rand(4, 4, 4),
+        'laplace_beltrami_spectrum': np.random.rand(10)
+    }
+    assert gf.validate_geometric_features(features) == False
+    
+    features = {
+        'signed_distances': np.random.rand(4, 4, 4),
+        'unsigned_distances': np.random.rand(4, 4, 4),
+        'laplace_beltrami_spectrum': np.array([])
+    }
+    assert gf.validate_geometric_features(features) == False
+
+def test_validate_geometric_features_nonfinite_values():
+    """Test that validation rejects arrays with nonfinite values."""
+    features = {
+        'signed_distances': np.array([np.nan, 1.0, 2.0]).reshape(1, 3, 1),
+        'unsigned_distances': np.random.rand(1, 3, 1),
+        'laplace_beltrami_spectrum': np.random.rand(10)
+    }
+    assert gf.validate_geometric_features(features) == False
+    
+    features = {
+        'signed_distances': np.random.rand(1, 3, 1),
+        'unsigned_distances': np.array([1.0, np.inf, 2.0]).reshape(1, 3, 1),
+        'laplace_beltrami_spectrum': np.random.rand(10)
+    }
+    assert gf.validate_geometric_features(features) == False
+
+def test_validate_geometric_features_missing_keys():
+    """Test that validation rejects missing required keys."""
+    features = {
+        'signed_distances': np.random.rand(4, 4, 4),
+        'unsigned_distances': np.random.rand(4, 4, 4)
+        # Missing laplace_beltrami_spectrum
+    }
+    assert gf.validate_geometric_features(features) == False
+
 def test_acceptance():
     """Basic acceptance test."""
     # This would be run against real data in practice
