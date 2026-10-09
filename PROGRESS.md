@@ -94,3 +94,5 @@
 - Verified 2026-10-09 task 233 (teer-geometry-repeatability-report): Generate geometry_repeatability.json with area/volume invariant results and feature repeatability metrics, preserving outlier warnings.; checks acceptance=3 passed
 
 - Verified 2026-10-09 task 250 (local-repair-231-2): Decompose the recorded failure into a small local repair plan for task 231. Preserve its objective and acceptance checks; write AUTONOMY_NEXT.json.; checks plan-contract=1 passed
+
+- Verified 2026-10-09 task 256 (teer-image-grid-association-invariants-20261009): Correct ImageData label association for dense segmentations and complete rigid-transform area/volume invariant checks from the repository root.; checks preserved-contract-and-reviewed-boundary=5 passed
