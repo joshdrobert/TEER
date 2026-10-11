@@ -1,26 +1,26 @@
 {
   "tasks": [
     {
-      "key": "teer-anatomy-contract",
-      "goal": "Write research/anatomy_contract.yaml documenting units/frame/mesh provenance and exactly which anatomy/landmarks are observable",
-      "files": ["valves_metadata.json", "scripts/validate_geometries.py", "scripts/extract_features.py"],
-      "tests": ["tests/test_anatomy_contract.py"],
+      "key": "teer-geometric-rejection-validation",
+      "goal": "Add invalid geometry rejection with finite array checks in src/teer_cdss/geometric_features.py",
+      "files": ["src/teer_cdss/geometric_features.py"],
+      "tests": ["tests/test_placement_validation.py", "tests/test_clip_placement_recommendations.py"],
       "cwd": ".",
       "role": "coder"
     },
     {
-      "key": "teer-transform-repeatability",
-      "goal": "Add bounded alignment/feature invariance assessment on existing licensed meshes and record research/geometry_repeatability.json",
-      "files": ["src/teer_cdss/mesh.py", "scripts/extract_features.py"],
+      "key": "teer-transform-qc-invariant-preservation",
+      "goal": "Preserve transform/QC invariants before clip placement scoring in src/teer_cdss/scoring.py",
+      "files": ["src/teer_cdss/scoring.py"],
       "tests": ["tests/test_transform_repeatability.py"],
       "cwd": ".",
       "role": "coder"
     },
     {
-      "key": "teer-validation-matrix",
-      "goal": "Write research/placement_validation_protocol.md documenting multiobjective optimization and sensitivity analysis specifications",
-      "files": ["research/placement_validation_protocol.md"],
-      "tests": ["tests/test_validation_matrix.py"],
+      "key": "teer-optimization-validation-check",
+      "goal": "Complete multiobjective optimization validation with sensitivity analysis documentation in research/placement_validation_protocol.py",
+      "files": ["research/placement_validation_protocol.py"],
+      "tests": ["tests/test_placement_validation.py"],
       "cwd": ".",
       "role": "research"
     }
