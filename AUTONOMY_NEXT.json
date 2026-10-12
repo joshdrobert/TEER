@@ -1,25 +1,25 @@
 {
   "tasks": [
     {
-      "key": "teer-geometric-rejection-validation",
-      "goal": "Add invalid geometry rejection with finite array checks in src/teer_cdss/geometric_features.py",
-      "files": ["src/teer_cdss/geometric_features.py"],
-      "tests": ["tests/test_placement_validation.py", "tests/test_clip_placement_recommendations.py"],
-      "cwd": ".",
-      "role": "coder"
-    },
-    {
-      "key": "teer-transform-qc-invariant-preservation",
-      "goal": "Preserve transform/QC invariants before clip placement scoring in src/teer_cdss/scoring.py",
-      "files": ["src/teer_cdss/scoring.py"],
+      "key": "teer-transform-repeatability-assessment",
+      "goal": "Add bounded alignment/feature invariance assessment on licensed meshes and record geometry_repeatability.json",
+      "files": ["src/teer_cdss/mesh.py", "scripts/extract_features.py"],
       "tests": ["tests/test_transform_repeatability.py"],
       "cwd": ".",
       "role": "coder"
     },
     {
-      "key": "teer-optimization-validation-check",
-      "goal": "Complete multiobjective optimization validation with sensitivity analysis documentation in research/placement_validation_protocol.py",
-      "files": ["research/placement_validation_protocol.py"],
+      "key": "teer-phenotype-initialization",
+      "goal": "Define morphological phenotypes and placement parameters without label/outcome leakage",
+      "files": ["src/teer_cdss/phenotype.py"],
+      "tests": ["tests/test_phenotype_definition.py"],
+      "cwd": ".",
+      "role": "research"
+    },
+    {
+      "key": "teer-validation-matrix-initialization",
+      "goal": "Write placement_validation_protocol.md with observed-endpoint availability matrix before optimization claims",
+      "files": ["research/placement_validation_protocol.md", "backend/optimization.py", "backend/hemodynamics.py"],
       "tests": ["tests/test_placement_validation.py"],
       "cwd": ".",
       "role": "research"
