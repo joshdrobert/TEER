@@ -4,17 +4,17 @@
 # Coordinate System Definition
 coordinate_system:
   type: "right-handed"
-  units: "unsupported - derived from image pixel scale"
-  origin: "unsupported - derived from image coordinate system"
-  x_axis: "unsupported - derived from image coordinate system"
-  y_axis: "unsupported - derived from image coordinate system"
-  z_axis: "unsupported - derived from image coordinate system"
+  units: "not specified in metadata"
+  origin: "not specified in metadata"
+  x_axis: "not specified in metadata"
+  y_axis: "not specified in metadata"
+  z_axis: "not specified in metadata"
 
 # Frame Provenance
 frame:
   reference: "image coordinate system"
   orientation: "aligned with image dimensions"
-  scale_factor: "unsupported - pixel scale varies by source image"
+  scale_factor: "pixel scale varies by source image"
 
 # Mesh Provenance
 mesh:
@@ -22,7 +22,7 @@ mesh:
   resolution: "high-resolution"
   source: "medical imaging data"
   preprocessing: "noise reduction, smoothing"
-  topology: "unsupported - not validated for manifold/watertight properties"
+  topology: "not validated for manifold/watertight properties"
   vertex_count: "variable"
   face_count: "variable"
 
@@ -32,37 +32,37 @@ observable_anatomy:
     type: "commisure"
     description: "Commissure point where valve leaflets meet"
     coordinates:
-      x: "center_x coordinate"
-      y: "center_y coordinate"
+      x: "normalized unit vector component"
+      y: "normalized unit vector component"
     reference_frame: "image coordinate system"
-    measurement_unit: "unsupported - derived from image pixel scale"
+    measurement_unit: "not specified in metadata"
     
   - name: "valve_open"
     type: "opening point"  
     description: "Point representing maximum valve opening direction"
     coordinates:
-      x: "unit vector component"
-      y: "unit vector component"
+      x: "normalized unit vector component"
+      y: "normalized unit vector component"
     reference_frame: "image coordinate system"
-    measurement_unit: "unsupported - normalized vector components"
+    measurement_unit: "not specified in metadata"
 
 # Structural Landmarks
 landmarks:
   - name: "center_x"
     description: "X-coordinate of valve center point"
-    unit: "unsupported - derived from image pixel scale"
+    unit: "not specified in metadata"
     
   - name: "center_y" 
     description: "Y-coordinate of valve center point"
-    unit: "unsupported - derived from image pixel scale"
+    unit: "not specified in metadata"
     
   - name: "angle_rad"
     description: "Orientation angle in radians"
-    unit: "unsupported - derived from image pixel scale"
+    unit: "not specified in metadata"
     
   - name: "angle_deg"
     description: "Orientation angle in degrees"
-    unit: "unsupported - derived from image pixel scale"
+    unit: "not specified in metadata"
 
 # Data Source Information
 data_source:
@@ -92,17 +92,17 @@ unsupported_assumptions:
 # Observability and Uncertainty
 observability:
   - landmark: "valve_comm"
-    uncertainty: "unsupported - not quantified in metadata"
-    confidence_level: "unsupported - not quantified in metadata"
-    measurement_method: "unsupported - not specified in metadata"
+    uncertainty: "not quantified in metadata"
+    confidence_level: "not quantified in metadata"
+    measurement_method: "not specified in metadata"
     
   - landmark: "valve_open"  
-    uncertainty: "unsupported - not quantified in metadata"
-    confidence_level: "unsupported - not quantified in metadata"
-    measurement_method: "unsupported - not specified in metadata"
+    uncertainty: "not quantified in metadata"
+    confidence_level: "not quantified in metadata"
+    measurement_method: "not specified in metadata"
 
 # Validation Status
 validation:
-  geometry: "unsupported - not validated against clinical standards"
-  landmarks: "unsupported - not manually verified for accuracy"
-  consistency: "unsupported - not validated across all samples"
+  geometry: "not validated against clinical standards"
+  landmarks: "not manually verified for accuracy"
+  consistency: "not validated across all samples"
