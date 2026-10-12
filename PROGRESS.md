@@ -118,3 +118,5 @@
 - Verified 2026-10-12 task 337 (teer-anatomy-contract-20261011): Create the source-backed anatomy contract documenting units, coordinate frame, mesh provenance, observability and unsupported landmark assumptions before further clip-placement claims.; checks geometry-validation=6 passed
 
 - Verified 2026-10-12 task 337 (teer-anatomy-contract-20261011): Create the source-backed anatomy contract documenting units, coordinate frame, mesh provenance, observability and unsupported landmark assumptions before further clip-placement claims.; checks geometry-validation=6 passed, scientific-claim-gate=1 passed
+
+- Verified 2026-10-12 task 337 (teer-anatomy-contract-20261011): Create the source-backed anatomy contract documenting units, coordinate frame, mesh provenance, observability and unsupported landmark assumptions before further clip-placement claims.; checks geometry-validation=6 passed, scientific-claim-gate=1 passed
