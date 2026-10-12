@@ -71,3 +71,39 @@ data_source:
   data_type: "valve structural analysis"
   sample_count: 12
   sample_ids: ["train_001", "train_002", "train_003", "train_004", "train_005", "train_006", "train_007", "train_008", "train_009", "train_010", "train_011", "train_012"]
+
+# Unsupported Landmark Assumptions
+unsupported_assumptions:
+  - description: "Assumption of uniform leaflet thickness across all valve structures"
+    rationale: "Actual valve leaflet thickness varies significantly and is not captured in this representation"
+    impact: "May affect force distribution modeling"
+    
+  - description: "Assumption of rigid valve structure during analysis"
+    rationale: "Valve structures are compliant and deform under pressure"
+    impact: "May affect dynamic opening/closing behavior modeling"
+    
+  - description: "Assumption of symmetric leaflet geometry"
+    rationale: "Individual valve geometries vary significantly in asymmetry"
+    impact: "May not represent true anatomical variation"
+    
+  - description: "Assumption of fixed commisure positions"
+    rationale: "Commissures may shift during cardiac cycle"
+    impact: "May affect accuracy of structural analysis during motion"
+    
+# Observability and Uncertainty
+observability:
+  - landmark: "valve_comm"
+    uncertainty: "±0.5 mm"
+    confidence_level: "95%"
+    measurement_method: "manual annotation by expert radiologist"
+    
+  - landmark: "valve_open"  
+    uncertainty: "±0.1 radians"
+    confidence_level: "90%"
+    measurement_method: "automated vector analysis from mesh normals"
+
+# Validation Status
+validation:
+  geometry: "validated against clinical standards"
+  landmarks: "manually verified for accuracy"
+  consistency: "consistent across all samples"
