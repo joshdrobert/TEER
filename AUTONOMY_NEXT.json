@@ -1,28 +1,28 @@
 {
   "tasks": [
     {
-      "key": "teer-geometric-rejection-validation",
-      "goal": "Add invalid geometry rejection with finite array checks in src/teer_cdss/geometric_features.py",
-      "files": ["src/teer_cdss/geometric_features.py"],
-      "tests": ["tests/test_placement_validation.py", "tests/test_clip_placement_recommendations.py"],
-      "cwd": ".",
+      "key": "teer-anatomy-contract-20261008",
+      "goal": "Create research/anatomy_contract.yaml documenting units, frames, mesh provenance from valves_metadata.json",
+      "files": ["research/anatomy_contract.yaml", "valves_metadata.json"],
+      "tests": ["scripts/test_anatomy_contract.py"],
+      "cwd": "research",
       "role": "coder"
     },
     {
-      "key": "teer-transform-qc-invariant-preservation",
-      "goal": "Preserve transform/QC invariants before clip placement scoring in src/teer_cdss/scoring.py",
-      "files": ["src/teer_cdss/scoring.py"],
-      "tests": ["tests/test_transform_repeatability.py"],
-      "cwd": ".",
+      "key": "teer-feature-repeatability-assessment-20261008",
+      "goal": "Assess geometric feature repeatability on licensed meshes and record geometry_repeatability.json metrics",
+      "files": ["research/geometry_repeatability.json", "src/teer_cdss/mesh.py"],
+      "tests": ["scripts/test_geometry_repeatability.py"],
+      "cwd": "src/teer_cdss",
       "role": "coder"
     },
     {
-      "key": "teer-optimization-validation-check",
-      "goal": "Complete multiobjective optimization validation with sensitivity analysis documentation in research/placement_validation_protocol.py",
-      "files": ["research/placement_validation_protocol.py"],
-      "tests": ["tests/test_placement_validation.py"],
-      "cwd": ".",
-      "role": "research"
+      "key": "teer-transform-invariant-checks-20261008",
+      "goal": "Implement area/volume invariant validation under rigid transforms for mesh.py with tolerance checks",
+      "files": ["src/teer_cdss/mesh.py"],
+      "tests": ["scripts/test_transform_invariants.py"],
+      "cwd": "src/teer_cdss",
+      "role": "coder"
     }
   ]
 }
