@@ -1,108 +1,77 @@
-# Anatomy Contract for Valve Structure Analysis
-# Documenting units, frame, mesh provenance, and observable landmarks
-
-# Coordinate System Definition
-coordinate_system:
-  type: "unsupported"
-  units: "unsupported"
-  origin: "unsupported"
-  x_axis: "unsupported"
-  y_axis: "unsupported"
-  z_axis: "unsupported"
-
-# Frame Provenance
-frame:
-  reference: "image coordinate system"
-  orientation: "aligned with image dimensions"
-  scale_factor: "pixel scale varies by source image"
-
-# Mesh Provenance
-mesh:
-  type: "triangular mesh"
-  resolution: "high-resolution"
-  source: "medical imaging data"
-  preprocessing: "noise reduction, smoothing"
-  topology: "not validated for manifold/watertight properties"
-  vertex_count: "variable"
-  face_count: "variable"
-
-# Observable Anatomy/Structures
-observable_anatomy:
-  - name: "valve_comm"
-    type: "commisure"
-    description: "Commissure point where valve leaflets meet"
-    coordinates:
-      x: "normalized unit vector component"
-      y: "normalized unit vector component"
-    reference_frame: "image coordinate system"
-    measurement_unit: "unsupported"
-    
-  - name: "valve_open"
-    type: "opening point"  
-    description: "Point representing maximum valve opening direction"
-    coordinates:
-      x: "normalized unit vector component"
-      y: "normalized unit vector component"
-    reference_frame: "image coordinate system"
-    measurement_unit: "not specified in metadata"
-
-# Structural Landmarks
-landmarks:
-  - name: "center_x"
-    description: "X-coordinate of valve center point"
-    unit: "unsupported"
-    
-  - name: "center_y" 
-    description: "Y-coordinate of valve center point"
-    unit: "not specified in metadata"
-    
-  - name: "angle_rad"
-    description: "Orientation angle in radians"
-    unit: "not specified in metadata"
-    
-  - name: "angle_deg"
-    description: "Orientation angle in degrees"
-    unit: "not specified in metadata"
-
-# Data Source Information
-data_source:
-  metadata_file: "valves_metadata.json"
-  data_type: "valve structural analysis"
-  sample_count: 12
-  sample_ids: ["train_001", "train_002", "train_003", "train_004", "train_005", "train_006", "train_007", "train_008", "train_009", "train_010", "train_011", "train_012"]
-
-# Unsupported Landmark Assumptions
-unsupported_assumptions:
-  - description: "Assumption of uniform leaflet thickness across all valve structures"
-    rationale: "Actual valve leaflet thickness varies significantly and is not captured in this representation"
-    impact: "May affect force distribution modeling"
-    
-  - description: "Assumption of rigid valve structure during analysis"
-    rationale: "Valve structures are compliant and deform under pressure"
-    impact: "May affect dynamic opening/closing behavior modeling"
-    
-  - description: "Assumption of symmetric leaflet geometry"
-    rationale: "Individual valve geometries vary significantly in asymmetry"
-    impact: "May not represent true anatomical variation"
-    
-  - description: "Assumption of fixed commisure positions"
-    rationale: "Commissures may shift during cardiac cycle"
-    impact: "May affect accuracy of structural analysis during motion"
-
-# Observability and Uncertainty
-observability:
-  - landmark: "valve_comm"
-    uncertainty: "unsupported"
-    confidence_level: "unsupported"
-    measurement_method: "unsupported"
-    
-  - landmark: "valve_open"  
-    uncertainty: "not quantified in metadata"
-    confidence_level: "not quantified in metadata"
-    measurement_method: "not specified in metadata"
-
-# Validation Status
-validation:
-  geometry: "not validated against clinical standards"
-  landmarks: "not manually verified for accuracy"
-  consistency: "not validated across all samples"
+schema_version: 1
+artifact: teer_anatomy_contract
+source:
+  path: valves_metadata.json
+  retained_records: 12
+  observed_fields:
+    - x_min
+    - x_max
+    - y_min
+    - y_max
+    - z_min
+    - z_max
+    - cx
+    - cy
+    - angle_rad
+    - angle_deg
+    - v_comm
+    - v_open
+  source_limit: >-
+    The file supplies numeric bounds, centers, angles, and two named vectors.
+    It supplies no units, coordinate-frame definition, image affine, annotation
+    protocol, clinical labels, procedural placement, outcomes, or validation.
+coordinate_contract:
+  units: unsupported
+  handedness: unsupported
+  origin: unsupported
+  axis_semantics: unsupported
+  image_affine: unsupported
+  cross_record_registration: unsupported
+field_contract:
+  cx:
+    observed: true
+    semantics: numeric field named cx; anatomical meaning unsupported
+  cy:
+    observed: true
+    semantics: numeric field named cy; anatomical meaning unsupported
+  angle_rad:
+    observed: true
+    semantics: numeric angle field; anatomical reference unsupported
+  angle_deg:
+    observed: true
+    semantics: numeric angle field; anatomical reference unsupported
+  v_comm:
+    observed: true
+    semantics: two-element numeric vector; commissural annotation authority unsupported
+  v_open:
+    observed: true
+    semantics: two-element numeric vector; opening-direction annotation authority unsupported
+mesh_contract:
+  geometry_source: unsupported by valves_metadata.json
+  topology: unsupported
+  watertightness: unsupported
+  manifold_status: unsupported
+  preprocessing: unsupported
+anatomy_contract:
+  leaflet_identity: unsupported
+  annulus_identity: unsupported
+  commissure_identity: unsupported
+  pathology: unsupported
+  clip_placement: unsupported
+  hemodynamics: unsupported
+uncertainty_contract:
+  annotation_uncertainty: unsupported
+  measurement_repeatability: unsupported
+  interobserver_variability: unsupported
+validation_contract:
+  clinical_reference: unsupported
+  external_validation: unsupported
+  observed_outcomes: unsupported
+  status: blocked
+decision:
+  state: BLOCKED_PRECLINICAL
+  reason: >-
+    Numeric metadata alone cannot support named clinical anatomy, placement,
+    hemodynamic, or outcome claims. Source-bound coordinate and annotation
+    documentation plus independent clinical validation are required before
+    optimization or decision-support claims.
