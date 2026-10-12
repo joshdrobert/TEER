@@ -4,17 +4,17 @@
 # Coordinate System Definition
 coordinate_system:
   type: "right-handed"
-  units: "millimeters (mm)"
-  origin: "center of valve structure"
-  x_axis: "horizontal axis pointing from left to right"
-  y_axis: "vertical axis pointing from bottom to top"
-  z_axis: "depth axis pointing from front to back"
+  units: "unsupported - derived from image pixel scale"
+  origin: "unsupported - derived from image coordinate system"
+  x_axis: "unsupported - derived from image coordinate system"
+  y_axis: "unsupported - derived from image coordinate system"
+  z_axis: "unsupported - derived from image coordinate system"
 
 # Frame Provenance
 frame:
   reference: "image coordinate system"
   orientation: "aligned with image dimensions"
-  scale_factor: 1.0  # 1 pixel = 1 mm in this context
+  scale_factor: "unsupported - pixel scale varies by source image"
 
 # Mesh Provenance
 mesh:
@@ -22,7 +22,7 @@ mesh:
   resolution: "high-resolution"
   source: "medical imaging data"
   preprocessing: "noise reduction, smoothing"
-  topology: "manifold, watertight"
+  topology: "unsupported - not validated for manifold/watertight properties"
   vertex_count: "variable"
   face_count: "variable"
 
@@ -34,9 +34,8 @@ observable_anatomy:
     coordinates:
       x: "center_x coordinate"
       y: "center_y coordinate"
-      z: "depth coordinate"
     reference_frame: "image coordinate system"
-    measurement_unit: "millimeters"
+    measurement_unit: "unsupported - derived from image pixel scale"
     
   - name: "valve_open"
     type: "opening point"  
@@ -45,25 +44,25 @@ observable_anatomy:
       x: "unit vector component"
       y: "unit vector component"
     reference_frame: "image coordinate system"
-    measurement_unit: "normalized"
+    measurement_unit: "unsupported - normalized vector components"
 
 # Structural Landmarks
 landmarks:
   - name: "center_x"
     description: "X-coordinate of valve center point"
-    unit: "millimeters"
+    unit: "unsupported - derived from image pixel scale"
     
   - name: "center_y" 
     description: "Y-coordinate of valve center point"
-    unit: "millimeters"
+    unit: "unsupported - derived from image pixel scale"
     
   - name: "angle_rad"
     description: "Orientation angle in radians"
-    unit: "radians"
+    unit: "unsupported - derived from image pixel scale"
     
   - name: "angle_deg"
     description: "Orientation angle in degrees"
-    unit: "degrees"
+    unit: "unsupported - derived from image pixel scale"
 
 # Data Source Information
 data_source:
@@ -89,21 +88,21 @@ unsupported_assumptions:
   - description: "Assumption of fixed commisure positions"
     rationale: "Commissures may shift during cardiac cycle"
     impact: "May affect accuracy of structural analysis during motion"
-    
+
 # Observability and Uncertainty
 observability:
   - landmark: "valve_comm"
-    uncertainty: "±0.5 mm"
-    confidence_level: "95%"
-    measurement_method: "manual annotation by expert radiologist"
+    uncertainty: "unsupported - not quantified in metadata"
+    confidence_level: "unsupported - not quantified in metadata"
+    measurement_method: "unsupported - not specified in metadata"
     
   - landmark: "valve_open"  
-    uncertainty: "±0.1 radians"
-    confidence_level: "90%"
-    measurement_method: "automated vector analysis from mesh normals"
+    uncertainty: "unsupported - not quantified in metadata"
+    confidence_level: "unsupported - not quantified in metadata"
+    measurement_method: "unsupported - not specified in metadata"
 
 # Validation Status
 validation:
-  geometry: "validated against clinical standards"
-  landmarks: "manually verified for accuracy"
-  consistency: "consistent across all samples"
+  geometry: "unsupported - not validated against clinical standards"
+  landmarks: "unsupported - not manually verified for accuracy"
+  consistency: "unsupported - not validated across all samples"
