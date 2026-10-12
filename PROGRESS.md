@@ -120,3 +120,5 @@
 - Verified 2026-10-12 task 337 (teer-anatomy-contract-20261011): Create the source-backed anatomy contract documenting units, coordinate frame, mesh provenance, observability and unsupported landmark assumptions before further clip-placement claims.; checks geometry-validation=6 passed, scientific-claim-gate=1 passed
 
 - Verified 2026-10-12 task 337 (teer-anatomy-contract-20261011): Create the source-backed anatomy contract documenting units, coordinate frame, mesh provenance, observability and unsupported landmark assumptions before further clip-placement claims.; checks geometry-validation=6 passed, scientific-claim-gate=1 passed
+
+- Verified 2026-10-12 task 390 (teer-preclinical-readiness-20261012): Prepare the preclinical readiness packet: geometry source, observability, units, coordinate frames, and validation prerequisites. Do not make clinical or deployment claims.; checks worktree-clean-contract=1 passed
