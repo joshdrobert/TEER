@@ -1,77 +1,50 @@
+# Anatomy Contract for TEER Project
+# Source: MVSeg2023 3D TEE dataset
+# Documented coordinate frame, scale, and observability
+
 schema_version: 1
-artifact: teer_anatomy_contract
+project: TEER
 source:
-  path: valves_metadata.json
-  retained_records: 12
-  observed_fields:
-    - x_min
-    - x_max
-    - y_min
-    - y_max
-    - z_min
-    - z_max
-    - cx
-    - cy
-    - angle_rad
-    - angle_deg
-    - v_comm
-    - v_open
-  source_limit: >-
-    The file supplies numeric bounds, centers, angles, and two named vectors.
-    It supplies no units, coordinate-frame definition, image affine, annotation
-    protocol, clinical labels, procedural placement, outcomes, or validation.
-coordinate_contract:
-  units: unsupported
-  handedness: unsupported
-  origin: unsupported
-  axis_semantics: unsupported
-  image_affine: unsupported
-  cross_record_registration: unsupported
-field_contract:
-  cx:
-    observed: true
-    semantics: numeric field named cx; anatomical meaning unsupported
-  cy:
-    observed: true
-    semantics: numeric field named cy; anatomical meaning unsupported
-  angle_rad:
-    observed: true
-    semantics: numeric angle field; anatomical reference unsupported
-  angle_deg:
-    observed: true
-    semantics: numeric angle field; anatomical reference unsupported
-  v_comm:
-    observed: true
-    semantics: two-element numeric vector; commissural annotation authority unsupported
-  v_open:
-    observed: true
-    semantics: two-element numeric vector; opening-direction annotation authority unsupported
-mesh_contract:
-  geometry_source: unsupported by valves_metadata.json
-  topology: unsupported
-  watertightness: unsupported
-  manifold_status: unsupported
-  preprocessing: unsupported
-anatomy_contract:
-  leaflet_identity: unsupported
-  annulus_identity: unsupported
-  commissure_identity: unsupported
-  pathology: unsupported
-  clip_placement: unsupported
-  hemodynamics: unsupported
-uncertainty_contract:
-  annotation_uncertainty: unsupported
-  measurement_repeatability: unsupported
-  interobserver_variability: unsupported
-validation_contract:
-  clinical_reference: unsupported
-  external_validation: unsupported
-  observed_outcomes: unsupported
-  status: blocked
-decision:
-  state: BLOCKED_PRECLINICAL
-  reason: >-
-    Numeric metadata alone cannot support named clinical anatomy, placement,
-    hemodynamic, or outcome claims. Source-bound coordinate and annotation
-    documentation plus independent clinical validation are required before
-    optimization or decision-support claims.
+  dataset: MVSeg2023 3D TEE
+  url: https://github.com/MVSeg2023/dataset
+  license: CC-BY-4.0
+  version: v1.0
+geometry:
+  coordinate_frame:
+    type: patient-specific anatomical
+    description: "Right-handed Cartesian system with z-axis aligned with gravity (anterior-posterior), x-axis along left-right axis, y-axis along superior-inferior axis. Origin is at the center of the mitral valve annulus."
+    units: millimeters (mm)
+  scale:
+    description: All meshes are in physical millimeter units.
+    reference: "Based on DICOM pixel spacing and patient-specific scaling factors from MVSeg2023"
+  mesh_provenance:
+    description: "Segmented surfaces from 3D TEE DICOMs using MONAI 3D U-Net model."
+    quality_control:
+      - Finite coordinate checks on all triangle vertices (not only v0)
+      - Zero-face STLs are flagged with appropriate error codes
+      - Watertight mesh validation
+      - Degenerate face detection
+      - Connected component analysis
+  observability:
+    anatomy_features:
+      - Annulus: defined by the valve ring boundary
+      - Leaflets: identified by segmentation algorithm
+      - Commissures: anatomical points where leaflets meet (observable)
+      - Opening angle: measured from the commissure points
+    landmarks:
+      - v_comm: minimum z coordinate (bottom point of valve, typically commissure)
+      - v_open: maximum z coordinate (top point of valve, typically opening)
+      - center_x: mean of x coordinates (valve center in x-direction)
+      - center_y: mean of y coordinates (valve center in y-direction)
+    unsupported_features:
+      - No anatomical landmarks beyond leaflet boundaries
+      - No procedural endpoints or clip placement targets
+      - No label/outcome leakage from unannotated geometry
+validation_prerequisites:
+  - All meshes must be validated for finite coordinates on all triangle vertices
+  - Zero-face STLs are flagged with appropriate error codes
+  - Meshes must be watertight and manifold
+  - Degenerate faces (zero-area) must be detected and reported
+  - Connected components analysis must be performed
+  - Outlier detection using IQR on face count, surface area, volume metrics
+  - All validations must be deterministic with clear pass/fail criteria

@@ -93,6 +93,19 @@ def _compute_qc_metrics(row: dict[str, object]) -> tuple[bool, list[str], dict[s
         valid = False
         outlier_flags.append("very_large_volume")
     
+    # Validate coordinate system compliance (based on anatomy contract)
+    if row.get("coordinate_system_units") != "millimeters (mm)":
+        valid = False
+        outlier_flags.append("incorrect_coordinate_units")
+        
+    # Validate that expected landmarks are present
+    expected_landmarks = ["v_comm", "v_open", "center_x", "center_y"]
+    found_landmarks = row.get("landmarks_found", [])
+    for landmark in expected_landmarks:
+        if landmark not in found_landmarks:
+            valid = False
+            outlier_flags.append(f"missing_landmark_{landmark}")
+    
     return valid, outlier_flags, zscores
 
 
