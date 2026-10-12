@@ -146,6 +146,38 @@ def test_zero_face_stl_returns_invalid():
         
         os.unlink(f.name)
 
+def test_new_validation_fields_present():
+    """Test that new bounded coordinate verification and uncertainty fields are present"""
+    # Create a basic mesh to test field presence
+    vertices = np.array([
+        [0, 0, 0],
+        [1, 0, 0],
+        [0, 1, 0]
+    ])
+    
+    cube = mesh.Mesh(np.zeros(1, dtype=mesh.Mesh.dtype))
+    cube.v0[0] = vertices[0]
+    cube.v1[0] = vertices[1]
+    cube.v2[0] = vertices[2]
+    
+    with tempfile.NamedTemporaryFile(suffix='.stl', delete=False) as f:
+        cube.save(f.name)
+        result = validate_mesh(f.name)
+        
+        # Check that new fields are present in the metrics
+        assert "bounded_coordinate_verification" in result
+        assert "coordinate_invariance_score" in result
+        assert "uncertainty_estimate" in result
+        assert "abstention_reason" in result
+        
+        # These should have initial default values
+        assert result["bounded_coordinate_verification"] is False or result["bounded_coordinate_verification"] is True
+        assert isinstance(result["coordinate_invariance_score"], (int, float))
+        assert isinstance(result["uncertainty_estimate"], (int, float))
+        assert result["abstention_reason"] is None or isinstance(result["abstention_reason"], str)
+        
+        os.unlink(f.name)
+
 if __name__ == "__main__":
     test_finite_coordinates_check()
     test_nonfinite_coordinates_fail()
@@ -153,4 +185,5 @@ if __name__ == "__main__":
     test_adversarial_stl_with_nan()
     test_adversarial_stl_with_all_nan()
     test_zero_face_stl_returns_invalid()
+    test_new_validation_fields_present()
     print("All tests passed!")

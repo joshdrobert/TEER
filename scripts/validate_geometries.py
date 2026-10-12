@@ -28,7 +28,11 @@ def validate_mesh(file_path):
         "coordinate_system_type": "patient-specific anatomical",
         "coordinate_system_units": "millimeters (mm)",
         "observable_anatomy_found": ["annulus", "leaflets", "commissures", "opening_angle"],
-        "landmarks_found": ["v_comm", "v_open", "center_x", "center_y"]
+        "landmarks_found": ["v_comm", "v_open", "center_x", "center_y"],
+        "bounded_coordinate_verification": False,
+        "coordinate_invariance_score": 0.0,
+        "uncertainty_estimate": 0.0,
+        "abstention_reason": None
     }
 
     try:
@@ -71,6 +75,59 @@ def validate_mesh(file_path):
         degenerate = np.sum(t_mesh.area_faces == 0)
         metrics["degenerate_faces"] = int(degenerate)
 
+        # Bounded coordinate verification and invariance check
+        # Check if coordinates are within reasonable anatomical bounds (e.g., human heart dimensions)
+        anatomical_bounds = {
+            'x': (-200, 200),  # mm
+            'y': (-200, 200),  # mm
+            'z': (-200, 200)   # mm
+        }
+        
+        # Check if all coordinates are within anatomical bounds
+        all_coords_flat = np.concatenate([m.v0.flatten(), m.v1.flatten(), m.v2.flatten()])
+        bounded_coords = (
+            np.all(all_coords_flat >= anatomical_bounds['x'][0]) and
+            np.all(all_coords_flat <= anatomical_bounds['x'][1]) and
+            np.all(all_coords_flat >= anatomical_bounds['y'][0]) and
+            np.all(all_coords_flat <= anatomical_bounds['y'][1]) and
+            np.all(all_coords_flat >= anatomical_bounds['z'][0]) and
+            np.all(all_coords_flat <= anatomical_bounds['z'][1])
+        )
+
+        metrics["bounded_coordinate_verification"] = bounded_coords
+
+        # Calculate coordinate invariance score (how consistent the coordinate system is)
+        # This is a simplified check - in practice would be more sophisticated
+        if metrics["finite_coords"] and metrics["vertices"] > 0:
+            # Compute variance of coordinates to estimate consistency
+            coord_variance = np.var(all_coords_flat)
+            # Score from 0.0 (high variance/inconsistent) to 1.0 (low variance/consistent)
+            metrics["coordinate_invariance_score"] = max(0.0, min(1.0, 1.0 - coord_variance / 1000000.0))
+
+        # Estimate uncertainty based on geometry quality
+        if metrics["parse_success"]:
+            # Higher uncertainty for degenerate faces or non-watertight geometries
+            uncertainty = 0.0
+
+            if metrics["degenerate_faces"] > 0:
+                uncertainty += 0.3
+
+            if not metrics["is_watertight"]:
+                uncertainty += 0.2
+
+            if not metrics["is_manifold"]:
+                uncertainty += 0.2
+
+            # Higher uncertainty for larger coordinate ranges
+            if metrics["coord_range"] > 100:  # mm
+                uncertainty += 0.2
+
+            metrics["uncertainty_estimate"] = min(1.0, uncertainty)
+
+            # Set abstention reason if uncertainty is too high
+            if metrics["uncertainty_estimate"] > 0.7:
+                metrics["abstention_reason"] = "high_geometric_uncertainty"
+        
         # Mark as compliant if basic validation passes and we have the expected structure
         if metrics["parse_success"] and metrics["finite_coords"] and metrics["degenerate_faces"] == 0:
             metrics["anatomy_contract_compliant"] = True
