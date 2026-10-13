@@ -1,26 +1,26 @@
 {
   "tasks": [
     {
-      "key": "teer-geometric-rejection-validation",
-      "goal": "Add invalid geometry rejection with finite array checks in src/teer_cdss/geometric_features.py",
+      "key": "qc-abstention-qc-validation",
+      "goal": "Validate QC metrics on synthetic/preclinical benchmark cases and verify abstention thresholds in src/teer_cdss/clip_placement.py",
+      "files": ["src/teer_cdss/clip_placement.py"],
+      "tests": ["tests/test_qc_abstention_validation.py"],
+      "cwd": ".",
+      "role": "coder"
+    },
+    {
+      "key": "abstention-behavior-geometric-invariants",
+      "goal": "Verify geometric invariants are preserved during QC filtering and abstention decisions across coordinate frame conversions",
       "files": ["src/teer_cdss/geometric_features.py"],
-      "tests": ["tests/test_placement_validation.py", "tests/test_clip_placement_recommendations.py"],
+      "tests": ["tests/test_geometric_qc_invariants.py"],
       "cwd": ".",
       "role": "coder"
     },
     {
-      "key": "teer-transform-qc-invariant-preservation",
-      "goal": "Preserve transform/QC invariants before clip placement scoring in src/teer_cdss/scoring.py",
-      "files": ["src/teer_cdss/scoring.py"],
-      "tests": ["tests/test_transform_repeatability.py"],
-      "cwd": ".",
-      "role": "coder"
-    },
-    {
-      "key": "teer-optimization-validation-check",
-      "goal": "Complete multiobjective optimization validation with sensitivity analysis documentation in research/placement_validation_protocol.py",
-      "files": ["research/placement_validation_protocol.py"],
-      "tests": ["tests/test_placement_validation.py"],
+      "key": "validation-report-synthetic-preclinical",
+      "goal": "Generate validation report comparing QC/abstention behavior against acceptance criteria for synthetic/preclinical benchmark cases",
+      "files": ["research/qc_abstention_validation_report.py"],
+      "tests": ["tests/test_validation_report_generation.py"],
       "cwd": ".",
       "role": "research"
     }
