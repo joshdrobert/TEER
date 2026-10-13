@@ -1,26 +1,26 @@
 {
   "tasks": [
     {
-      "key": "qc-abstention-qc-validation",
-      "goal": "Validate QC metrics on synthetic/preclinical benchmark cases and verify abstention thresholds in src/teer_cdss/clip_placement.py",
-      "files": ["src/teer_cdss/clip_placement.py"],
-      "tests": ["tests/test_qc_abstention_validation.py"],
+      "key": "task-455-coordinate-qc-regression",
+      "goal": "Implement coordinate/QC regression function in src/teer_cdss/coordinate_qc_regression.py with abstention thresholds",
+      "files": ["src/teer_cdss/coordinate_qc_regression.py"],
+      "tests": ["tests/test_coordinate_qc_regression.py"],
       "cwd": ".",
       "role": "coder"
     },
     {
-      "key": "abstention-behavior-geometric-invariants",
-      "goal": "Verify geometric invariants are preserved during QC filtering and abstention decisions across coordinate frame conversions",
-      "files": ["src/teer_cdss/geometric_features.py"],
-      "tests": ["tests/test_geometric_qc_invariants.py"],
+      "key": "task-455-invariant-preservation-check",
+      "goal": "Add geometric invariant preservation verification in src/teer_cdss/invariant_checker.py before abstention decision",
+      "files": ["src/teer_cdss/invariant_checker.py"],
+      "tests": ["tests/test_invariant_preservation.py"],
       "cwd": ".",
       "role": "coder"
     },
     {
-      "key": "validation-report-synthetic-preclinical",
-      "goal": "Generate validation report comparing QC/abstention behavior against acceptance criteria for synthetic/preclinical benchmark cases",
-      "files": ["research/qc_abstention_validation_report.py"],
-      "tests": ["tests/test_validation_report_generation.py"],
+      "key": "task-455-abstention-validation-report",
+      "goal": "Create validation report generator in research/task_455_validation.py comparing QC/abstention against acceptance criteria",
+      "files": ["research/task_455_validation.py"],
+      "tests": ["tests/test_task_455_abstention_validation.py"],
       "cwd": ".",
       "role": "research"
     }
