@@ -126,3 +126,7 @@
 - Verified 2026-10-12 task 406 (teer-validation-matrix-recovery-20261012): Write the preclinical placement-validation protocol and observed-endpoint availability matrix; mark unavailable references explicitly and make no clinical-performance claim.; checks roadmap-recovery-boundary=1 passed
 
 - Verified 2026-10-12 task 416 (teer-geometry-qc-recovery-20261012): Extend the accepted preclinical geometry QC with bounded coordinate/invariance verification and explicit uncertainty/abstention outputs; no clinical-performance claims.; checks roadmap-recovery-boundary=1 passed
+
+- Verified 2026-10-13 task 431 (teer-benchmark-cases-recovery-20261013): Create bounded synthetic/preclinical benchmark cases with coordinate/QC acceptance and abstention behavior; do not represent engineering validation as clinical performance.; checks roadmap-boundary=1 passed
+
+- Verified 2026-10-13 task 431 (teer-benchmark-cases-recovery-20261013): Create bounded synthetic/preclinical benchmark cases with coordinate/QC acceptance and abstention behavior; do not represent engineering validation as clinical performance.; checks roadmap-boundary=1 passed
