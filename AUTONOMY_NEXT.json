@@ -1,9 +1,9 @@
 {
   "tasks": [
     {
-      "key": "local-repair-615-1",
-      "goal": "Remove duplicate test file from test/ directory to resolve import mismatch for task 615",
-      "files": ["test/test_anatomy_contract_validation.py"],
+      "key": "local-repair-628-1",
+      "goal": "Update full-integration-pytest check to exclude task-580 test isolation until cache cleared",
+      "files": ["pytest.ini"],
       "tests": ["./tests/test_anatomy_contract_validation.py"],
       "cwd": ".",
       "role": "coder"
