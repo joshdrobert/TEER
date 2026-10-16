@@ -1,26 +1,10 @@
 {
   "tasks": [
     {
-      "key": "task-580-test-isolation",
-      "goal": "Remove duplicate test file from test/ directory to resolve import mismatch for task 580",
-      "files": ["test/test_anatomy_contract_validation.py"],
-      "tests": ["./tests/test_anatomy_contract_validation.py"],
-      "cwd": ".",
-      "role": "coder"
-    },
-    {
-      "key": "task-580-cache-cleanup",
-      "goal": "Add cache cleanup step to ensure clean pytest run for task 580 import conflicts",
-      "files": ["test/test_anatomy_contract_validation.py"],
-      "tests": ["./tests/test_anatomy_contract_validation.py", "./test/test_anatomy_contract_validation.py"],
-      "cwd": ".",
-      "role": "coder"
-    },
-    {
-      "key": "task-596-cache-cleanup",
-      "goal": "Add cache cleanup step to ensure clean pytest run for task 596 import conflicts",
-      "files": ["test/test_anatomy_contract_validation.py"],
-      "tests": ["./tests/test_anatomy_contract_validation.py", "./test/test_anatomy_contract_validation.py"],
+      "key": "local-repair-595-2",
+      "goal": "Add coordinate_system.unsupported field to anatomy_contract.yaml",
+      "files": ["research/anatomy_contract.yaml"],
+      "tests": ["test/test_anatomy_contract_validation.py"],
       "cwd": ".",
       "role": "coder"
     }
