@@ -1,10 +1,10 @@
 {
   "tasks": [
     {
-      "key": "local-repair-615-1",
-      "goal": "Remove duplicate test file from test/ directory to resolve import mismatch for task 615",
+      "key": "local-repair-632-1",
+      "goal": "Fix test path mismatch: lowercase 'test/' vs uppercase 'Tests/' directory",
       "files": ["test/test_anatomy_contract_validation.py"],
-      "tests": ["./tests/test_anatomy_contract_validation.py"],
+      "tests": ["./test/test_anatomy_contract_validation.py"],
       "cwd": ".",
       "role": "coder"
     }
