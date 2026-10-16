@@ -7,6 +7,14 @@
       "tests": ["./tests/test_anatomy_contract_validation.py"],
       "cwd": ".",
       "role": "coder"
+    },
+    {
+      "key": "local-repair-633-1",
+      "goal": "Add cache cleanup step and remove duplicate test file for task 633 import conflicts",
+      "files": ["test/test_anatomy_contract_validation.py"],
+      "tests": ["./tests/test_anatomy_contract_validation.py", "./test/test_anatomy_contract_validation.py"],
+      "cwd": ".",
+      "role": "coder"
     }
   ]
 }
