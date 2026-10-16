@@ -1,10 +1,10 @@
 {
   "tasks": [
     {
-      "key": "local-repair-632-1",
-      "goal": "Remove duplicate test file from test/ to resolve import mismatch for task 632",
-      "files": ["test/test_anatomy_contract_validation.py"],
-      "tests": ["./tests/test_anatomy_contract_validation.py"],
+      "key": "local-repair-633-1",
+      "goal": "Add cache cleanup step to ensure clean pytest run for task 621 import conflicts",
+      "files": [".gitignore"],
+      "tests": ["./tests/test_anatomy_contract_validation.py", "./test/test_anatomy_contract_validation.py"],
       "cwd": ".",
       "role": "coder"
     }
