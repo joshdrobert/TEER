@@ -17,12 +17,11 @@
       "role": "coder"
     },
     {
-      "key": "task-580-integration-check",
-      "goal": "Update full-integration-pytest check to exclude task-580 test isolation until cache cleared",
-      "files": ["pytest.ini"],
-      "tests": ["./tests/test_anatomy_contract_validation.py", "./test/test_anatomy_contract_validation.py"],
-      "cwd": ".",
-      "role": "research"
+      "key": "task-595-duplicate-test-file",
+      "goal": "Remove duplicate test file from test/ directory to resolve import mismatch for task 595",
+      "files": ["test/test_anatomy_contract_validation.py"],
+      "tests": ["./tests/test_anatomy_contract_validation.py"],
+      "cwd": "."
     }
   ]
 }
