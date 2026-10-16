@@ -1,25 +1,25 @@
 {
   "tasks": [
     {
-      "key": "task-580-test-isolation",
-      "goal": "Remove duplicate test file from test/ directory to resolve import mismatch for task 580",
+      "key": "task-621-import-isolation",
+      "goal": "Remove duplicate test file from test/ directory to resolve import mismatch for task 621",
       "files": ["test/test_anatomy_contract_validation.py"],
       "tests": ["./tests/test_anatomy_contract_validation.py"],
       "cwd": ".",
       "role": "coder"
     },
     {
-      "key": "task-580-cache-cleanup",
-      "goal": "Add cache cleanup step to ensure clean pytest run for task 580 import conflicts",
-      "files": ["test/test_anatomy_contract_validation.py"],
+      "key": "task-621-cache-cleanup",
+      "goal": "Add cache cleanup step to ensure clean pytest run for task 621 import conflicts",
+      "files": [".gitignore"],
       "tests": ["./tests/test_anatomy_contract_validation.py", "./test/test_anatomy_contract_validation.py"],
       "cwd": ".",
       "role": "coder"
     },
     {
-      "key": "task-597-exclusion",
-      "goal": "Update full-integration-pytest check to exclude task-580 test isolation until cache cleared",
-      "files": ["pytest.ini"],
+      "key": "task-621-integration-check",
+      "goal": "Update acceptance check to exclude conflicting test file until issue resolved",
+      "files": ["scripts/validate_next_plan.py"],
       "tests": [".//tests/test_anatomy_contract_validation.py", ".//test/test_anatomy_contract_validation.py"],
       "cwd": ".",
       "role": "coder"
