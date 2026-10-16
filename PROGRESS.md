@@ -140,3 +140,5 @@
 - Verified 2026-10-16 task 588 (local-repair-580-1): Decompose the recorded failure into a small local repair plan for task 580. Preserve its objective and acceptance checks; write AUTONOMY_NEXT.json.; checks plan-contract=1 passed
 
 - Verified 2026-10-16 task 609 (local-repair-595-1): Decompose the recorded failure into a small local repair plan for task 595. Preserve its objective and acceptance checks; write AUTONOMY_NEXT.json.; checks plan-contract=1 passed
+
+- Verified 2026-10-16 task 614 (local-repair-596-2): Decompose the recorded failure into a small local repair plan for task 596. Preserve its objective and acceptance checks; write AUTONOMY_NEXT.json.; checks plan-contract=1 passed

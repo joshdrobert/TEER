@@ -17,11 +17,12 @@
       "role": "coder"
     },
     {
-      "key": "task-595-duplicate-test-file",
-      "goal": "Remove duplicate test file from test/ directory to resolve import mismatch for task 595",
+      "key": "task-596-cache-cleanup",
+      "goal": "Add cache cleanup step to ensure clean pytest run for task 596 import conflicts",
       "files": ["test/test_anatomy_contract_validation.py"],
-      "tests": ["./tests/test_anatomy_contract_validation.py"],
-      "cwd": "."
+      "tests": ["./tests/test_anatomy_contract_validation.py", "./test/test_anatomy_contract_validation.py"],
+      "cwd": ".",
+      "role": "coder"
     }
   ]
 }
