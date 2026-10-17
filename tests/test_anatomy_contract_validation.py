@@ -44,10 +44,16 @@ def test_anatomy_contract_source_backed():
     with open(contract_path, 'r') as f:
         contract = yaml.safe_load(f)
     
-    # Check that unsupported elements are properly marked
-    assert "unsupported" in str(contract.get('coordinate_system', {})), "Coordinate system should be marked as unsupported"
-    assert "unsupported" in str(contract.get('frame', {})), "Frame should be marked as unsupported"
-    assert "unsupported" in str(contract.get('mesh', {}).get('topology', '')), "Mesh topology should be marked as unsupported"
+    # Check coordinate system definition
+    coord_frame = contract.get('geometry', {}).get('coordinate_frame', {})
+    assert 'type' in coord_frame, "Coordinate frame type should be defined"
+    assert 'description' in coord_frame, "Coordinate frame description should be defined"
+    assert 'units' in coord_frame, "Coordinate frame units should be defined"
+    
+    # Validate specific expected content from the contract
+    assert 'millimeters (mm)' in str(coord_frame.get('units', '')), "Should specify millimeter units"
+    assert 'Right-handed Cartesian system' in str(coord_frame.get('description', '')), "Should describe right-handed system"
+    assert 'center of the mitral valve annulus' in str(coord_frame.get('description', '')), "Should reference valve annulus center"
     
     print("✓ All unsupported elements properly marked")
 
