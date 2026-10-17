@@ -1,8 +1,8 @@
 {
   "tasks": [
     {
-      "key": "local-repair-634-1",
-      "goal": "Update acceptance check to exclude conflicting test file until issue resolved",
+      "key": "repair-645-remove-duplicate-test",
+      "goal": "Remove duplicate test file from test/ to resolve import mismatch for task 580",
       "files": ["test/test_anatomy_contract_validation.py"],
       "tests": ["./tests/test_anatomy_contract_validation.py"],
       "cwd": ".",
