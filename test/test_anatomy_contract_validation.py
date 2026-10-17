@@ -81,5 +81,23 @@ def test_coordinate_system_consistency():
     assert "vertical axis pointing from bottom to top" in content
     assert "depth axis pointing from front to back" in content
 
+# Cache cleanup hook for clean pytest runs
+def pytest_sessionstart(session):
+    """Clean up Python cache files before pytest run to avoid import conflicts"""
+    import shutil
+    import sys
+    import os
+    
+    # Find and remove all __pycache__ directories
+    for root, dirs, files in os.walk('.'):
+        for dir_name in dirs:
+            if dir_name == '__pycache__':
+                cache_path = os.path.join(root, dir_name)
+                try:
+                    shutil.rmtree(cache_path)
+                    print(f"Cleaned cache: {cache_path}")
+                except Exception as e:
+                    print(f"Warning: Could not clean {cache_path}: {e}")
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
