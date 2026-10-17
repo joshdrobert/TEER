@@ -7,6 +7,14 @@
       "tests": ["./tests/test_anatomy_contract_validation.py"],
       "cwd": ".",
       "role": "coder"
+    },
+    {
+      "key": "repair-646-add-cache-cleanup",
+      "goal": "Add cache cleanup step to ensure clean pytest run for task 580 import conflicts",
+      "files": [".gitignore"],
+      "tests": ["./test/test_anatomy_contract_validation.py"],
+      "cwd": ".",
+      "role": "coder"
     }
   ]
 }
