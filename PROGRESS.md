@@ -160,3 +160,5 @@
 - Verified 2026-10-17 task 656 (regenerate-plan-647): Decompose the recorded failure into a small local repair plan for task 645. Preserve its objective and acceptance checks; write AUTONOMY_NEXT.json.; checks plan-contract=1 passed
 
 - Verified 2026-10-17 task 657 (repair-645-remove-duplicate-test): Remove duplicate test file from test/ to resolve import mismatch for task 580; checks acceptance=2 passed
+
+- Verified 2026-10-17 task 657 (repair-645-remove-duplicate-test): Remove duplicate test file from test/ to resolve import mismatch for task 580; checks acceptance=2 passed
