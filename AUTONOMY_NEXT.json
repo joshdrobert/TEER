@@ -1,10 +1,26 @@
 {
   "tasks": [
     {
-      "key": "repair-698-import-collision",
-      "goal": "Resolve import collision between test/ and tests/ directories for anatomy contract validation while preserving all assertions",
-      "files": ["tests/test_anatomy_contract_validation.py", "test/test_anatomy_contract_validation.py"],
-      "tests": ["tests/test_anatomy_contract_validation.py"],
+      "key": "teer-anatomy-contract",
+      "goal": "Write research/anatomy_contract.yaml from source metadata documenting units/frame/mesh provenance and observable landmarks",
+      "files": ["valves_metadata.json", "scripts/validate_geometries.py", "scripts/extract_features.py"],
+      "tests": ["test/test_anatomy_contract_validation.py"],
+      "cwd": ".",
+      "role": "research"
+    },
+    {
+      "key": "teer-transform-repeatability",
+      "goal": "Add bounded alignment/feature invariance assessment on existing licensed meshes and record results in research/geometry_repeatability.json",
+      "files": ["scripts/extract_features.py"],
+      "tests": ["test/test_geometric_repeatability.py"],
+      "cwd": ".",
+      "role": "research"
+    },
+    {
+      "key": "validate-mesh-finite-coords",
+      "goal": "Repair validate_mesh finite-coordinate and bounding-box checks to inspect all triangle vertices not only v0, add adversarial synthetic STL tests",
+      "files": ["scripts/validate_geometries.py"],
+      "tests": ["test/test_validate_mesh.py"],
       "cwd": ".",
       "role": "coder"
     }
