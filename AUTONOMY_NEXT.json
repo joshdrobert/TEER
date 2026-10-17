@@ -1,7 +1,7 @@
 {
   "tasks": [
     {
-      "key": "repair-683-import-collision",
+      "key": "repair-690-import-collision",
       "goal": "Resolve import collision between test/ and tests/ directories for anatomy contract validation while preserving all assertions",
       "files": ["tests/test_anatomy_contract_validation.py", "test/test_anatomy_contract_validation.py"],
       "tests": ["tests/test_anatomy_contract_validation.py", "test/test_anatomy_contract_validation.py"],
