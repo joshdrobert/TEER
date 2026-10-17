@@ -1,10 +1,10 @@
 {
   "tasks": [
     {
-      "key": "repair-646-cache-cleanup",
-      "goal": "Add cache cleanup step for clean pytest run resolving task 580 import conflicts",
-      "files": ["test/test_anatomy_contract_validation.py"],
-      "tests": ["./tests/test_anatomy_contract_validation.py"],
+      "key": "repair-683-import-collision",
+      "goal": "Resolve import collision between test/ and tests/ directories for anatomy contract validation while preserving all assertions",
+      "files": ["tests/test_anatomy_contract_validation.py", "test/test_anatomy_contract_validation.py"],
+      "tests": ["tests/test_anatomy_contract_validation.py", "test/test_anatomy_contract_validation.py"],
       "cwd": ".",
       "role": "coder"
     }
