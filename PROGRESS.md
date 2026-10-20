@@ -180,3 +180,5 @@
 - Verified 2026-10-17 task 706 (local-repair-701-1): Decompose the recorded failure into a small local repair plan for task 701. Preserve its objective and acceptance checks; write AUTONOMY_NEXT.json.; checks plan-contract=1 passed
 
 - Verified 2026-10-17 task 701 (repair-698-import-collision): Resolve import collision between test/ and tests/ directories for anatomy contract validation while preserving all assertions; checks acceptance=2 passed
+
+- Verified 2026-10-20 task 720 (regenerate-plan-719): Decompose the recorded failure into a small local repair plan for task 718. Preserve its objective and acceptance checks; write AUTONOMY_NEXT.json.; checks plan-contract=1 passed
