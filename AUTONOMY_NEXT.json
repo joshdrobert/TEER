@@ -1,10 +1,14 @@
 {
   "tasks": [
     {
-      "key": "repair-698-import-collision",
-      "goal": "Resolve import collision between test/ and tests/ directories for anatomy contract validation while preserving all assertions",
-      "files": ["tests/test_anatomy_contract_validation.py", "test/test_anatomy_contract_validation.py"],
-      "tests": ["tests/test_anatomy_contract_validation.py"],
+      "key": "local-repair-718-1",
+      "goal": "Decompose the recorded failure into a small local repair plan for task 718. Preserve its objective and acceptance checks; write AUTONOMY_NEXT.json.",
+      "files": [
+        "test/test_anatomy_contract_validation.py"
+      ],
+      "tests": [
+        "test/test_anatomy_contract_validation.py"
+      ],
       "cwd": ".",
       "role": "coder"
     }
