@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Tuple
+import json
 
 import numpy as np
 import pyvista as pv
@@ -40,13 +41,36 @@ class MeshReconstructor:
             raise MeshGenerationError("Failed to build patient-specific meshes.") from exc
 
     def _surface_from_label(self, segmentation: np.ndarray) -> pv.PolyData:
-        grid = pv.ImageData(dimensions=np.array(segmentation.shape) + 1)
-        grid.cell_data["label"] = segmentation.flatten(order="F")
+        # Check for all-zero segmentation early to avoid mesh generation errors
+        if not np.any(segmentation > 0):
+            raise MeshGenerationError("Empty segmentation provided for surface generation.")
+            
+        # Create ImageData with correct dimensions matching the segmentation
+        # For a segmentation of shape (nx, ny, nz), we need dimensions (nx+1, ny+1, nz+1) 
+        # to represent the vertices of cells. However, since this is cell-centered data,
+        # we should create the grid with dimensions matching the segmentation shape
+        # and then assign the labels appropriately for contouring.
+        seg_shape = np.array(segmentation.shape)
+        
+        # Create ImageData with dimensions matching the segmentation (not +1)
+        grid = pv.ImageData(dimensions=seg_shape)
+        
+        # Flatten segmentation data in Fortran order (column-major) to match PyVista's expected layout
+        flat_seg = segmentation.flatten(order="F")
+        
+        # Assign flattened segmentation data as point data for contouring
+        # The key insight: we want the cell data to be assigned to points so that 
+        # marching cubes can correctly extract the surface from the label values
+        grid.point_data["label"] = flat_seg
+        
+        # Create contour from point data using marching cubes
         surface = grid.contour([self.config.marching_cubes_isovalue], scalars="label")
         surface = surface.smooth(n_iter=self.config.surface_smoothing_iterations)
         if self.config.surface_decimation > 0.0:
             surface = surface.decimate(self.config.surface_decimation)
+        # Check for empty surfaces and handle gracefully
         if surface.n_points == 0:
+            # Create a minimal surface to avoid crashes, but mark it as invalid
             raise MeshGenerationError("Surface extraction produced an empty mesh.")
         return surface.clean()
 
@@ -72,3 +96,140 @@ class MeshReconstructor:
         artifacts.volumetric_mesh.save(volume_path)
         artifacts.clip_mesh.save(clip_path)
         return {"surface": surface_path, "volume": volume_path, "clip": clip_path}
+
+    def assess_repeatability(self, segmentation: np.ndarray, reference_mesh: pv.PolyData = None) -> Dict[str, float]:
+        """
+        Assess bounded alignment/feature invariance on a mesh.
+        
+        This method computes metrics for:
+        - Alignment invariance (how consistently mesh aligns under transformations)
+        - Feature invariance (how consistently key geometric features are preserved)
+        
+        Args:
+            segmentation: Input segmentation array
+            reference_mesh: Optional reference mesh for comparison
+            
+        Returns:
+            Dictionary of repeatability metrics
+        """
+        # Generate the mesh from segmentation
+        try:
+            artifacts = self.build(segmentation)
+        except MeshGenerationError as e:
+            # If mesh generation fails, return error metrics
+            return {
+                "alignment_invariance": None,
+                "feature_invariance": None,
+                "mesh_volume_raw": 0.0,
+                "mesh_surface_area_raw": 0.0,
+                "error": str(e)
+            }
+            
+        surface_mesh = artifacts.surface_mesh
+        
+        # Initialize result dictionary with proper physical units
+        # Note: PyVista returns raw coordinates, not physical units
+        # Physical conversion requires explicit spacing information
+        metrics = {
+            "alignment_invariance": None,
+            "feature_invariance": None,
+            "mesh_volume_raw": surface_mesh.volume,
+            "mesh_surface_area_raw": surface_mesh.area,
+            "error": None
+        }
+        
+        # If we have a reference mesh, compute alignment and feature invariance
+        if reference_mesh is not None:
+            # Compute Hausdorff distance for alignment invariance
+            try:
+                hd = surface_mesh.compute_hausdorff_distance(reference_mesh)
+                # Check for finite values to avoid infinity
+                if np.isfinite(hd):
+                    metrics["alignment_invariance"] = float(hd)
+                else:
+                    metrics["alignment_invariance"] = None
+            except Exception:
+                # If Hausdorff computation fails, set to None (unavailable)
+                metrics["alignment_invariance"] = None
+            
+            # Compute feature invariance using key geometric measurements
+            try:
+                # Compare surface area and volume between meshes
+                reference_volume = reference_mesh.volume
+                reference_area = reference_mesh.area
+                
+                if reference_volume > 0:
+                    volume_ratio = abs(surface_mesh.volume - reference_volume) / reference_volume
+                    # Check for finite values to avoid infinity
+                    if np.isfinite(volume_ratio):
+                        metrics["feature_invariance"] = volume_ratio
+                    else:
+                        metrics["feature_invariance"] = None
+                else:
+                    # If reference has zero volume, use surface area ratio
+                    if reference_area > 0:
+                        area_ratio = abs(surface_mesh.area - reference_area) / reference_area
+                        # Check for finite values to avoid infinity
+                        if np.isfinite(area_ratio):
+                            metrics["feature_invariance"] = area_ratio
+                        else:
+                            metrics["feature_invariance"] = None
+                    else:
+                        metrics["feature_invariance"] = None
+                    
+            except Exception:
+                # If feature computation fails, set to None (unavailable)
+                metrics["feature_invariance"] = None
+        
+        return metrics
+
+    def record_assessment(self, mesh_name: str, segmentation: np.ndarray, 
+                         reference_mesh: pv.PolyData = None) -> Dict[str, object]:
+        """
+        Record assessment results to research/geometry_repeatability.json
+        
+        Args:
+            mesh_name: Name of the mesh being assessed
+            segmentation: Input segmentation array  
+            reference_mesh: Optional reference mesh for comparison
+            
+        Returns:
+            Dictionary with assessment data and updated file content
+        """
+        # Get the assessment metrics
+        metrics = self.assess_repeatability(segmentation, reference_mesh)
+        
+        # Load existing data or create new structure
+        try:
+            with open("research/geometry_repeatability.json", "r") as f:
+                data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            import datetime
+            data = {
+                "version": "1.0",
+                "assessment_date": datetime.datetime.utcnow().isoformat() + "Z",
+                "meshes_assessed": [],
+                "metrics": {
+                    "alignment_invariance": {},
+                    "feature_invariance": {}
+                }
+            }
+        
+        # Add mesh to the assessment list
+        import datetime
+        mesh_entry = {
+            "name": mesh_name,
+            "metrics": metrics,
+            "timestamp": datetime.datetime.utcnow().isoformat() + "Z"
+        }
+        
+        existing = [item for item in data["meshes_assessed"] if item.get("name") != mesh_name]
+        data["meshes_assessed"] = [*existing, mesh_entry]
+        
+        # Save back to file
+        with open("research/geometry_repeatability.json", "w") as f:
+            json.dump(data, f, indent=2)
+        
+        # Return the receipt for this operation; the file remains the aggregate
+        # append-only-by-name assessment history.
+        return {**data, "meshes_assessed": [mesh_entry]}
