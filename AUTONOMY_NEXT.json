@@ -1,8 +1,8 @@
 {
   "tasks": [
     {
-      "key": "repair-698-import-collision",
-      "goal": "Resolve import collision between test/ and tests/ directories for anatomy contract validation while preserving all assertions",
+      "key": "local-repair-725-1",
+      "goal": "Remove duplicate anatomy-contract pytest module basename from test/ directory while preserving all original assertions",
       "files": ["tests/test_anatomy_contract_validation.py", "test/test_anatomy_contract_validation.py"],
       "tests": ["tests/test_anatomy_contract_validation.py"],
       "cwd": ".",
