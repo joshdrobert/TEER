@@ -223,10 +223,13 @@ class MeshReconstructor:
             "timestamp": datetime.datetime.utcnow().isoformat() + "Z"
         }
         
-        data["meshes_assessed"].append(mesh_entry)
+        existing = [item for item in data["meshes_assessed"] if item.get("name") != mesh_name]
+        data["meshes_assessed"] = [*existing, mesh_entry]
         
         # Save back to file
         with open("research/geometry_repeatability.json", "w") as f:
             json.dump(data, f, indent=2)
         
-        return data
+        # Return the receipt for this operation; the file remains the aggregate
+        # append-only-by-name assessment history.
+        return {**data, "meshes_assessed": [mesh_entry]}

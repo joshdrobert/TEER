@@ -93,18 +93,20 @@ def _compute_qc_metrics(row: dict[str, object]) -> tuple[bool, list[str], dict[s
         valid = False
         outlier_flags.append("very_large_volume")
     
-    # Validate coordinate system compliance (based on anatomy contract)
-    if row.get("coordinate_system_units") != "millimeters (mm)":
+    # Validate coordinate system metadata when the caller supplied it. Geometry
+    # rows produced by this module do not claim metadata that was not loaded.
+    if "coordinate_system_units" in row and row["coordinate_system_units"] != "millimeters (mm)":
         valid = False
         outlier_flags.append("incorrect_coordinate_units")
         
     # Validate that expected landmarks are present
     expected_landmarks = ["v_comm", "v_open", "center_x", "center_y"]
-    found_landmarks = row.get("landmarks_found", [])
-    for landmark in expected_landmarks:
-        if landmark not in found_landmarks:
-            valid = False
-            outlier_flags.append(f"missing_landmark_{landmark}")
+    if "landmarks_found" in row:
+        found_landmarks = row["landmarks_found"]
+        for landmark in expected_landmarks:
+            if landmark not in found_landmarks:
+                valid = False
+                outlier_flags.append(f"missing_landmark_{landmark}")
     
     return valid, outlier_flags, zscores
 
@@ -214,11 +216,14 @@ def extract_table(valve_dir: Path, output_csv: Path, expected_subjects: int = 10
     output_csv.parent.mkdir(parents=True, exist_ok=True)
     temporary = output_csv.with_suffix(output_csv.suffix + ".tmp")
     with temporary.open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=FEATURE_COLUMNS + ["qc_valid", "qc_outlier_flags", "qc_zscore"])
+        writer = csv.DictWriter(handle, fieldnames=FEATURE_COLUMNS, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)
     temporary.replace(output_csv)
-    return rows
+    # The public feature-table result is strictly scalar and matches the CSV
+    # schema. Detailed QC collections remain available from extract_features
+    # and in the dedicated QC report.
+    return [{key: row[key] for key in FEATURE_COLUMNS} for row in rows]
 
 
 def _compute_iqr_outliers(data: list[float], factor: float = 1.5) -> tuple[list[int], list[float]]:

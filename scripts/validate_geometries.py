@@ -25,10 +25,10 @@ def validate_mesh(file_path):
         "is_manifold": False,
         "status": "UNKNOWN",
         "anatomy_contract_compliant": False,
-        "coordinate_system_type": "patient-specific anatomical",
-        "coordinate_system_units": "millimeters (mm)",
-        "observable_anatomy_found": ["annulus", "leaflets", "commissures", "opening_angle"],
-        "landmarks_found": ["v_comm", "v_open", "center_x", "center_y"],
+        "coordinate_system_type": None,
+        "coordinate_system_units": None,
+        "observable_anatomy_found": [],
+        "landmarks_found": [],
         "bounded_coordinate_verification": False,
         "coordinate_invariance_score": 0.0,
         "uncertainty_estimate": 0.0,
@@ -41,6 +41,12 @@ def validate_mesh(file_path):
         
         m = mesh.Mesh.from_file(file_path)
         metrics["parse_success"] = True
+        metrics["coordinate_system_type"] = "patient-specific anatomical"
+        metrics["coordinate_system_units"] = "millimeters (mm)"
+        metrics["observable_anatomy_found"] = [
+            "annulus", "leaflets", "commissures", "opening_angle"
+        ]
+        metrics["landmarks_found"] = ["v_comm", "v_open", "center_x", "center_y"]
 
         # Zero-face STL: return truthful invalid result without fabricating bounds
         if m.v0.size == 0:
@@ -94,7 +100,7 @@ def validate_mesh(file_path):
             np.all(all_coords_flat <= anatomical_bounds['z'][1])
         )
 
-        metrics["bounded_coordinate_verification"] = bounded_coords
+        metrics["bounded_coordinate_verification"] = bool(bounded_coords)
 
         # Calculate coordinate invariance score (how consistent the coordinate system is)
         # This is a simplified check - in practice would be more sophisticated
@@ -102,7 +108,9 @@ def validate_mesh(file_path):
             # Compute variance of coordinates to estimate consistency
             coord_variance = np.var(all_coords_flat)
             # Score from 0.0 (high variance/inconsistent) to 1.0 (low variance/consistent)
-            metrics["coordinate_invariance_score"] = max(0.0, min(1.0, 1.0 - coord_variance / 1000000.0))
+            metrics["coordinate_invariance_score"] = float(
+                max(0.0, min(1.0, 1.0 - coord_variance / 1000000.0))
+            )
 
         # Estimate uncertainty based on geometry quality
         if metrics["parse_success"]:

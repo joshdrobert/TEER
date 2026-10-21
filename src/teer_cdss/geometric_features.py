@@ -44,7 +44,13 @@ def compute_distance_field_samples(mesh, grid_resolution=32):
         min_bounds = np.array([-1.0, -1.0, -1.0])
         max_bounds = np.array([1.0, 1.0, 1.0])
     
-    actual_points = min_bounds + normalized_points * (max_bounds - min_bounds)
+    # Sample slightly beyond the surface bounds so a closed mesh produces both
+    # interior and exterior signed-distance values. Sampling only on/inside the
+    # exact AABB made the sign test degenerate for boxes.
+    padding = np.maximum((max_bounds - min_bounds) * 0.05, 1e-6)
+    sample_min = min_bounds - padding
+    sample_max = max_bounds + padding
+    actual_points = sample_min + normalized_points * (sample_max - sample_min)
     
     # Compute signed and unsigned distances properly
     # Convert to 2D array for proper trimesh API usage
