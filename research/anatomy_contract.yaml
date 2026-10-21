@@ -1,0 +1,90 @@
+# Anatomy Contract for TEER Project
+# Source: MVSeg2023 3D TEE dataset
+# Documented coordinate frame, scale, and observability
+
+schema_version: 1
+project: TEER
+source:
+  dataset: MVSeg2023 3D TEE
+  url: https://github.com/MVSeg2023/dataset
+  license: CC-BY-4.0
+  version: v1.0
+geometry:
+  coordinate_frame:
+    type: patient-specific anatomical
+    description: "Right-handed Cartesian system with z-axis aligned with gravity (anterior-posterior), x-axis along left-right axis, y-axis along superior-inferior axis. Origin is at the center of the mitral valve annulus."
+    units: millimeters (mm)
+    axis_descriptions:
+      x: horizontal axis pointing from left to right
+      y: vertical axis pointing from bottom to top
+      z: depth axis pointing from front to back
+    handedness: right-handed
+    legacy_origin_label: "center of valve structure; normalized to center of the mitral valve annulus"
+  scale:
+    description: All meshes are in physical millimeter units.
+    reference: "Based on DICOM pixel spacing and patient-specific scaling factors from MVSeg2023"
+  mesh_provenance:
+    description: "triangular mesh surfaces segmented from 3D TEE medical imaging data using a MONAI 3D U-Net model."
+    topology_expectation: "manifold, watertight"
+    unsupported_legacy_claims:
+      - "high-resolution: not established by the current source record"
+      - "noise reduction: processing step not established by the current source record"
+    quality_control:
+      - Finite coordinate checks on all triangle vertices (not only v0)
+      - Zero-face STLs are flagged with appropriate error codes
+      - Watertight mesh validation
+      - Degenerate face detection
+      - Connected component analysis
+  observability:
+    anatomy_features:
+      - Annulus: defined by the valve ring boundary
+      - Leaflets: identified by segmentation algorithm
+      - Commissures: anatomical points where leaflets meet (observable)
+      - Opening angle: measured from the commissure points
+    landmarks:
+      - v_comm: minimum z coordinate (bottom point of valve, typically commissure)
+      - v_open: maximum z coordinate (top point of valve, typically opening)
+      - center_x: mean of x coordinates (valve center in x-direction)
+      - center_y: mean of y coordinates (valve center in y-direction)
+    legacy_field_aliases:
+      valve_comm: "Alias for v_comm; commisure spelling retained only for input compatibility"
+      valve_open: "Alias for v_open; opening point terminology retained for input compatibility"
+    unsupported_features:
+      - No anatomical landmarks beyond leaflet boundaries
+      - No procedural endpoints or clip placement targets
+      - No label/outcome leakage from unannotated geometry
+validation_prerequisites:
+  - All meshes must be validated for finite coordinates on all triangle vertices
+  - Zero-face STLs are flagged with appropriate error codes
+  - Meshes must be watertight and manifold
+  - Degenerate faces (zero-area) must be detected and reported
+  - Connected components analysis must be performed
+  - Outlier detection using IQR on face count, surface area, volume metrics
+  - All validations must be deterministic with clear pass/fail criteria
+
+# Stable compatibility projection for established analysis consumers. These
+# keys restate the source-backed geometry section; they do not add observations.
+coordinate_system:
+  type: patient-specific anatomical
+  units: millimeters (mm)
+  origin: center of the mitral valve annulus
+frame:
+  handedness: right-handed
+  axes: [left-right, bottom-top, front-back]
+mesh:
+  representation: triangular mesh
+  expected_topology: "manifold, watertight"
+observable_anatomy:
+  - name: valve_comm
+    definition: minimum z coordinate; compatibility alias for v_comm
+  - name: valve_open
+    definition: maximum z coordinate; compatibility alias for v_open
+landmarks:
+  - name: center_x
+  - name: center_y
+  - name: angle_rad
+  - name: angle_deg
+data_source:
+  metadata_file: valves_metadata.json
+  sample_count: 105
+  sample_ids: train_001 through train_105
