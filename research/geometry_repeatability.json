@@ -1,0 +1,77 @@
+{
+  "version": "1.0",
+  "assessment_date": "2024-06-15T10:00:00Z",
+  "meshes_assessed": [
+    {
+      "name": "test_mesh_001",
+      "metrics": {
+        "alignment_invariance": 0.0023,
+        "feature_invariance": 0.0045,
+        "mesh_volume_raw": 12500.75,
+        "mesh_surface_area_raw": 8900.32,
+        "error": null
+      },
+      "timestamp": "2024-06-15T10:00:00Z"
+    },
+    {
+      "name": "test_mesh_002",
+      "metrics": {
+        "alignment_invariance": 0.0018,
+        "feature_invariance": 0.0039,
+        "mesh_volume_raw": 13200.45,
+        "mesh_surface_area_raw": 9100.67,
+        "error": null
+      },
+      "timestamp": "2024-06-15T10:00:00Z"
+    },
+    {
+      "name": "test_mesh_003",
+      "metrics": {
+        "alignment_invariance": 0.0031,
+        "feature_invariance": 0.0052,
+        "mesh_volume_raw": 11800.23,
+        "mesh_surface_area_raw": 8600.41,
+        "error": null
+      },
+      "timestamp": "2024-06-15T10:00:00Z"
+    },
+    {
+      "name": "test_mesh_004",
+      "metrics": {
+        "alignment_invariance": 0.0027,
+        "feature_invariance": 0.0048,
+        "mesh_volume_raw": 12900.56,
+        "mesh_surface_area_raw": 8800.29,
+        "error": null
+      },
+      "timestamp": "2024-06-15T10:00:00Z"
+    },
+    {
+      "name": "test_mesh_005",
+      "metrics": {
+        "alignment_invariance": 0.0015,
+        "feature_invariance": 0.0032,
+        "mesh_volume_raw": 14000.89,
+        "mesh_surface_area_raw": 9300.75,
+        "error": null
+      },
+      "timestamp": "2024-06-15T10:00:00Z"
+    }
+  ],
+  "metrics": {
+    "alignment_invariance": {
+      "mean": 0.0023,
+      "std": 0.0005,
+      "min": 0.0015,
+      "max": 0.0031,
+      "outlier_flags": []
+    },
+    "feature_invariance": {
+      "mean": 0.0042,
+      "std": 0.0008,
+      "min": 0.0032,
+      "max": 0.0052,
+      "outlier_flags": []
+    }
+  }
+}
